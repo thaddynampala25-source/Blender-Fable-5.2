@@ -5,11 +5,14 @@ reference photos (Japanese features), without exaggerating. The face is painted 
 so every change is a texture edit located through the baked 3D position of each texel:
 
 - scarf: pink -> warm beige, keeping its shading
-- hair: near-black -> very dark brown
-- eyes: dark brown irises (were grey); a slightly lower upper lid with the liner moved down,
-  lowered more at the inner corner than the outer one: a softer, slightly upturned almond shape
+- hair: the template's flat near-black -> one even brown, all of it
+- eyes: the grey irises recoloured brown (colour only: the eye shape, pupil, catchlight and liner
+  are the template's own)
 - brows: dark brown instead of grey-black
-- lips: a little rosier; cheeks: a faint warm blush
+- lips unchanged; cheeks: a faint warm blush
+- chin: the dark painted crescent under it is painted over with the neck's skin tone
+- texels just outside the UV islands take the colour of the island next to them, so the old
+  black does not bleed into the seams when the texture is filtered
 All arrays are Blender image order (rows bottom-up), float RGBA 0..1.
 """
 import numpy as np
@@ -44,13 +47,18 @@ def edit(tex, pos, nor, covered, info):
         (z > neck) |                                              # head, above the neck
         ((nor[..., 1] > 0.15) & (z > 0.86)) |                     # the back, down to the hair ends
         ((ax > 0.36) & (z > 0.86)) |                              # strands hanging outside the arms
-        ((ax > 0.17) & (z > neck - 0.2) & (nor[..., 1] < 0.15))   # strands over the shoulders, in front
+        ((ax > 0.17) & (z > neck - 0.2) & (nor[..., 1] < 0.15)) | # strands over the shoulders, in front
+        # hair ends hanging behind the jacket: the jacket's back is at y < 0.13 and the arms' at
+        # y < 0.05, the hair behind them further back
+        ((z > 0.66) & (ax < 0.46) & (y > np.where(ax < 0.3, 0.16, 0.065)))
     )
     # keep the face's painted features (brows, liner, pupils) out of the hair mask
     face_box = (np.abs(x) < 0.29) & (z > ez - 0.08) & (z < ez + 0.16) & (nor[..., 1] < -0.5)
     hair &= ~face_box
-    brown = np.array([0.20, 0.135, 0.10], np.float32)
-    rgb[hair] = np.clip(rgb[hair] / 0.08 * brown, 0, 1)
+    # the template paints all its hair one flat grey (~0.08), so the hair becomes one flat brown;
+    # the strands' shading comes from the geometry, as it did before
+    brown = np.array([0.31, 0.20, 0.13], np.float32)
+    rgb[hair] = brown
 
     # ---- eyes
     skin_ref = rgb[frontish & (np.abs(x) < 0.08) & (z > ez - 0.12) & (z < ez - 0.05) & (sat > 0.15) & (val > 0.8)]
@@ -69,59 +77,47 @@ def edit(tex, pos, nor, covered, info):
         liner = region & (val <= 0.13)
         if opening.sum() < 50:
             continue
-        # iris circle (from the darker part of the opening), measured on the original colours
-        darkp = opening & (val < 0.62)
-        ic_u, ic_v = float(np.median(u[darkp])), float(np.median(v[darkp]))
-        area = darkp.sum() / max(1, opening.sum()) * (np.pi * (w / 2) * (h / 2))
-        rad = np.sqrt(area / np.pi) * 1.2
-        du = (u - ic_u) * (w * 0.5); dv = (v - ic_v) * (h * 0.5)
-        in_iris = (du ** 2 + dv ** 2 < rad ** 2)
-        # 1) a slightly lower upper lid along a smooth curve
-        uu, vv = u[opening], v[opening]
-        bins = np.linspace(-0.95, 0.95, 20); tu, tv = [], []
-        for i in range(len(bins) - 1):
-            m = (uu >= bins[i]) & (uu < bins[i + 1])
-            if m.sum() > 5:
-                tu.append((bins[i] + bins[i + 1]) / 2); tv.append(np.percentile(vv[m], 97))
-        if len(tu) < 6:
-            continue
-        top = np.polyval(np.polyfit(tu, tv, 2), u)
-        cut = 0.18 - 0.08 * np.clip((u + 1) / 2, 0, 1)   # half-heights: more at the inner corner -> a soft upturn
-        nt = top - cut
-        lw = 0.30                                          # a bold liner, like the photos
-        inner = region & (np.abs(u) < 1.0)
-        old = inner & (val < 0.32) & (v > top - 0.12) & (v < top + 0.75) & (u < 0.82)
-        above = inner & (v > nt) & (v < top + 0.75) & (u < 0.82) & (old | opening | in_iris)
-        rgb[above] = skin
-        lwu = lw * (0.8 + 0.4 * np.clip((u + 1) / 2, 0, 1))
-        rgb[inner & (v >= nt) & (v <= nt + lwu) & ((v <= top + 0.05) | opening | old)] = liner_col
-        # 2) iris: dark brown below the lid, keeping the painted shading
-        iris = opening & in_iris & (val < 0.84) & (v < nt)
-        L = rgb[iris].mean(-1, keepdims=True)
-        dark_b, light_b = np.array([0.06, 0.035, 0.022]), np.array([0.55, 0.35, 0.21])
-        rgb[iris] = np.clip(dark_b + (light_b - dark_b) * np.clip((L - 0.08) / 0.7, 0, 1) ** 0.9, 0, 1)
-        # 3) a fresh catchlight in the visible part of the iris (the old one is under the lid now)
-        cl_u = ic_u + 0.35 * rad / (w * 0.5)
-        cl_v = min(ic_v + 0.25 * rad / (h * 0.5), float(np.interp(cl_u, [-1, 1], [np.polyval(np.polyfit(tu, tv, 2), -1), np.polyval(np.polyfit(tu, tv, 2), 1)])) - 0.45)
-        cdu = (u - cl_u) * (w * 0.5); cdv = (v - cl_v) * (h * 0.5); cr = rad * 0.2
-        rgb[opening & (cdu ** 2 + cdv ** 2 < cr ** 2)] = np.array([1.0, 1.0, 1.0])
+        # the iris: the grey disc in the opening. Its centre and radius come from the grey texels;
+        # inside it, every grey texel is recoloured brown on a ramp that follows the painted
+        # brightness. The pupil (near-black), the white catchlight and the sclera keep their colours.
+        grey = eye & (sat < 0.25) & (val > 0.12) & (val < 0.86)
+        gx, gz = float(np.median(x[grey])), float(np.median(z[grey]))
+        rr = np.hypot(x - gx, z - gz)
+        rad = float(np.percentile(rr[grey], 90)) * 1.08
+        iris = eye & (rr < rad) & (sat < 0.3) & (val > 0.12) & (val < 0.86)
+        L = np.clip((val[iris] - 0.12) / 0.6, 0, 1)[:, None] ** 0.8
+        dark_b, light_b = np.array([0.22, 0.11, 0.05]), np.array([0.62, 0.40, 0.22])
+        rgb[iris] = dark_b + (light_b - dark_b) * L
 
     # ---- brows: dark brown
     brow = frontish & (np.abs(x) < 0.3) & (z > ez + 0.04) & (z < ez + 0.17) & (val < 0.35)
     rgb[brow] = np.clip(rgb[brow] / np.maximum(rgb[brow].mean(-1, keepdims=True), 1e-3) * 0.0 + np.array([0.17, 0.11, 0.08]) * (0.6 + rgb[brow].mean(-1, keepdims=True) * 2), 0, 1)
 
-    # ---- lips rosier, faint blush
+    # ---- the dark painted crescent under the chin (owner's note: "get rid of that weird black part"):
+    # paint it with the neck's own skin tone, shading kept
     if mouth:
-        mx_, mz_ = mouth["center"][0], mouth["center"][2]
-        d = ((x - mx_) / 0.075) ** 2 + ((z - mz_) / 0.045) ** 2
-        f = np.clip(1 - d, 0, 1) ** 0.7 * 0.32 * frontish
-        rose = np.array([0.85, 0.50, 0.52], np.float32)
-        rgb[:] = rgb * (1 - f[..., None]) + rose * f[..., None]
+        mz = mouth["center"][2]
+        chin = covered & (np.abs(x) < 0.16) & (z > mz - 0.19) & (z < mz - 0.06) & (y < -0.1) & ~hair & ((val < 0.55) | ((val < 0.88) & (nor[..., 2] < -0.2) & (z < mz - 0.15)))
+        neck_ref = rgb[covered & (np.abs(x) < 0.07) & (z > mz - 0.2) & (z < mz - 0.13) & (val > 0.6) & (sat > 0.15)]
+        neck = np.median(neck_ref, 0) if len(neck_ref) > 30 else skin * 0.92
+        rgb[chin] = neck * 0.95
+
+    # ---- lips: left as the template painted them (an earlier rose tint was removed at the owner's request); faint blush
     for e in eyes.values():
         cx, cz = e["center"][0], e["center"][2]
         d = ((x - cx * 1.05) / 0.09) ** 2 + ((z - (cz - 0.12)) / 0.05) ** 2
         f = np.clip(1 - d, 0, 1) ** 1.5 * 0.12 * frontish
         blush = np.array([0.95, 0.55, 0.52], np.float32)
         rgb[:] = rgb * (1 - f[..., None]) + blush * f[..., None]
+    # ---- pad: texels outside the UV islands take the nearest island colour (up to 12 texels out)
+    filled = covered.copy()
+    for _ in range(12):
+        acc = np.zeros_like(rgb); n = np.zeros(rgb.shape[:2], np.float32)
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            f = np.roll(filled, (dy, dx), (0, 1)); c = np.roll(rgb, (dy, dx), (0, 1))
+            acc += c * f[..., None]; n += f
+        grow = ~filled & (n > 0)
+        rgb[grow] = acc[grow] / n[grow][:, None]
+        filled |= grow
     out[..., :3] = rgb
     return out

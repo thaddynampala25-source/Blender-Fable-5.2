@@ -6,7 +6,7 @@ const {chromium} = require('playwright'); const fs = require('fs'); const {execF
   const made = [];
   for (const {id, file} of roster) { const ctx = await b.newContext({viewport: {width: 360, height: 640}, deviceScaleFactor: 1.5, isMobile: true, hasTouch: true}); const p = await ctx.newPage();
     await p.addInitScript(i => { try { const s = JSON.parse(localStorage.getItem('w2s.v1') || '{}'); s.buddy = i; localStorage.setItem('w2s.v1', JSON.stringify(s)); } catch (e) {} }, id);
-    await p.goto('http://localhost:8765/speech-mode/', {waitUntil: 'networkidle'}); await p.waitForFunction(() => window.W2SBuddies && window.W2SBuddies.ready, null, {timeout: 90000}); await p.waitForTimeout(2600);
+    await p.goto('http://localhost:8765/speech-mode/', {waitUntil: 'networkidle'}); await p.waitForFunction(() => window.W2SBuddies && window.W2SBuddies.ready, null, {timeout: 90000}); await p.evaluate(() => { window.W2SBuddies.lockQuality = true; window.W2SBuddies.setQuality(0); }); await p.waitForTimeout(2600);
     const url = await p.evaluate(() => { const D = window.W2SBuddies; D.view({rot: 0, blink: 0}); return D.snap(); });
     const dir = fs.existsSync(`buddy-models/${file}.glb`) ? 'buddy-models' : 'buddy-gen/out';
     fs.writeFileSync(`${dir}/${file}.png`, Buffer.from(url.split(',')[1], 'base64')); made.push(`${dir}/${file}`);
