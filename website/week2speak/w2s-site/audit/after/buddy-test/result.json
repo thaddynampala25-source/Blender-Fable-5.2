@@ -19,9 +19,9 @@
  },
  "lipsync": {
   "spoke": true,
-  "mouthMaxWhileSpeaking": 0.577,
+  "mouthMaxWhileSpeaking": 0.574,
   "wordsHighlighted": 9,
-  "mouthAfter": 0,
+  "mouthAfter": 0.002,
   "stateAfter": "turn",
   "mouthCardWhileSpeaking": true,
   "timing": "estimated",
@@ -46,27 +46,27 @@
   ],
   "log": [
    "boop",
-   "hairflick",
-   "shrug",
-   "wave",
-   "sip",
-   "giggle",
    "startled",
    "tickle",
    "shrug",
    "wave",
+   "giggle",
+   "hairflick",
+   "tickle",
+   "shrug",
+   "sip",
    "boop",
    "tickle"
   ],
   "distinct": [
    "boop",
-   "hairflick",
+   "startled",
+   "tickle",
    "shrug",
    "wave",
-   "sip",
    "giggle",
-   "startled",
-   "tickle"
+   "hairflick",
+   "sip"
   ],
   "repeats": 0,
   "pass": true
@@ -178,25 +178,25 @@
   "pass": true
  },
  "fps": {
-  "readout": "2 fps | 2 draw calls, 70k triangles | quality step 3 of 3 (1.00x, shadows off) | ANGLE (Google, Vulkan 1.3.0 (SwiftShader Devic",
+  "readout": "6 fps | 2 draw calls, 70k triangles | quality step 3 of 3 (1.00x, shadows off) | ANGLE (Google, Vulkan 1.3.0 (SwiftShader Devic",
   "samples": [
-   "21fps q0",
-   "6fps q1",
+   "20fps q0",
+   "11fps q1",
    "3fps q1",
-   "3fps q2",
    "1fps q2",
+   "3fps q2",
    "2fps q3",
+   "5fps q3",
    "3fps q3",
-   "2fps q3",
-   "2fps q3"
+   "6fps q3"
   ],
   "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
   "info": {
-   "ppu": 205,
-   "faceShare": 0.34,
+   "ppu": 151,
+   "faceShare": 0.25,
    "calls": 2,
    "tris": 70001,
-   "slowFor": 4.4
+   "slowFor": 4.1
   },
   "pass": true,
   "hiddenWithoutFlag": true
@@ -204,17 +204,17 @@
  "phone": {
   "vh": 640,
   "nav": 48,
-  "stageH": 249,
+  "stageH": 308,
   "barH": 73,
   "barBottom": 640,
   "mic": 52,
   "faceY": 221,
-  "faceShare": 0.24,
+  "faceShare": 0.25,
   "scrollY": 0,
   "overflow": 0,
   "kb": false,
   "thread": true,
-  "threadH": 290,
+  "threadH": 231,
   "lineVisible": null,
   "pass": true
  },
@@ -233,7 +233,7 @@
   "barBottom": 350,
   "mic": 0,
   "faceY": 0,
-  "faceShare": 0.24,
+  "faceShare": 0.25,
   "scrollY": 0,
   "overflow": 0,
   "kb": true,
@@ -260,7 +260,7 @@
  },
  "reducedMotion": {
   "flag": true,
-  "mouthMax": 0.686,
+  "mouthMax": 0.77,
   "hopMax": 0,
   "switched": "may",
   "sheetTransition": "0s",

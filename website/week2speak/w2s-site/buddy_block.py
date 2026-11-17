@@ -439,7 +439,7 @@ textarea.field{display:block;resize:none;overflow-y:auto;max-height:calc(1.4em *
   .smx.kb #speakMic{display:none!important}
 
   /* the conversation: a thread under a smaller stage */
-  .smx{grid-template-rows:minmax(0,min(42%,340px)) minmax(0,1fr) auto;grid-template-areas:"stage" "thread" "bar"}
+  .smx{grid-template-rows:minmax(0,min(52%,470px)) minmax(0,1fr) auto;grid-template-areas:"stage" "thread" "bar"}
   .sm-thread{grid-area:thread;position:relative;z-index:4;display:flex;flex-direction:column;gap:10px;min-height:0;margin-top:-20px;padding:16px 14px 14px;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-radius:22px 22px 0 0;box-shadow:0 -8px 22px -12px rgba(11,16,58,.28);scrollbar-width:none}
   .sm-thread::-webkit-scrollbar{display:none}
   .sm-thread .chat{display:grid;gap:8px;align-content:start;height:auto;min-height:0;max-height:none;margin:0;padding:0;border:0;overflow:visible;background:none}
