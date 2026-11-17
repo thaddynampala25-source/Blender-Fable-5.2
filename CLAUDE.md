@@ -5,6 +5,15 @@ Storage and tooling for Blender projects that Claude builds through the
 worth keeping lives in this repository: the container Blender runs in is
 thrown away when the session ends.
 
+## Week2Speak Buddies (current character work)
+
+The Week2Speak site lives in `website/week2speak/` (read its
+`PROJECT_HANDOFF.md`). The owner's brief for redesigning its 3D Language
+Buddies is `CHARACTER_DESIGN_BRIEF.md`; the reference study and agreed visual
+direction are `CHARACTER_REFERENCE_ANALYSIS.md`, with stills in
+`references/frames/`. Read both before any character work, and don't start
+modelling a character until the owner has approved the approach.
+
 ## How Blender runs here
 
 Cloud sessions have no screen and no GPU. `scripts/blender-up.sh` starts a real
