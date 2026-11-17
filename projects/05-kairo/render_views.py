@@ -34,5 +34,9 @@ else:
     studio.render_settings(samples=samples or 32, res=res or (1080, 1620))
     shots = [("front", 0), ("q34", 35), ("side", 90)]
     cam = lambda n, y: studio.camera("Body_" + n, (0, 0, top / 2), y, 6.0, top / 2 + 0.15, lens=50)
+import os
+only = os.environ.get("VIEWS")
+if only:
+    shots = [s_ for s_ in shots if s_[0] in only.split(",")]
 for name, yaw in shots:
     studio.render(cam(name, yaw), out / f"{mode}_{name}.png")

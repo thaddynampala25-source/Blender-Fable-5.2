@@ -20,6 +20,8 @@ HERE = Path(__file__).resolve().parent
 SRC, OUT = HERE / "work" / "dressed.blend", HERE / "work" / "clothes.blend"
 
 COBALT = (0.007, 0.017, 0.20)
+NAVY = (0.006, 0.009, 0.040)
+OPEN = 0.078              # half-width of the jacket's open front
 SUN = (1.0, 0.62, 0.035)
 TEE = (0.80, 0.78, 0.74)
 BRASS = (0.62, 0.42, 0.16)
@@ -126,7 +128,8 @@ def shell(body, name, keep, offset, bvh_list, relax=24, box=None, push_min=0.004
                     if hit is None:
                         continue
                     need = max(push_min, off[i] * clear)
-                    if (p - hit).dot(hn) < 0 or d < need:
+                    # "inside" only counts near the surface: far from a layer (past its armhole or hem) the nearest point is meaningless
+                    if ((p - hit).dot(hn) < 0 and d < 0.03) or d < need:
                         p = hit + hn * need
                 co[i] = p[:]
     for i, v in enumerate(bm.verts):
@@ -192,12 +195,13 @@ def canvas_material():
     L = nt.links.new
     tc = nt.nodes.new("ShaderNodeTexCoord")
     # plain weave: two perpendicular fine wave patterns
-    w1 = nt.nodes.new("ShaderNodeTexWave"); w1.bands_direction = "X"; w1.inputs["Scale"].default_value = 330
-    w2 = nt.nodes.new("ShaderNodeTexWave"); w2.bands_direction = "Z"; w2.inputs["Scale"].default_value = 330
+    # twill: fine diagonal ribs (like workwear canvas), crossed by a fainter weave
+    w1 = nt.nodes.new("ShaderNodeTexWave"); w1.bands_direction = "DIAGONAL"; w1.inputs["Scale"].default_value = 210
+    w2 = nt.nodes.new("ShaderNodeTexWave"); w2.bands_direction = "X"; w2.inputs["Scale"].default_value = 420
     for w in (w1, w2):
-        w.inputs["Distortion"].default_value = 1.5; L(tc.outputs["Object"], w.inputs["Vector"])
+        w.inputs["Distortion"].default_value = 0.8; L(tc.outputs["Object"], w.inputs["Vector"])
     mx = nt.nodes.new("ShaderNodeMath"); mx.operation = "MULTIPLY"; L(w1.outputs["Fac"], mx.inputs[0]); L(w2.outputs["Fac"], mx.inputs[1])
-    bump = nt.nodes.new("ShaderNodeBump"); bump.inputs["Strength"].default_value = 0.35; bump.inputs["Distance"].default_value = 0.0006
+    bump = nt.nodes.new("ShaderNodeBump"); bump.inputs["Strength"].default_value = 0.55; bump.inputs["Distance"].default_value = 0.0008
     L(mx.outputs[0], bump.inputs["Height"])
     # broad fabric unevenness
     nz = nt.nodes.new("ShaderNodeTexNoise"); nz.inputs["Scale"].default_value = 30; nz.inputs["Detail"].default_value = 6
@@ -236,11 +240,30 @@ def knit_material():
     L(st.outputs["Fac"], mx.inputs[0]); L(rib.outputs["Fac"], mx.inputs[2])
     bump = nt.nodes.new("ShaderNodeBump"); bump.inputs["Strength"].default_value = 0.6; bump.inputs["Distance"].default_value = 0.0015
     L(mx.outputs[0], bump.inputs["Height"]); L(bump.outputs["Normal"], b.inputs["Normal"])
-    cr = nt.nodes.new("ShaderNodeValToRGB"); cr.color_ramp.elements[0].color = (SUN[0] * 0.55, SUN[1] * 0.5, SUN[2] * 0.5, 1)
-    cr.color_ramp.elements[1].color = (*SUN, 1); L(mx.outputs[0], cr.inputs["Fac"]); L(cr.outputs["Color"], b.inputs["Base Color"])
+    cr = nt.nodes.new("ShaderNodeValToRGB"); cr.color_ramp.elements[0].color = (SUN[0] * 0.7, SUN[1] * 0.55, SUN[2] * 0.3, 1)
+    cr.color_ramp.elements[1].color = (*SUN, 1); L(mx.outputs[0], cr.inputs["Fac"])
+    band = nt.nodes.new("ShaderNodeAttribute"); band.attribute_name = "band"
+    trim = nt.nodes.new("ShaderNodeMix"); trim.data_type = "RGBA"; trim.inputs["B"].default_value = (*NAVY, 1)
+    crisp = nt.nodes.new("ShaderNodeMath"); crisp.operation = "GREATER_THAN"; crisp.inputs[1].default_value = 0.5
+    L(band.outputs["Fac"], crisp.inputs[0])
+    L(crisp.outputs[0], trim.inputs["Factor"]); L(cr.outputs["Color"], trim.inputs["A"]); L(trim.outputs["Result"], b.inputs["Base Color"])
     b.inputs["Roughness"].default_value = 0.88
-    b.inputs["Sheen Weight"].default_value = 0.7; b.inputs["Sheen Roughness"].default_value = 0.5
-    b.inputs["Sheen Tint"].default_value = (1.0, 0.95, 0.7, 1)
+    b.inputs["Sheen Weight"].default_value = 0.3; b.inputs["Sheen Roughness"].default_value = 0.5
+    b.inputs["Sheen Tint"].default_value = (1.0, 0.8, 0.3, 1)
+    return m
+
+
+def corduroy_material():
+    m, nt, b = principled("Kairo.corduroy")
+    L = nt.links.new
+    tc = nt.nodes.new("ShaderNodeTexCoord")
+    wv = nt.nodes.new("ShaderNodeTexWave"); wv.bands_direction = "Z"; wv.wave_profile = "SIN"; wv.inputs["Scale"].default_value = 160
+    L(tc.outputs["Object"], wv.inputs["Vector"])
+    bump = nt.nodes.new("ShaderNodeBump"); bump.inputs["Strength"].default_value = 0.8; bump.inputs["Distance"].default_value = 0.0012
+    L(wv.outputs["Fac"], bump.inputs["Height"]); L(bump.outputs["Normal"], b.inputs["Normal"])
+    b.inputs["Base Color"].default_value = (*NAVY, 1); b.inputs["Roughness"].default_value = 0.8
+    b.inputs["Sheen Weight"].default_value = 0.8; b.inputs["Sheen Roughness"].default_value = 0.35
+    b.inputs["Sheen Tint"].default_value = (0.45, 0.5, 0.8, 1)
     return m
 
 
@@ -381,7 +404,7 @@ def build():
                 p[2] = 1.636 - 0.03 * f * f
         return co
     tee = shell(body, "Kairo.tee",
-                keep=lambda p: torso(p, hem_t, 0.03) or (0 <= on_arm(p) < 0.2 and p.z > hem_t),
+                keep=lambda p: torso(p, hem_t, 0.03) and not (abs(p.x) > 0.2 and p.z > 1.38),
                 offset=lambda p: 0.005, bvh_list=[(body_bvh, 0.8)], relax=12, constrain=crew)
     finish(tee, 0.002); tee.data.materials.append(cotton_material())
     tee_bvh = bvh_of(tee)
@@ -392,16 +415,28 @@ def build():
             return False
         if abs(p.x) > 0.205 and p.z > 1.36:        # armholes
             return False
-        if p.y < 0 and p.z > 1.30 and abs(p.x) < (p.z - 1.30) * 0.42:   # V-neck
+        if p.y < 0 and p.z > 1.42 and abs(p.x) < (p.z - 1.42) * 0.55:   # V-neck
             return False
         return True
-    vest = shell(body, "Kairo.vest", keep=vest_keep, offset=lambda p: 0.011, bvh_list=[(tee_bvh, 0.6), (body_bvh, 1.0)], relax=16)
+    def vee(co, boundary):
+        for i in np.nonzero(boundary)[0]:
+            p = co[i]
+            if p[1] < 0 and 1.395 < p[2] < 1.64 and abs(p[0]) < 0.16:
+                p[0] = math.copysign(max(0.0, p[2] - 1.42) * 0.55, p[0] if abs(p[0]) > 1e-5 else 1.0)
+        return co
+    vest = shell(body, "Kairo.vest", keep=vest_keep, offset=lambda p: 0.011, bvh_list=[(tee_bvh, 0.6), (body_bvh, 1.0)], relax=16, constrain=vee)
     finish(vest, 0.004); vest.data.materials.append(knit_material())
+    vd = boundary_distance(vest)
+    va = vest.data.attributes.new("band", "FLOAT", "POINT")
+    for i, v in enumerate(vest.data.vertices):
+        va.data[i].value = 1.0 if vd[i] < 0.016 else 0.0
+        if vd[i] < 0.016:
+            v.co = v.co + v.normal * 0.0015
     vest_bvh = bvh_of(vest)
 
     # --- jacket: cropped, boxy, open front, sleeves to the wrist
     def jacket_keep(p):
-        if p.y < -0.02 and abs(p.x) < 0.04 and p.z < 1.60:     # open front
+        if p.y < -0.02 and abs(p.x) < OPEN and p.z < 1.60:     # open front (worn open, the vest shows)
             return False
         s = on_arm(p)
         if s >= 0:
@@ -463,8 +498,8 @@ def build():
                 d = a_.direction(0.95); p = p - d * ((a_.s(p) - 0.9) * a_.L)
             elif p.z < hem_j + 0.035 and s < 0:
                 p.z = hem_j
-            elif p.y < 0 and abs(p.x) < 0.09 and p.z < 1.585:
-                p.x = math.copysign(0.043, p.x)
+            elif p.y < 0 and abs(p.x) < OPEN + 0.05 and p.z < 1.585:
+                p.x = math.copysign(OPEN + 0.003, p.x)
             co[i] = p[:]
         return co
 
@@ -483,8 +518,8 @@ def build():
         w = math.exp(-((s - 0.52) / 0.06) ** 2) + 0.8 * math.exp(-((s - 0.84) / 0.04) ** 2)
         ang = math.atan2(radial.z, radial.y)
         v.co = p + radial * 0.008 * w * math.sin(s * 2 * math.pi / 0.045 + 1.3 * math.sin(ang * 2))
-    tex = bpy.data.textures.new("Kairo.wrinkle", "DISTORTED_NOISE"); tex.noise_scale = 0.11; tex.distortion = 1.5
-    dm = jacket.modifiers.new("wrinkles", "DISPLACE"); dm.texture = tex; dm.strength = 0.009; dm.mid_level = 0.5
+    tex = bpy.data.textures.new("Kairo.wrinkle", "DISTORTED_NOISE"); tex.noise_scale = 0.085; tex.distortion = 2.0
+    dm = jacket.modifiers.new("wrinkles", "DISPLACE"); dm.texture = tex; dm.strength = 0.012; dm.mid_level = 0.0     # outward only, so folds never cut into the layers beneath
     finish(jacket, 0.0045)
     jacket.data.materials.append(canvas_material())
     # bands: hem, cuffs and front edges get a lighter, raised band
@@ -540,7 +575,7 @@ def build():
     for p in cme.polygons:
         p.use_smooth = True
     finish(collar, 0.004)
-    collar.data.materials.append(jacket.data.materials[0])
+    collar.data.materials.append(corduroy_material())
     stitch_ring = [verts[k * R + 5] for k in range(K + 1)]
     polyline("Kairo.stitch.collar", [verts[k * R + 4].lerp(verts[k * R + 5], 0.75) for k in range(K + 1)], thread_material())
 
@@ -549,7 +584,7 @@ def build():
     brass = metal_material("Kairo.brass", BRASS)
     thread = bpy.data.materials["Kairo.thread"]
     for sgn in (1, -1):
-        x0, x1 = sorted((sgn * 0.065, sgn * 0.165))
+        x0, x1 = sorted((sgn * (OPEN + 0.02), sgn * (OPEN + 0.098)))
         pk, pv, pedge = patch(f"Kairo.pocket.{'l' if sgn > 0 else 'r'}", jacket_bvh, x0, x1, 1.34, 1.455, 0.0045, canvas)
         fl, fv, fedge = patch(f"Kairo.flap.{'l' if sgn > 0 else 'r'}", jacket_bvh, x0 - 0.004, x1 + 0.004, 1.43, 1.47, 0.0085, canvas, rows=4, point=0.012)
         c = sum(pedge, Vector()) / len(pedge)
@@ -561,11 +596,11 @@ def build():
             button(f"Kairo.button.pocket.{sgn}", bp, bn, brass, r=0.0065)
     # front placket buttons on his left edge, stitch lines down both front edges and round the hem
     for k, z in enumerate((1.53, 1.43, 1.33, 1.23, 1.13)):
-        bp, bn = project_front(jacket_bvh, 0.058, z, lift=0.004)
+        bp, bn = project_front(jacket_bvh, OPEN + 0.016, z, lift=0.004)
         if bp:
             button(f"Kairo.button.front.{k}", bp, bn, brass)
     for sgn in (1, -1):
-        pts = [project_front(jacket_bvh, sgn * 0.047, z, lift=0.0055)[0] for z in np.linspace(1.095, 1.58, 60)]
+        pts = [project_front(jacket_bvh, sgn * (OPEN + 0.007), z, lift=0.0055)[0] for z in np.linspace(1.095, 1.58, 60)]
         polyline(f"Kairo.stitch.front.{sgn}", [p for p in pts if p], thread)
     def seam(name, pts, crease=0.0016):
         """Double stitch line along points on the jacket, with a slight crease pressed into the mesh."""
@@ -590,7 +625,7 @@ def build():
 
     yz = 1.495
     for sgn in (1, -1):
-        seam(f"Kairo.seam.yoke.{sgn}", [project_front(jacket_bvh, sgn * x, yz + 0.012 * (x / 0.2), lift=0.0)[0] for x in np.linspace(0.05, 0.185, 22)])
+        seam(f"Kairo.seam.yoke.{sgn}", [project_front(jacket_bvh, sgn * x, yz + 0.012 * (x / 0.2), lift=0.0)[0] for x in np.linspace(OPEN + 0.01, 0.2, 22)])
     back = []
     for x in np.linspace(-0.2, 0.2, 40):
         hit, n, _, _ = jacket_bvh.ray_cast(Vector((x, 1.0, yz + 0.03)), Vector((0, -1, 0)))

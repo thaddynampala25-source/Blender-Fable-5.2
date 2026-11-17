@@ -10,28 +10,29 @@ from bl_ext.user_default.mpfb.services.targetservice import TargetService
 HERE = Path(__file__).resolve().parent
 SRC, OUT = HERE / "work" / "base.blend", HERE / "work" / "face.blend"
 
+# v2 (see REVIEW_v1.md): broader, softer, shorter face; shorter nose with a broad tip; full
+# cheeks over a defined jaw; wide-set eyes; a wider mouth.
 BOTH = {   # applied as l-<name> and r-<name>
-    "eye-eyefold-down": 0.45,      # hooded upper lid: the relaxed look
-    "eye-height2-incr": 0.25,      # open the eye a little: relaxed, not squinting
-        "eye-bag-incr": 0.35,          # visible under-eye fold
-    "eye-bag-height-incr": 0.2,
-    "eye-scale-incr": 1.0,        # stylised: slightly larger eyes
-    "eye-trans-out": 0.15,
-    "eye-corner1-down": 0.15,
-    "cheek-bones-incr": 0.45,
-    "cheek-volume-decr": 0.25,
-    "ear-scale-incr": 0.15,
-    "ear-flap-incr": 0.2,
+    "eye-eyefold-down": 0.2,      # hooded upper lid
+        "eye-scale-incr": 1.0,
+    "eye-trans-out": 0.35,         # wide-set
+    "eye-corner2-up": 0.25,        # a slight upward tilt at the outer corner
+    "eye-height2-incr": 0.8,
+    "cheek-bones-incr": 0.6,
+    "cheek-volume-incr": 0.12,     # rounded cheeks, not puffy
+    "cheek-trans-up": 0.25,
+    "ear-scale-incr": 0.1,
 }
 SINGLE = {
-    "head-oval": 0.55, "head-scale-vert-incr": 0.25, "head-scale-horiz-decr": 0.08,
-    "chin-height-incr": 0.35, "chin-prominent-incr": 0.35, "chin-width-decr": 0.3, "chin-triangle": 0.25, "chin-bones-incr": 0.3,
-    "forehead-scale-vert-decr": 0.15,
-    "nose-scale-vert-incr": 0.35, "nose-point-width-incr": 0.35, "nose-flaring-incr": 0.35,
-    "nose-trans-forward": 0.15, "nose-volume-incr": 0.15, "nose-nostrils-width-incr": 0.25,
-    "mouth-upperlip-volume-decr": 0.25, "mouth-lowerlip-volume-decr": 0.15, "mouth-scale-horiz-incr": 0.12,
-    "mouth-cupidsbow-incr": 0.35, "mouth-trans-backward": 0.25, "mouth-scale-depth-decr": 0.6,
-    "eyebrows-trans-down": 0.25, "eyebrows-angle-down": 0.2,
+    "head-round": 0.2, "head-square": 0.3, "head-scale-horiz-incr": 0.1, "head-scale-vert-decr": 0.08, "head-fat-decr": 0.5,
+    "chin-height-decr": 0.1, "chin-width-decr": 0.05, "chin-prominent-incr": 0.2, "chin-bones-incr": 0.45,
+    "forehead-scale-vert-decr": 0.5,
+    "nose-scale-vert-decr": 0.3, "nose-point-width-incr": 0.75, "nose-flaring-incr": 0.6,
+    "nose-nostrils-width-incr": 0.5, "nose-volume-incr": 0.25, "nose-point-up": 0.25, "nose-compression-compress": 0.25,
+    "mouth-scale-horiz-incr": 0.3, "mouth-upperlip-volume-decr": 0.25, "mouth-lowerlip-volume-decr": 0.45,
+    "mouth-cupidsbow-incr": 0.45, "mouth-trans-backward": 0.15, "mouth-scale-depth-decr": 0.45,
+    "mouth-trans-up": 0.2,
+    "eyebrows-trans-down": 0.15,
     "neck-scale-horiz-incr": 0.25,
 }
 

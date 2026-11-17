@@ -19,8 +19,8 @@ from mathutils.bvhtree import BVHTree
 HERE = Path(__file__).resolve().parent
 SRC, OUT = HERE / "work" / "clothes.blend", HERE / "work" / "kairo_wip.blend"
 SEED = 7
-RADIUS = 0.0132          # loc radius (m): chunky locs
-SPACING = 0.031          # minimum distance between roots
+RADIUS = 0.0168          # loc radius (m): chunky locs (v2: ~1/8 of the head width across)
+SPACING = 0.035          # minimum distance between roots
 SEG = 0.009              # strand segment length
 PART_X = 0.014           # side parting, toward his left
 HAIRLINE_Z = None        # set from the eyes in build()
@@ -66,6 +66,8 @@ def grow(bvh, root, normal, length, rng, head, mode, bun=None):
     # leave the scalp in the direction the loc will fall, hugging the head rather than standing up
     if mode == "bun":
         fall = (bun - root).normalized()
+    elif mode == "fringe":
+        fall = Vector((0.75, -0.25, -0.62))
     elif front:
         fall = Vector((side * 1.0, 0.55, -0.35))     # part to the sides and back, away from the face
     else:
@@ -90,6 +92,10 @@ def grow(bvh, root, normal, length, rng, head, mode, bun=None):
                 d = (d * 0.75 + to.normalized() * 0.25).normalized()
         elif mode == "bun":
             d = (d * 0.9 + Vector((0, 0.04, -1)) * 0.1).normalized()
+        elif mode == "fringe":
+            # sweep across the forehead, then fall past the temple and cheek on his left
+            target = Vector((0.85, -0.05, -0.5)) if p.z > head["eye_z"] + 0.005 else Vector((0.5, 0.45, -0.75))
+            d = (d * 0.75 + target.normalized() * 0.25).normalized()
         else:
             stiff = 0.9 - 0.25 * min(1.0, travelled / 0.06)
             d = (d * stiff + Vector((0, 0, -1)) * (1 - stiff) + Vector((side * 0.03, 0.035, 0)) + wander * math.sin(t * 6.0)).normalized()
@@ -191,7 +197,16 @@ def rope_nodes(mat):
     L(par.outputs["Factor"], fc.inputs["Value"])
     var = N.new("ShaderNodeMapRange"); var.inputs["To Min"].default_value = RADIUS * 0.82; var.inputs["To Max"].default_value = RADIUS * 1.18
     L(rnd.outputs[0], var.inputs["Value"])
-    mul = N.new("ShaderNodeMath"); mul.operation = "MULTIPLY"; L(fc.outputs[0], mul.inputs[0]); L(var.outputs[0], mul.inputs[1])
+    mul0 = N.new("ShaderNodeMath"); mul0.operation = "MULTIPLY"; L(fc.outputs[0], mul0.inputs[0]); L(var.outputs[0], mul0.inputs[1])
+    # gentle swelling along the loc (real locs are not perfect tubes)
+    bl = N.new("ShaderNodeMath"); bl.operation = "MULTIPLY_ADD"; bl.inputs[1].default_value = 2 * math.pi / 0.055
+    L(par.outputs["Length"], bl.inputs[0]); L(rnd.outputs[0], bl.inputs[2])
+    bl2 = N.new("ShaderNodeMath"); bl2.operation = "MULTIPLY"; bl2.inputs[1].default_value = 7.0; L(rnd.outputs[0], bl2.inputs[0])
+    bl3 = N.new("ShaderNodeMath"); bl3.operation = "ADD"; L(bl.outputs[0], bl3.inputs[0]); L(bl2.outputs[0], bl3.inputs[1])
+    sn = N.new("ShaderNodeMath"); sn.operation = "SINE"; L(bl3.outputs[0], sn.inputs[0])
+    sw = N.new("ShaderNodeMath"); sw.operation = "MULTIPLY_ADD"; sw.inputs[1].default_value = 0.09; sw.inputs[2].default_value = 1.0
+    L(sn.outputs[0], sw.inputs[0])
+    mul = N.new("ShaderNodeMath"); mul.operation = "MULTIPLY"; L(mul0.outputs[0], mul.inputs[0]); L(sw.outputs[0], mul.inputs[1])
     setr = N.new("GeometryNodeSetCurveRadius"); L(gi.outputs[0], setr.inputs["Curve"]); L(mul.outputs[0], setr.inputs["Radius"])
     # twist: one turn every ~2.4 cm of length, random start angle
     tw = N.new("ShaderNodeMath"); tw.operation = "MULTIPLY"; tw.inputs[1].default_value = 2 * math.pi / 0.034
@@ -227,6 +242,35 @@ def rope_nodes(mat):
     return ng
 
 
+def loc_cuffs(strands, rng, count=11):
+    """Gold cuffs on a few locs: short ribbed tubes threaded on the strand."""
+    import bmesh
+    m = bpy.data.materials.new("Kairo.gold"); m.use_nodes = True
+    bsdf = m.node_tree.nodes["Principled BSDF"]
+    bsdf.inputs["Base Color"].default_value = (1.0, 0.70, 0.30, 1); bsdf.inputs["Metallic"].default_value = 1.0
+    bsdf.inputs["Roughness"].default_value = 0.2
+    bm = bmesh.new()
+    pick = [s_ for s_ in strands if len(s_) > 30]
+    rng.shuffle(pick)
+    for pts in pick[:count]:
+        i = int(len(pts) * rng.uniform(0.55, 0.82))
+        c = pts[i]; t = (pts[i + 1] - pts[i - 1]).normalized()
+        u = t.orthogonal().normalized(); w = t.cross(u)
+        R = RADIUS * 1.12; H = 0.013; seg = 20
+        rings = []
+        for k, (h, rr) in enumerate(((-H / 2, R * 0.96), (-H / 2 + 0.002, R), (0, R * 1.04), (H / 2 - 0.002, R), (H / 2, R * 0.96))):
+            rings.append([bm.verts.new(c + t * h + (u * math.cos(a) + w * math.sin(a)) * rr) for a in np.linspace(0, 2 * math.pi, seg, endpoint=False)])
+        for r0, r1 in zip(rings, rings[1:]):
+            for j in range(seg):
+                bm.faces.new((r0[j], r0[(j + 1) % seg], r1[(j + 1) % seg], r1[j]))
+    me = bpy.data.meshes.new("Kairo.loccuffs"); bm.to_mesh(me); bm.free()
+    ob = bpy.data.objects.new("Kairo.loccuffs", me); bpy.context.scene.collection.objects.link(ob)
+    for p in me.polygons:
+        p.use_smooth = True
+    me.materials.append(m)
+    so = ob.modifiers.new("t", "SOLIDIFY"); so.thickness = 0.0012
+
+
 def build(body):
     rng = random.Random(SEED)
     dg = bpy.context.evaluated_depsgraph_get()
@@ -246,34 +290,28 @@ def build(body):
         "face_y": eyes[:, 1].mean() + 0.03,
         "face_hw": abs(eyes[:, 0]).max() + 0.03,
         "front_y": scalp[:, 1].min() + 0.06,
-        "vol": 0.026,
+        "vol": 0.042,
     }
     hl = crown - head["chin_z"]
     bun_c = Vector((0.0, scalp[:, 1].mean() + 0.075, crown - 0.03))
     global HAIRLINE_Z
-    HAIRLINE_Z = head["eye_z"] + 0.085
+    HAIRLINE_Z = head["eye_z"] + 0.072
     roots = scalp_samples(body, rng)
     strands = []
     over_eye = 0
     for p, n in sorted(roots, key=lambda r: r[0].y):
-        top = p.z > crown - 0.055 and p.y > head["front_y"] - 0.01 and abs(p.x) < 0.065
-        if top:
-            strands.append(grow(bvh, p, n, hl * rng.uniform(0.95, 1.15), rng, head, "bun", bun_c))
-            continue
-        length = hl * rng.uniform(0.95, 1.18)
-        if False:
+        length = hl * rng.uniform(0.95, 1.2)
+        if over_eye < 4 and p.y < head["front_y"] - 0.005 and -0.045 < p.x < 0.03:
             over_eye += 1
-            strands.append(grow(bvh, p, n, length * 0.9, rng, head, "over"))
+            strands.append(grow(bvh, p, n, rng.uniform(0.15, 0.2), rng, head, "fringe"))
             continue
         strands.append(grow(bvh, p, n, length, rng, head, "down"))
-    # the tie: a yellow band round the gathered locs
-    bpy.ops.mesh.primitive_torus_add(major_radius=0.026, minor_radius=0.0065, major_segments=40, minor_segments=12, location=bun_c)
-    tie = bpy.context.object; tie.name = "Kairo.hairtie"; tie.rotation_euler = (math.radians(70), 0, 0)
-    bpy.ops.object.shade_smooth()
-    tm = bpy.data.materials.new("Kairo.hairtie"); tm.use_nodes = True
-    tb = tm.node_tree.nodes["Principled BSDF"]; tb.inputs["Base Color"].default_value = (1.0, 0.62, 0.035, 1); tb.inputs["Roughness"].default_value = 0.5
-    tb.inputs["Sheen Weight"].default_value = 0.4
-    tie.data.materials.append(tm)
+    # drop any strand that wandered in front of the face or neck below the chin (it reads as a stray)
+    def stray(pts):
+        return any(q.z < head["chin_z"] + 0.05 and q.y < head["face_y"] - 0.01 and abs(q.x) < head["face_hw"] - 0.01 for q in pts)
+    before = len(strands); strands = [s_ for s_ in strands if not stray(s_)]
+    print("dropped strays", before - len(strands))
+    loc_cuffs(strands, rng)
     cu = bpy.data.curves.new("Kairo.locs", "CURVE"); cu.dimensions = "3D"
     for pts in strands:
         if len(pts) < 3:
