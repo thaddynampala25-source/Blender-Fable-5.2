@@ -25,7 +25,7 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.5b2ff12474.css">
+<link rel="stylesheet" href="/assets/site.cefa884e24.css">
 <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "EducationalOrganization", "@id": "https://week2speak.com/#org", "name": "Week2Speak", "url": "https://week2speak.com/", "logo": "https://week2speak.com/apple-touch-icon.png", "description": "English speaking practice and tutoring for Spanish speakers.", "email": "hello@week2speak.com", "founder": {"@type": "Person", "name": "Mei Gabriela Parrablanco"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://week2speak.com/"}, {"@type": "ListItem", "position": 2, "name": "Speech Mode", "item": "https://week2speak.com/speech-mode/"}]}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Do I need a microphone?", "acceptedAnswer": {"@type": "Answer", "text": "It helps. In Chrome, Edge and Safari (including on iPhone and Android) you can answer out loud. In other browsers, say your answer out loud first and then type it."}}, {"@type": "Question", "name": "Is the tutor in Speech Mode a real person?", "acceptedAnswer": {"@type": "Answer", "text": "No. Speech Mode is scripted practice that runs on this site. Live lessons with a human tutor are part of the 7-Day Sprint."}}, {"@type": "Question", "name": "What happens when I make a mistake?", "acceptedAnswer": {"@type": "Answer", "text": "If your sentence contains a mistake that is common for Spanish speakers, such as \"I have 25 years\", you see a one-line fix with the reason it happens in Spanish."}}, {"@type": "Question", "name": "Is Speech Mode free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, while the site is in testing."}}, {"@type": "Question", "name": "Who are the Language Buddies?", "acceptedAnswer": {"@type": "Answer", "text": "Ruby and Max, two 3D characters in Speech Mode. Ruby is from London and Max is from New York. They speak the tutor's lines, listen while you answer and react when you get a sentence right. You can switch between them, spin them and poke them."}}]}]}</script>
 </head>
 <body data-page="speak">
@@ -69,6 +69,7 @@
       <pre class="sm-fps" id="smFps" hidden></pre>
       <p class="sr-only" id="buddyLive" aria-live="polite"></p>
     </div>
+    <div class="sm-thread" id="smThread"></div>
     <div class="sm-sheet" id="smSheet" role="dialog" aria-label="Scene, accent and conversation">
       <div class="sm-sheet-head"><span class="sm-grab" aria-hidden="true"></span><h2>Scene and settings</h2><button class="sm-pill sm-ic" id="smClose" type="button" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button></div>
       <div class="sm-sheet-body">
@@ -137,7 +138,7 @@
   /* ---- Buddy: choice, switch, sounds, show or hide ---- */
   function load3d() {
     if (loaded || w.classList.contains('is-hidden')) return; loaded = true;
-    var s = document.createElement('script'); s.type = 'module'; s.src = '/assets/buddies.a10a2cc79d.js'; s.onerror = function () { w.classList.add('no-3d'); };
+    var s = document.createElement('script'); s.type = 'module'; s.src = '/assets/buddies.7edcd220f0.js'; s.onerror = function () { w.classList.add('no-3d'); };
     document.head.appendChild(s);
   }
   function nextBuddy(id) { return IDS[(IDS.indexOf(id) + 1) % IDS.length]; }
@@ -157,12 +158,35 @@
     if (wd !== lastW) { lastW = wd; maxH = 0; } if (h > maxH) maxH = h;
     var nav = document.querySelector('.nav'); root.style.setProperty('--smtop', (nav ? nav.offsetHeight : 48) + 'px');
     var kb = isPhone() && document.activeElement === $('speakInput') && h < maxH - 120;
-    if (isPhone()) root.style.setProperty('--vvh', Math.round(h) + 'px'); else root.style.removeProperty('--vvh');
-    if (kb !== sm.classList.contains('kb')) { sm.classList.toggle('kb', kb); fire('layout', {kb: kb}); }
-    if (kb && window.scrollY) window.scrollTo(0, 0);
+    if (isPhone()) { root.style.setProperty('--vvh', Math.round(h) + 'px'); root.style.setProperty('--vvtop', Math.round(vv ? vv.offsetTop : 0) + 'px'); } else { root.style.removeProperty('--vvh'); root.style.removeProperty('--vvtop'); }
+    // while typing on a phone the app is pinned to the visible area above the keyboard (iOS scrolls the
+    // page under the keyboard otherwise); when the keyboard closes, the page goes back to the top
+    if (kb !== sm.classList.contains('kb')) { sm.classList.toggle('kb', kb); fire('layout', {kb: kb}); if (!kb && window.scrollY) window.scrollTo(0, 0); if (kb) follow(true); }
     $('smSheet').inert = isPhone() && !sm.classList.contains('sheet-open');
     $('speakInput').placeholder = isPhone() ? (root.classList.contains('has-mic') ? 'Or type it' : 'Type your answer') : 'Type your answer in English';
   }
+
+  /* ---- phones: the conversation is the main view, under a smaller stage ----
+     The chat log and the cards that sit over the stage on large screens move into the thread;
+     the newest tutor line shows once, as the live bubble with its word highlighting. */
+  var homeChat = null, homeOver = null;
+  function place() {
+    var th = $('smThread'), chat = $('chat'), over = $('smOver');
+    if (!homeChat) { homeChat = [chat.parentNode, chat.nextSibling]; homeOver = [over.parentNode, over.nextSibling]; }
+    if (isPhone()) { if (chat.parentNode !== th) { th.appendChild(chat); th.appendChild(over); } }
+    else if (chat.parentNode === th) { homeChat[0].insertBefore(chat, homeChat[1]); homeOver[0].insertBefore(over, homeOver[1]); }
+    live(); follow(true);
+  }
+  function live() {
+    var ms = $('chat').querySelectorAll('.msg'), last = ms[ms.length - 1], lastT = null;
+    for (var i = ms.length - 1; i >= 0; i--) if (ms[i].classList.contains('t') && !ms[i].querySelector('.typing')) { lastT = ms[i]; break; }
+    [].forEach.call($('chat').querySelectorAll('.msg.is-live'), function (m) { if (m !== lastT) m.classList.remove('is-live'); });
+    if (lastT) lastT.classList.add('is-live');
+    // until the Buddy answers, the thread ends with your reply (the old line would sit below it)
+    sm.classList.toggle('awaiting', !!last && last !== lastT);
+  }
+  var stick = true;
+  function follow(force) { var th = $('smThread'); if (!isPhone()) return; if (force || stick) requestAnimationFrame(function () { th.scrollTop = th.scrollHeight; }); }
 
   /* ---- bottom sheet ---- */
   function sheet(on) {
@@ -197,6 +221,9 @@
   }
 
   function watchChat() {
+    var th = $('smThread');
+    th.addEventListener('scroll', function () { stick = th.scrollHeight - th.scrollTop - th.clientHeight < 60; }, {passive: true});
+    new MutationObserver(function () { live(); follow(); }).observe(th, {childList: true, subtree: true, attributes: true, attributeFilter: ['hidden']});
     new MutationObserver(function (list) {
       var fixes = [];
       if (list.some(function (m) { return m.removedNodes.length; })) { $('smDone').hidden = true; hideCard(); if (state === 'done') set('speaking'); }   // the scene was restarted
@@ -207,12 +234,12 @@
             if (n.querySelector('.typing')) return;
             cur = n.textContent.trim(); if (!temp) line(cur);
             if (state !== 'landing' && state !== 'done') { set('speaking'); clearTimeout(turnT); turnT = setTimeout(function () { if (!speaking && state === 'speaking') set('turn'); }, 450); }
-          } else if (cl.contains('msg') && cl.contains('me')) { hideCard(); }
+          } else if (cl.contains('msg') && cl.contains('me')) { hideCard(); stick = true; }
           else if (cl.contains('fix')) { fixes.push(n); }
           else if (cl.contains('msg') && cl.contains('sys') && !/^Scene complete/.test(n.textContent)) { var p = document.createElement('span'); p.textContent = n.textContent; card([p], 'note'); }
         });
       });
-      if (fixes.length) { var f = fixes[0].cloneNode(true); f.className = 'sm-fix'; var k = [f]; if (fixes.length > 1) { var more = document.createElement('span'); more.className = 'small muted'; more.textContent = 'One more fix is in your conversation.'; k.push(more); } card(k, 'fix'); }
+      if (fixes.length && !isPhone()) { var f = fixes[0].cloneNode(true); f.className = 'sm-fix'; var k = [f]; if (fixes.length > 1) { var more = document.createElement('span'); more.className = 'small muted'; more.textContent = 'One more fix is in your conversation.'; k.push(more); } card(k, 'fix'); }
     }).observe($('chat'), {childList: true});
   }
 
@@ -223,6 +250,7 @@
     ta.addEventListener('input', grow); setInterval(grow, 250);   // also catches text set by the microphone or the word bank
     ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); var f = $('composer'); if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event('submit', {cancelable: true})); } });
     setBuddy(IDS.indexOf(window.W2S_BUDDY) >= 0 ? window.W2S_BUDDY : IDS[0], false);
+    place(); if (phoneMq.addEventListener) phoneMq.addEventListener('change', function () { place(); fit(); }); else phoneMq.addListener(function () { place(); fit(); });
     var muted = false, hidden = false; try { muted = localStorage.getItem('w2s.buddyMute') === '1'; hidden = localStorage.getItem('w2s.buddyHidden') === '1'; } catch (e) {}
     setMute(muted); setShown(!hidden);
     // one tap: the next Buddy comes in at once (the 3D stage spins the old one out and pops the new one in)
@@ -262,7 +290,7 @@
     window.addEventListener('w2s:done', function (e) { done(e.detail); });
     watchChat(); var first = $('chat').querySelector('.msg.t:last-of-type'); if (first) { cur = first.textContent.trim(); line(cur); }
     fit(); if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); } window.addEventListener('resize', fit); window.addEventListener('orientationchange', fit);
-    $('speakInput').addEventListener('focus', function () { setTimeout(fit, 60); setTimeout(fit, 350); }); $('speakInput').addEventListener('blur', function () { setTimeout(fit, 60); });
+    $('speakInput').addEventListener('focus', function () { if (state === 'landing') $('smStart').click(); setTimeout(fit, 60); setTimeout(fit, 350); });   // typing first starts the scene $('speakInput').addEventListener('blur', function () { setTimeout(fit, 60); });
     if (phoneMq.addEventListener) phoneMq.addEventListener('change', function () { sm.classList.remove('sheet-open'); $('smScrim').hidden = true; fit(); });
     var go = function () { if ('requestIdleCallback' in window) requestIdleCallback(load3d, {timeout: 1500}); else setTimeout(load3d, 300); };
     if (document.readyState === 'complete') go(); else window.addEventListener('load', go);

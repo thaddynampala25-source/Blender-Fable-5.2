@@ -409,7 +409,8 @@ let camForce = null;
 function frameCam() {
   if (!B || !camera) return; const kb = sm && sm.classList.contains('kb'), phone = window.matchMedia('(max-width: 899px)').matches;
   const topPad = kb ? 10 : phone ? 62 : Math.max(64, H * 0.08), headH = B.fw * 1.14;
-  let ppu = Math.min((phone ? 0.42 : 0.36) * W / B.fw, 0.6 * H / headH), cy;
+  // phones: head and shoulders under the buttons, the conversation panel overlapping the bottom 20px
+  let ppu = phone ? Math.min(0.36 * W / B.fw, 0.6 * (H - topPad - 20) / headH) : Math.min(0.36 * W / B.fw, 0.6 * H / headH), cy;
   const fit = (H - topPad - 16) / (B.H * 1.04); if (ppu < fit) ppu = fit;          // never smaller than "the whole body fits"
   if (camForce === 'full') { ppu = (H - 40) / (B.H * 1.08); cy = B.H * 0.5; } else if (camForce === 'face') { ppu = 0.62 * H / headH; cy = B.H - headH * 0.5; }
   else cy = B.H + 0.035 - (H / 2 - topPad) / ppu;

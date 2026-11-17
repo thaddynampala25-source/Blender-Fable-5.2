@@ -51,6 +51,7 @@ APP = f'''<div class="smx" id="sm" data-state="landing">
       <pre class="sm-fps" id="smFps" hidden></pre>
       <p class="sr-only" id="buddyLive" aria-live="polite"></p>
     </div>
+    <div class="sm-thread" id="smThread"></div>
     <div class="sm-sheet" id="smSheet" role="dialog" aria-label="Scene, accent and conversation">
       <div class="sm-sheet-head"><span class="sm-grab" aria-hidden="true"></span><h2>Scene and settings</h2><button class="sm-pill sm-ic" id="smClose" type="button" aria-label="Close">{I_CLOSE}</button></div>
       <div class="sm-sheet-body">
@@ -112,12 +113,35 @@ def script(ver):
     if (wd !== lastW) { lastW = wd; maxH = 0; } if (h > maxH) maxH = h;
     var nav = document.querySelector('.nav'); root.style.setProperty('--smtop', (nav ? nav.offsetHeight : 48) + 'px');
     var kb = isPhone() && document.activeElement === $('speakInput') && h < maxH - 120;
-    if (isPhone()) root.style.setProperty('--vvh', Math.round(h) + 'px'); else root.style.removeProperty('--vvh');
-    if (kb !== sm.classList.contains('kb')) { sm.classList.toggle('kb', kb); fire('layout', {kb: kb}); }
-    if (kb && window.scrollY) window.scrollTo(0, 0);
+    if (isPhone()) { root.style.setProperty('--vvh', Math.round(h) + 'px'); root.style.setProperty('--vvtop', Math.round(vv ? vv.offsetTop : 0) + 'px'); } else { root.style.removeProperty('--vvh'); root.style.removeProperty('--vvtop'); }
+    // while typing on a phone the app is pinned to the visible area above the keyboard (iOS scrolls the
+    // page under the keyboard otherwise); when the keyboard closes, the page goes back to the top
+    if (kb !== sm.classList.contains('kb')) { sm.classList.toggle('kb', kb); fire('layout', {kb: kb}); if (!kb && window.scrollY) window.scrollTo(0, 0); if (kb) follow(true); }
     $('smSheet').inert = isPhone() && !sm.classList.contains('sheet-open');
     $('speakInput').placeholder = isPhone() ? (root.classList.contains('has-mic') ? 'Or type it' : 'Type your answer') : 'Type your answer in English';
   }
+
+  /* ---- phones: the conversation is the main view, under a smaller stage ----
+     The chat log and the cards that sit over the stage on large screens move into the thread;
+     the newest tutor line shows once, as the live bubble with its word highlighting. */
+  var homeChat = null, homeOver = null;
+  function place() {
+    var th = $('smThread'), chat = $('chat'), over = $('smOver');
+    if (!homeChat) { homeChat = [chat.parentNode, chat.nextSibling]; homeOver = [over.parentNode, over.nextSibling]; }
+    if (isPhone()) { if (chat.parentNode !== th) { th.appendChild(chat); th.appendChild(over); } }
+    else if (chat.parentNode === th) { homeChat[0].insertBefore(chat, homeChat[1]); homeOver[0].insertBefore(over, homeOver[1]); }
+    live(); follow(true);
+  }
+  function live() {
+    var ms = $('chat').querySelectorAll('.msg'), last = ms[ms.length - 1], lastT = null;
+    for (var i = ms.length - 1; i >= 0; i--) if (ms[i].classList.contains('t') && !ms[i].querySelector('.typing')) { lastT = ms[i]; break; }
+    [].forEach.call($('chat').querySelectorAll('.msg.is-live'), function (m) { if (m !== lastT) m.classList.remove('is-live'); });
+    if (lastT) lastT.classList.add('is-live');
+    // until the Buddy answers, the thread ends with your reply (the old line would sit below it)
+    sm.classList.toggle('awaiting', !!last && last !== lastT);
+  }
+  var stick = true;
+  function follow(force) { var th = $('smThread'); if (!isPhone()) return; if (force || stick) requestAnimationFrame(function () { th.scrollTop = th.scrollHeight; }); }
 
   /* ---- bottom sheet ---- */
   function sheet(on) {
@@ -152,6 +176,9 @@ def script(ver):
   }
 
   function watchChat() {
+    var th = $('smThread');
+    th.addEventListener('scroll', function () { stick = th.scrollHeight - th.scrollTop - th.clientHeight < 60; }, {passive: true});
+    new MutationObserver(function () { live(); follow(); }).observe(th, {childList: true, subtree: true, attributes: true, attributeFilter: ['hidden']});
     new MutationObserver(function (list) {
       var fixes = [];
       if (list.some(function (m) { return m.removedNodes.length; })) { $('smDone').hidden = true; hideCard(); if (state === 'done') set('speaking'); }   // the scene was restarted
@@ -162,12 +189,12 @@ def script(ver):
             if (n.querySelector('.typing')) return;
             cur = n.textContent.trim(); if (!temp) line(cur);
             if (state !== 'landing' && state !== 'done') { set('speaking'); clearTimeout(turnT); turnT = setTimeout(function () { if (!speaking && state === 'speaking') set('turn'); }, 450); }
-          } else if (cl.contains('msg') && cl.contains('me')) { hideCard(); }
+          } else if (cl.contains('msg') && cl.contains('me')) { hideCard(); stick = true; }
           else if (cl.contains('fix')) { fixes.push(n); }
           else if (cl.contains('msg') && cl.contains('sys') && !/^Scene complete/.test(n.textContent)) { var p = document.createElement('span'); p.textContent = n.textContent; card([p], 'note'); }
         });
       });
-      if (fixes.length) { var f = fixes[0].cloneNode(true); f.className = 'sm-fix'; var k = [f]; if (fixes.length > 1) { var more = document.createElement('span'); more.className = 'small muted'; more.textContent = 'One more fix is in your conversation.'; k.push(more); } card(k, 'fix'); }
+      if (fixes.length && !isPhone()) { var f = fixes[0].cloneNode(true); f.className = 'sm-fix'; var k = [f]; if (fixes.length > 1) { var more = document.createElement('span'); more.className = 'small muted'; more.textContent = 'One more fix is in your conversation.'; k.push(more); } card(k, 'fix'); }
     }).observe($('chat'), {childList: true});
   }
 
@@ -178,6 +205,7 @@ def script(ver):
     ta.addEventListener('input', grow); setInterval(grow, 250);   // also catches text set by the microphone or the word bank
     ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); var f = $('composer'); if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event('submit', {cancelable: true})); } });
     setBuddy(IDS.indexOf(window.W2S_BUDDY) >= 0 ? window.W2S_BUDDY : IDS[0], false);
+    place(); if (phoneMq.addEventListener) phoneMq.addEventListener('change', function () { place(); fit(); }); else phoneMq.addListener(function () { place(); fit(); });
     var muted = false, hidden = false; try { muted = localStorage.getItem('w2s.buddyMute') === '1'; hidden = localStorage.getItem('w2s.buddyHidden') === '1'; } catch (e) {}
     setMute(muted); setShown(!hidden);
     // one tap: the next Buddy comes in at once (the 3D stage spins the old one out and pops the new one in)
@@ -217,7 +245,7 @@ def script(ver):
     window.addEventListener('w2s:done', function (e) { done(e.detail); });
     watchChat(); var first = $('chat').querySelector('.msg.t:last-of-type'); if (first) { cur = first.textContent.trim(); line(cur); }
     fit(); if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); } window.addEventListener('resize', fit); window.addEventListener('orientationchange', fit);
-    $('speakInput').addEventListener('focus', function () { setTimeout(fit, 60); setTimeout(fit, 350); }); $('speakInput').addEventListener('blur', function () { setTimeout(fit, 60); });
+    $('speakInput').addEventListener('focus', function () { if (state === 'landing') $('smStart').click(); setTimeout(fit, 60); setTimeout(fit, 350); });   // typing first starts the scene $('speakInput').addEventListener('blur', function () { setTimeout(fit, 60); });
     if (phoneMq.addEventListener) phoneMq.addEventListener('change', function () { sm.classList.remove('sheet-open'); $('smScrim').hidden = true; fit(); });
     var go = function () { if ('requestIdleCallback' in window) requestIdleCallback(load3d, {timeout: 1500}); else setTimeout(load3d, 300); };
     if (document.readyState === 'complete') go(); else window.addEventListener('load', go);
@@ -272,7 +300,7 @@ __BS_SHOW__{display:block}
 .sm-pill.sm-ic{width:44px;padding:0;justify-content:center;flex:none}
 .sm-menu{margin-right:auto;min-width:0;padding-left:12px}
 .sm-menu-t{display:grid;text-align:left;min-width:0}
-.sm-menu-t small{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);line-height:1.1}
+.sm-menu-t small{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);line-height:1.1}
 .sm-menu-t b{font-size:.94rem;line-height:1.15;overflow:hidden;text-overflow:ellipsis}
 #buddyMute .off{display:none}
 #buddyMute.is-off .on{display:none}
@@ -321,14 +349,14 @@ __BS_SHOW__{display:block}
 #speakMic.listening{box-shadow:0 0 0 0 rgba(255,90,90,.5);animation:micPulse 1.3s ease-out infinite}
 @keyframes micPulse{0%{box-shadow:0 0 0 0 rgba(255,90,90,.5)}100%{box-shadow:0 0 0 14px rgba(255,90,90,0)}}
 @media (prefers-reduced-motion: reduce){.sm-sub{animation:none}#speakMic.listening{animation:none}}
-.sm-card{background:var(--surface);border-radius:20px;padding:var(--s3) var(--s3) var(--s3) var(--s4);box-shadow:var(--e2);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s3);align-items:center;border-left:6px solid var(--note)}
-.sm-card.note{border-left-color:var(--cobalt)}
+.sm-card{background:color-mix(in srgb,var(--note) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--note) 38%,transparent);border-radius:20px;padding:var(--s3) var(--s3) var(--s3) var(--s4);box-shadow:var(--e2);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s3);align-items:center}
+.sm-card.note{background:color-mix(in srgb,var(--cobalt) 7%,var(--surface));border-color:color-mix(in srgb,var(--cobalt) 30%,transparent)}
 .sm-card-b{display:grid;gap:4px;font-size:1rem;line-height:1.35}
 .sm-fix{display:grid;gap:3px}
 .sm-fix b{color:var(--note);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase}
 .sm-fix span:first-of-type{font-weight:700}
 .sm-x{min-height:44px;padding:0 14px;border:2px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:700 .9rem var(--f-body);cursor:pointer;white-space:nowrap}
-.sm-over .hint{background:var(--surface);box-shadow:var(--e2);border-radius:20px;border-left:6px solid var(--hl);padding:var(--s3) var(--s4)}
+.sm-over .hint{background:color-mix(in srgb,var(--hl) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--hl) 70%,transparent);box-shadow:var(--e2);border-radius:20px;padding:var(--s3) var(--s4)}
 .sm-over .hint .lv{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase}
 .sm-over .hint .starter{margin:0;font-size:1.15rem}
 .sm-over .wordbank button{min-height:44px;padding:8px 14px;font-size:1rem;background:var(--surface-2)}
@@ -360,6 +388,7 @@ __BS_SHOW__{display:block}
 .sm-g [data-voicenote]:empty{display:none}
 .sm-more{display:none}
 .sm-scrim{display:none}
+.sm-thread{display:none}
 
 .sm-bar{grid-area:bar;display:flex;align-items:flex-end;gap:var(--s3);padding:var(--s3) var(--s4);background:var(--surface);border-radius:24px;box-shadow:var(--e1)}
 .sm-bar #speakMic{flex:none;width:60px;height:60px;min-height:60px}
@@ -382,17 +411,17 @@ textarea.field{display:block;resize:none;overflow-y:auto;max-height:calc(1.4em *
   .sm-stage{border-radius:0;box-shadow:none}
   .sm-pill{padding:0 12px;font-size:.875rem}
   .sm-menu-t b{max-width:34vw;white-space:nowrap}
-  .sm-bar{display:grid;grid-template-columns:1fr 64px 1fr;grid-template-areas:"field field field" ". mic help";align-items:center;row-gap:6px;column-gap:8px;height:auto;padding:8px 10px 8px;border-radius:0;box-shadow:none;border-top:1px solid var(--line)}
-  .sm-bar #speakMic{grid-area:mic}.sm-bar .sm-field{grid-area:field}.sm-bar .sm-help{grid-area:help;justify-self:end}
-  .smx.kb .sm-bar{grid-template-areas:"field field field"}.smx.kb .sm-bar .sm-help{display:none}
-  .sm-bar #speakMic{width:64px;height:64px;min-height:64px}
-  .sm-field .field{min-height:54px;font-size:1rem;line-height:1.35;padding:15px 52px 15px 12px;border-radius:16px;max-height:calc(1.35em * 3 + 30px)}
-  .sm-field #speakSend{position:absolute;right:5px;bottom:5px;width:44px;height:44px;min-height:44px;min-width:44px;padding:0;border-radius:12px;box-shadow:none;transition:opacity .15s,transform .25s var(--spring)}
+  /* one row: speak, type (send sits in the field), ask for help */
+  .sm-bar{display:flex;align-items:flex-end;gap:8px;height:auto;padding:8px 10px;border-radius:0;box-shadow:none;border-top:1px solid var(--line);background:var(--surface)}
+  .sm-bar #speakMic{width:52px;height:52px;min-height:52px}
+  .smx.kb .sm-bar .sm-help{display:none}
+  .sm-field .field{min-height:52px;font-size:1rem;line-height:1.35;padding:14px 50px 14px 14px;border-radius:16px;max-height:calc(1.35em * 3 + 28px)}
+  .sm-field #speakSend{position:absolute;right:5px;bottom:5px;width:42px;height:42px;min-height:42px;min-width:42px;padding:0;border-radius:12px;box-shadow:none;transition:opacity .15s,transform .25s var(--spring)}
   .sm-field #speakSend:active{transform:scale(.92)}
   .sm-field #speakSend .ic{display:block}
   .sm-send-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
   .sm-field .field:placeholder-shown+#speakSend{opacity:0;pointer-events:none}
-  .sm-help{min-width:88px;padding:0 10px;font-size:.88rem}
+  .sm-help{min-width:0;min-height:52px;padding:0 12px;font-size:.88rem}
   .sm-sheet{position:fixed;z-index:60;left:0;right:0;bottom:0;max-height:86vh;max-height:86dvh;border-radius:28px 28px 0 0;box-shadow:0 -14px 44px rgba(11,16,58,.3);transform:translateY(104%);visibility:hidden;transition:transform .45s var(--spring),visibility 0s .45s;padding-bottom:env(safe-area-inset-bottom,0px)}
   .smx.sheet-open .sm-sheet{transform:none;visibility:visible;transition:transform .45s var(--spring),visibility 0s}
   .sm-sheet-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:18px var(--s4) var(--s2);position:relative}
@@ -407,20 +436,34 @@ textarea.field{display:block;resize:none;overflow-y:auto;max-height:calc(1.4em *
   .sm-more a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;background:var(--surface-2);font-weight:700;text-decoration:none;color:var(--ink)!important}
   .sm-scrim{display:block;position:fixed;inset:0;z-index:59;background:rgba(11,16,58,.5);animation:smFade .25s both}
   .sm-scrim[hidden]{display:none}
-  .smx.kb .sm-top,.smx.kb .sm-landing,.smx.kb .sm-sub-h{display:none}
   .smx.kb #speakMic{display:none!important}
-  .smx.kb .sm-over{max-height:calc(100% - 8px);padding:var(--s2)}
-  .smx.kb #smLine{font-size:1rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .smx.kb .hint:not([hidden])~.sm-sub{display:none}
-  .smx.kb .sm-over .hint{max-height:132px;overflow:auto;padding:var(--s2) var(--s3);gap:6px}
+
+  /* the conversation: a thread under a smaller stage */
+  .smx{grid-template-rows:minmax(0,min(42%,340px)) minmax(0,1fr) auto;grid-template-areas:"stage" "thread" "bar"}
+  .sm-thread{grid-area:thread;position:relative;z-index:4;display:flex;flex-direction:column;gap:10px;min-height:0;margin-top:-20px;padding:16px 14px 14px;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-radius:22px 22px 0 0;box-shadow:0 -8px 22px -12px rgba(11,16,58,.28);scrollbar-width:none}
+  .sm-thread::-webkit-scrollbar{display:none}
+  .sm-thread .chat{display:grid;gap:8px;align-content:start;height:auto;min-height:0;max-height:none;margin:0;padding:0;border:0;overflow:visible;background:none}
+  .smx[data-state="landing"] .sm-thread{justify-content:center}
+  .sm-thread .chat:empty{display:none}
+  .sm-thread .msg{max-width:86%;font-size:1rem;padding:10px 14px}
+  .sm-thread .msg.t.is-live{display:none}
+  .sm-thread .sm-over{position:static;display:grid;gap:10px;min-height:0;max-height:none;padding:0;overflow:visible;pointer-events:auto}
+  .sm-thread .sm-landing{padding:4px 0 2px}
+  .sm-thread .sm-tip{text-shadow:none;color:var(--ink-2)}
+  .sm-thread .sm-sub{justify-self:start;max-width:92%;background:rgb(11,16,58);border-radius:20px 20px 20px 6px;padding:10px 8px 10px 14px;box-shadow:var(--e1)}
+  .sm-thread #smLine{font-size:1.06rem}
+  .sm-thread .sm-sub{order:-1}   /* the Buddy's line first, then help or a note about it */
+  .smx.awaiting .sm-thread .sm-sub{display:none}
+  .sm-thread .sm-card,.sm-thread .hint{box-shadow:none}
+  .sm-thread .sm-done{box-shadow:none;border:1px solid var(--line)}
+  .sm-g-chat>h3{display:none}
+  /* typing: the stage folds away so the conversation and the field have the screen */
+  .smx.kb{position:fixed;z-index:70;left:0;right:0;top:var(--vvtop,0px);height:var(--vvh,100dvh);margin:0;grid-template-rows:0 minmax(0,1fr) auto;background:var(--surface)}
+  .smx.kb .sm-stage{visibility:hidden}
+  .smx.kb .sm-thread{margin-top:0;border-radius:0;box-shadow:none;padding-top:10px}
 }
 @keyframes smFade{from{opacity:0}to{opacity:1}}
-@media (max-width:899px) and (max-height:700px){
-  .sm-over .hint:not([hidden])~.sm-sub .sm-sub-h{display:none}
-  .sm-over .hint:not([hidden])~.sm-sub #smLine{font-size:1rem;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-  .sm-over .hint:not([hidden])~.sm-sub{padding-block:6px}
-  .sm-over .hint{padding:var(--s2) var(--s3);gap:6px}
-}
+@media (max-width:380px){.sm-swap .ic{display:none}.sm-top{gap:5px}}   /* narrow phones: the face says it; the scene name keeps its room */
 @media (min-width:900px){
   .sm-g-tally .tally b{font-size:1.3rem}
   .sm-menu{cursor:default;box-shadow:var(--e1)}
