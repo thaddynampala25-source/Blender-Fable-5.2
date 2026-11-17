@@ -2,8 +2,17 @@
 APP is the whole Speech Mode screen (stage, subtitle, reply bar, bottom sheet), CSS styles it and script() runs it.
 The 3D lives in buddies.js; everything here works without it (the static pictures stay on stage)."""
 
-# Display names. The internal ids stay `mila` and `rio` so a saved choice still loads.
-NAMES = {'mila': 'Ruby', 'rio': 'Max'}
+import json
+from buddy_roster import ROSTER, ACTIVE
+
+# Display names, from the roster (buddy_roster.py). The internal ids stay `mila` and `rio` so a saved choice still loads.
+NAMES = {b['id']: b['name'] for b in ROSTER}
+FIRST = ACTIVE[0]
+# the static pictures: the first active Buddy loads at once, the others lazily
+PICTURES = '\n'.join(
+    f'        <img class="bf bf-{b["id"]}" src="/assets/buddies/{b["file"]}.webp" width="540" height="774" alt="{b["alt"]}" decoding="async"{"" if i == 0 else " loading=\"lazy\""}>'
+    for i, b in enumerate(ACTIVE))
+SWITCH_HIDDEN = ' hidden' if len(ACTIVE) < 2 else ''
 
 I_MENU = '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'
 I_SWAP = '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h13M17 12l4 4-4 4M21 16H8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -13,19 +22,18 @@ I_SEND = '<svg class="ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden
 I_CLOSE = '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>'
 
 APP = f'''<div class="smx" id="sm" data-state="landing">
-    <div class="sm-stage buddy" id="buddy" data-buddy="mila">
+    <div class="sm-stage buddy" id="buddy" data-buddy="{FIRST['id']}">
       <div class="buddy-stage" id="buddyStage"><div class="buddy-fallback">
-        <img class="bf bf-mila" src="/assets/buddies/ruby.webp" width="540" height="774" alt="Ruby, a Language Buddy from London in a blue rain jacket with yellow headphones round her neck" decoding="async">
-        <img class="bf bf-rio" src="/assets/buddies/max.webp" width="540" height="774" alt="Max, a Language Buddy from New York in a blue and yellow varsity jacket, holding a coffee cup" decoding="async" loading="lazy">
+{PICTURES}
       </div></div>
       <div class="sm-top">
         <button class="sm-pill sm-menu" id="smMenu" type="button" aria-haspopup="dialog" aria-controls="smSheet" aria-expanded="false">{I_MENU}<span class="sm-menu-t"><small>Scene</small><b id="missionTitle"></b></span></button>
-        <button class="sm-pill" id="buddySwitch" type="button">{I_SWAP}<span>Switch Buddy</span></button>
+        <button class="sm-pill" id="buddySwitch" type="button"{SWITCH_HIDDEN}>{I_SWAP}<span>Switch Buddy</span></button>
         <button class="sm-pill sm-ic" id="buddyMute" type="button" aria-pressed="true" aria-label="Buddy sounds" title="Buddy sounds">{I_SOUND}</button>
       </div>
       <div class="sm-over" id="smOver">
         <div class="sm-landing" id="smLanding">
-          <p class="sm-who"><b id="buddyName">Ruby</b><span id="buddyFrom">from London</span></p>
+          <p class="sm-who"><b id="buddyName">{FIRST['name']}</b><span id="buddyFrom">{FIRST['from']}</span></p>
           <button class="key hl big" id="smStart" type="button">Start talking</button>
           <p class="sm-tip">Listen, then answer out loud.</p>
         </div>
@@ -33,7 +41,7 @@ APP = f'''<div class="smx" id="sm" data-state="landing">
         <div class="hint" id="hint" hidden></div>
         <div class="sm-done" id="smDone" hidden></div>
         <div class="sm-sub" id="smSub" hidden>
-          <p class="sm-sub-h"><b id="smSpeaker">Ruby</b><span class="sm-turn" id="smTurn"></span></p>
+          <p class="sm-sub-h"><b id="smSpeaker">{FIRST['name']}</b><span class="sm-turn" id="smTurn"></span></p>
           <div class="sm-sub-b"><p id="smLine" aria-live="polite"></p><button class="sm-replay" id="smReplay" type="button" aria-label="Hear it again">{I_REPLAY}</button></div>
         </div>
       </div>
@@ -70,7 +78,7 @@ def script(ver):
    Works with or without the 3D (buddies.js), which is loaded after the first paint. */
 (function () {
   var sm = document.getElementById('sm'), w = document.getElementById('buddy'); if (!sm || !w) return;
-  var NAME = {mila: 'Ruby', rio: 'Max'}, FROM = {mila: 'from London', rio: 'from New York'}, GENDER = {mila: 'f', rio: 'm'};
+  var NAME = __NAME__, FROM = __FROM__, GENDER = __GENDER__, IDS = __IDS__;   // from buddy_roster.py
   var $ = function (id) { return document.getElementById(id); }, root = document.documentElement;
   var fire = function (n, d) { window.dispatchEvent(new CustomEvent('w2s:' + n, {detail: d || {}})); };
   var phoneMq = window.matchMedia('(max-width: 899px)'), isPhone = function () { return phoneMq.matches; };
@@ -156,10 +164,10 @@ def script(ver):
   }
 
   function init() {
-    setBuddy(window.W2S_BUDDY === 'rio' ? 'rio' : 'mila', false);
+    setBuddy(IDS.indexOf(window.W2S_BUDDY) >= 0 ? window.W2S_BUDDY : IDS[0], false);
     var muted = false, hidden = false; try { muted = localStorage.getItem('w2s.buddyMute') === '1'; hidden = localStorage.getItem('w2s.buddyHidden') === '1'; } catch (e) {}
     setMute(muted); setShown(!hidden);
-    $('buddySwitch').addEventListener('click', function () { var t = Date.now(); if (t - lock < 950) return; lock = t; setBuddy(w.dataset.buddy === 'mila' ? 'rio' : 'mila', true); });
+    $('buddySwitch').addEventListener('click', function () { var t = Date.now(); if (t - lock < 950) return; lock = t; setBuddy(IDS[(IDS.indexOf(w.dataset.buddy) + 1) % IDS.length], true); });
     $('buddyMute').addEventListener('click', function () { var on = !$('buddyMute').classList.contains('is-off'); setMute(on); try { localStorage.setItem('w2s.buddyMute', on ? '1' : '0'); } catch (e) {} fire('mute', {on: on}); });
     $('buddyShow').addEventListener('change', function () { var on = $('buddyShow').checked; setShown(on); try { localStorage.setItem('w2s.buddyHidden', on ? '0' : '1'); } catch (e) {} fire('shown', {on: on}); });
     $('smMenu').addEventListener('click', function () { sheet(!sm.classList.contains('sheet-open')); });
@@ -187,7 +195,8 @@ def script(ver):
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
-'''.replace('__VER__', ver)
+'''.replace('__VER__', ver).replace('__NAME__', json.dumps(NAMES)).replace('__FROM__', json.dumps({b['id']: b['from'] for b in ROSTER})) \
+       .replace('__GENDER__', json.dumps({b['id']: b['gender'] for b in ROSTER})).replace('__IDS__', json.dumps([b['id'] for b in ACTIVE]))
 
 
 CSS = '''
@@ -205,8 +214,9 @@ body[data-page="speak"] .vh{order:2;margin-bottom:0}
 .buddy-canvas:focus-visible{box-shadow:inset 0 0 0 4px var(--hl)}
 .buddy-fallback{position:absolute;inset:0;transition:opacity .35s}
 .buddy-fallback .bf{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 0;display:none}
-.buddy[data-buddy="mila"] .bf-mila,.buddy[data-buddy="rio"] .bf-rio{display:block}
+__BF_SHOW__{display:block}
 .buddy.is-3d .buddy-fallback{opacity:0;pointer-events:none}
+.sm-pill[hidden]{display:none}
 .buddy.is-hidden .buddy-stage{display:none}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
@@ -364,3 +374,5 @@ body[data-page="speak"] .vh{order:2;margin-bottom:0}
   .smx[data-mic="on"] .sm-turn::before{animation:none}
 }
 '''
+
+CSS = CSS.replace('__BF_SHOW__', ','.join(f'.buddy[data-buddy="{b["id"]}"] .bf-{b["id"]}' for b in ROSTER))

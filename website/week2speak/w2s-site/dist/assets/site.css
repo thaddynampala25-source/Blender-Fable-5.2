@@ -605,8 +605,9 @@ body[data-page="speak"] .vh{order:2;margin-bottom:0}
 .buddy-canvas:focus-visible{box-shadow:inset 0 0 0 4px var(--hl)}
 .buddy-fallback{position:absolute;inset:0;transition:opacity .35s}
 .buddy-fallback .bf{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 0;display:none}
-.buddy[data-buddy="mila"] .bf-mila,.buddy[data-buddy="rio"] .bf-rio{display:block}
+.buddy[data-buddy="kairo"] .bf-kairo,.buddy[data-buddy="mila"] .bf-mila,.buddy[data-buddy="rio"] .bf-rio{display:block}
 .buddy.is-3d .buddy-fallback{opacity:0;pointer-events:none}
+.sm-pill[hidden]{display:none}
 .buddy.is-hidden .buddy-stage{display:none}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 

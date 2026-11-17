@@ -816,10 +816,13 @@ try { const raw = localStorage.getItem(KEY); if (raw) state = Object.assign(fres
 if (!state.course || !state.course.done) state.course = {done:{}, said:{}};
 if (!['us', 'gb', 'au'].includes(state.accent)) state.accent = 'us';
 const emit = (n, d) => { try { window.dispatchEvent(new CustomEvent('w2s:' + n, {detail: d || {}})); } catch (e) {} };
-if (state.buddy !== 'rio') state.buddy = 'mila';
-window.W2S_BUDDY = state.buddy; window.W2S_BUDDY_GENDER = state.buddy === 'rio' ? 'm' : 'f';
-window.addEventListener('w2s:buddy', e => { const id = e.detail && e.detail.id === 'rio' ? 'rio' : 'mila'; state.buddy = id; save(); renderVoiceNotes();
-  setTimeout(() => { if (currentView === 'speak' && $('#speakAloud').checked) Voice.speak(id === 'rio' ? "Hey! I'm Max. Let's talk." : "Hi! I'm Ruby. Let's talk.", {rate: 1}); }, 700); });
+/* the active Buddies come from buddy_roster.py via assets/config.js; a saved choice that is not active falls back to the first */
+const BUDDIES = (window.W2S_BUDDIES && window.W2S_BUDDIES.length) ? window.W2S_BUDDIES : [{id: 'mila', gender: 'f', greet: "Hi! I'm Ruby. Let's talk."}];
+const buddyOf = id => BUDDIES.find(b => b.id === id);
+if (!buddyOf(state.buddy)) state.buddy = BUDDIES[0].id;
+window.W2S_BUDDY = state.buddy; window.W2S_BUDDY_GENDER = buddyOf(state.buddy).gender;
+window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); renderVoiceNotes();
+  setTimeout(() => { if (currentView === 'speak' && $('#speakAloud').checked) Voice.speak(b.greet, {rate: 1}); }, 700); });
 /* Speech Mode screen: Start talking, Play again and the replay button */
 window.addEventListener('w2s:start', () => { window.W2S_HOLD = 0; startMission(S.id); });
 window.addEventListener('w2s:replay', () => { const t = S.turns.slice().reverse().find(x => x.role === 'tutor'); if (t) Voice.speak(t.text, {rate: .95}); });

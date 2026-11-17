@@ -7,7 +7,9 @@ import {GLTFLoader} from './vendor/GLTFLoader-0.170.0.js';
 
 const wrap = document.getElementById('buddy'), stage = document.getElementById('buddyStage'), sm = document.getElementById('sm');
 const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const FILE = {mila: 'ruby', rio: 'max'};
+const ROSTER = (window.W2S_BUDDIES && window.W2S_BUDDIES.length) ? window.W2S_BUDDIES : [{id: 'mila', file: 'ruby'}, {id: 'rio', file: 'max'}];   // buddy_roster.py, via config.js
+const FILE = {}; ROSTER.forEach(b => { FILE[b.id] = b.file; });
+const pick = id => FILE[id] ? id : ROSTER[0].id;
 const D = window.W2SBuddies = {ready: false, id: null, log: [], fps: 0, turns: 0, spun: 0, mouth: 0, blink: 0, speaking: false, listening: false, info: {}, delights: {}, quality: 0, renderer: '', reduced: RM, rig: ''};
 const lerp = (a, b, t) => a + (b - a) * t, clamp = (v, a, b) => v < a ? a : v > b ? b : v, rnd = (a, b) => a + Math.random() * (b - a);
 class Spring { constructor(x = 0, k = 140, d = 17) { this.x = x; this.t = x; this.v = 0; this.k = k; this.d = d; } step(dt) { this.v += ((this.t - this.x) * this.k - this.v * this.d) * dt; this.x += this.v * dt; return this.x; } }
@@ -240,7 +242,13 @@ function partAt(cx, cy) {
   const hits = ray.intersectObject(B.model, true); if (!hits.length) return null; const n = hits[0].object.name, p = B.model.worldToLocal(hits[0].point.clone());
   if (B.prop && hits[0].point.distanceTo(B.prop.getWorldPosition(new THREE.Vector3())) < 0.19) return 'prop';   // the cup or flask, and the hand round it
   if (/Hair|Pony/.test(n)) return 'hair'; if (/Head|Mouth|Eye|Lid|Lash|Brow|Shine|Freckle/.test(n)) return 'face'; if (/Prop|Headphones|Badge|HandL/.test(n)) return 'prop'; if (/Hand/.test(n)) return 'arm'; if (/Trousers|Shoe/.test(n)) return 'legs';
-  if (/Jacket/.test(n)) return Math.abs(p.x) > 0.34 ? 'arm' : 'torso'; return p.y > B.H * 0.63 ? 'face' : p.y > B.H * 0.28 ? 'torso' : 'legs';
+  if (/Jacket/.test(n)) return Math.abs(p.x) > 0.34 ? 'arm' : 'torso';
+  if (!B.full) {   // one fused mesh (no part names): classify by where on the body the tap landed
+    if (B.hw == null) { const bx = new THREE.Box3().setFromObject(B.model); B.hw = (bx.max.x - bx.min.x) / 2; }
+    const ax = Math.abs(p.x) / B.hw, ty = p.y / B.H;
+    if (ty > 0.86) return 'hair'; if (ty > 0.5) return ax > 0.6 ? 'hair' : 'face';
+    if (ty > 0.2) return ax > 0.36 ? (ty < 0.33 ? 'prop' : 'arm') : 'torso'; return 'legs'; }
+  return p.y > B.H * 0.63 ? 'face' : p.y > B.H * 0.28 ? 'torso' : 'legs';
 }
 function bindPointer() {
   let down = null, lastTap = 0, lastPart = '', press = 0, lx = 0, lt = 0, vel = 0;
@@ -267,17 +275,22 @@ function start() {
   document.addEventListener('visibilitychange', run);
   const on = (n, f) => window.addEventListener('w2s:' + n, f);
   on('speak', onSpeak); on('word', onWord); on('speakend', onSpeakEnd); on('mic', onMic); on('good', onGood); on('oops', onOops); on('help', onHelp); on('done', onDone);
-  on('buddy', e => { touched = true; show(e.detail && e.detail.id === 'rio' ? 'rio' : 'mila', false); });
+  on('buddy', e => { touched = true; show(pick(e.detail && e.detail.id), false); });
   on('mute', e => { muted = !!(e.detail && e.detail.on); if (!muted) { touched = true; SFX.pop(); } });
   on('shown', run); on('layout', () => setTimeout(resize, 30)); on('start', () => { touched = true; });
   // hooks for the tests, the turnaround renders and the static pictures
-  D.anchor = part => { if (!B) return null; const v = new THREE.Vector3(), n = {face: B.bones.head, hair: B.bones.head, torso: B.bones.spine, arm: B.bones.rf || B.bones.ra, prop: B.prop || B.bones.lh, legs: B.bones.ll}[part]; if (!n) return null; n.getWorldPosition(v);
-    if (part === 'face') { v.y += B.fw * 0.36; v.z += 0.1; } if (part === 'hair') v.y += B.fw * 0.93; if (part === 'torso') v.y += 0.22; if (part === 'legs') v.y -= 0.25; if (part === 'arm') v.y -= 0.1;
+  D.anchor = part => { if (!B) return null; const v = new THREE.Vector3(), n = {face: B.bones.head, hair: B.bones.head, torso: B.bones.spine, arm: B.bones.rf || B.bones.ra, prop: B.prop || B.bones.lh, legs: B.bones.ll}[part];
+    if (n) { n.getWorldPosition(v);
+      if (part === 'face') { v.y += B.fw * 0.36; v.z += 0.1; } if (part === 'hair') v.y += B.fw * 0.93; if (part === 'torso') v.y += 0.22; if (part === 'legs') v.y -= 0.25; if (part === 'arm') v.y -= 0.1; }
+    else {   // no skeleton (a generic model): aim at the body by height, on the front of the model
+      const f = {face: [0, 0.66], hair: [0.78, 0.62], torso: [0, 0.4], arm: [0.44, 0.4], prop: [0.44, 0.27], legs: [0.12, 0.12]}[part]; if (!f) return null;
+      const bx = new THREE.Box3().setFromObject(B.model), r = (bx.max.x - bx.min.x) / 2; v.set(f[0] * r, f[1] * B.H, 0);
+      const hit = new THREE.Raycaster(new THREE.Vector3(v.x, v.y, 10), new THREE.Vector3(0, 0, -1)).intersectObject(B.model, true)[0]; if (hit) v.copy(hit.point); }
     v.project(camera); const r = canvas.getBoundingClientRect(), x = r.left + (v.x + 1) / 2 * r.width, y = r.top + (1 - v.y) / 2 * r.height; return {x, y, part: partAt(x, y)}; };
   D.say = (s, sec) => say(s, sec || 0.5); D.poke = p => poke(p); D.react = n => R[n] && R[n](); D.setQuality = setQuality;
   D.view = o => { o = o || {}; camForce = o.frame || null; D.hold = o.rot != null ? o.rot : null; if (o.pose) pose(o.pose); if (o.blink != null && B) B.hold = o.blink; frameCam(); };
   D.snap = () => { update(0.016, performance.now()); renderer.render(scene, camera); return canvas.toDataURL('image/png'); };
-  show(window.W2S_BUDDY === 'rio' ? 'rio' : 'mila', true);   // the other Buddy is only downloaded when the learner switches
+  show(pick(window.W2S_BUDDY), true);   // the other Buddies are only downloaded when the learner switches
   run();
 }
 start();

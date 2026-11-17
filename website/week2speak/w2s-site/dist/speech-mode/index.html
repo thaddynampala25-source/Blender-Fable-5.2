@@ -25,7 +25,7 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=202611170716">
+<link rel="stylesheet" href="/assets/site.css?v=202611171113">
 <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "EducationalOrganization", "@id": "https://week2speak.com/#org", "name": "Week2Speak", "url": "https://week2speak.com/", "logo": "https://week2speak.com/apple-touch-icon.png", "description": "English speaking practice and tutoring for Spanish speakers.", "email": "hello@week2speak.com", "founder": {"@type": "Person", "name": "Mei Gabriela Parrablanco"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://week2speak.com/"}, {"@type": "ListItem", "position": 2, "name": "Speech Mode", "item": "https://week2speak.com/speech-mode/"}]}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Do I need a microphone?", "acceptedAnswer": {"@type": "Answer", "text": "It helps. In Chrome, Edge and Safari (including on iPhone and Android) you can answer out loud. In other browsers, say your answer out loud first and then type it."}}, {"@type": "Question", "name": "Is the tutor in Speech Mode a real person?", "acceptedAnswer": {"@type": "Answer", "text": "No. Speech Mode is scripted practice that runs on this site. Live lessons with a human tutor are part of the 7-Day Sprint."}}, {"@type": "Question", "name": "What happens when I make a mistake?", "acceptedAnswer": {"@type": "Answer", "text": "If your sentence contains a mistake that is common for Spanish speakers, such as \"I have 25 years\", you see a one-line fix with the reason it happens in Spanish."}}, {"@type": "Question", "name": "Is Speech Mode free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, while the site is in testing."}}, {"@type": "Question", "name": "Who are the Language Buddies?", "acceptedAnswer": {"@type": "Answer", "text": "Ruby and Max, two 3D characters in Speech Mode. Ruby is from London and Max is from New York. They speak the tutor's lines, listen while you answer and react when you get a sentence right. You can switch between them, spin them and poke them."}}]}]}</script>
 </head>
 <body data-page="speak">
@@ -42,19 +42,18 @@
 <section data-view="speak" class="light"><div class="wrap view">
   <div class="vh"><h1 data-split>Speech Mode: English speaking practice</h1><p>Pick a scene and answer in full sentences. Every reply earns XP, and mistakes typical for Spanish speakers get a quick fix.</p></div>
   <div class="smx" id="sm" data-state="landing">
-    <div class="sm-stage buddy" id="buddy" data-buddy="mila">
+    <div class="sm-stage buddy" id="buddy" data-buddy="kairo">
       <div class="buddy-stage" id="buddyStage"><div class="buddy-fallback">
-        <img class="bf bf-mila" src="/assets/buddies/ruby.webp" width="540" height="774" alt="Ruby, a Language Buddy from London in a blue rain jacket with yellow headphones round her neck" decoding="async">
-        <img class="bf bf-rio" src="/assets/buddies/max.webp" width="540" height="774" alt="Max, a Language Buddy from New York in a blue and yellow varsity jacket, holding a coffee cup" decoding="async" loading="lazy">
+        <img class="bf bf-kairo" src="/assets/buddies/template.webp" width="540" height="774" alt="Kairo, a Language Buddy with long locs and an orange beanie, in a striped jacket" decoding="async">
       </div></div>
       <div class="sm-top">
         <button class="sm-pill sm-menu" id="smMenu" type="button" aria-haspopup="dialog" aria-controls="smSheet" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span class="sm-menu-t"><small>Scene</small><b id="missionTitle"></b></span></button>
-        <button class="sm-pill" id="buddySwitch" type="button"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h13M17 12l4 4-4 4M21 16H8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Switch Buddy</span></button>
+        <button class="sm-pill" id="buddySwitch" type="button" hidden><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h13M17 12l4 4-4 4M21 16H8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Switch Buddy</span></button>
         <button class="sm-pill sm-ic" id="buddyMute" type="button" aria-pressed="true" aria-label="Buddy sounds" title="Buddy sounds"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 10v4h4l5 4V6l-5 4z" fill="currentColor"/><path class="on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path class="off" d="m17 9 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
       </div>
       <div class="sm-over" id="smOver">
         <div class="sm-landing" id="smLanding">
-          <p class="sm-who"><b id="buddyName">Ruby</b><span id="buddyFrom">from London</span></p>
+          <p class="sm-who"><b id="buddyName">Kairo</b><span id="buddyFrom">your Language Buddy</span></p>
           <button class="key hl big" id="smStart" type="button">Start talking</button>
           <p class="sm-tip">Listen, then answer out loud.</p>
         </div>
@@ -62,7 +61,7 @@
         <div class="hint" id="hint" hidden></div>
         <div class="sm-done" id="smDone" hidden></div>
         <div class="sm-sub" id="smSub" hidden>
-          <p class="sm-sub-h"><b id="smSpeaker">Ruby</b><span class="sm-turn" id="smTurn"></span></p>
+          <p class="sm-sub-h"><b id="smSpeaker">Kairo</b><span class="sm-turn" id="smTurn"></span></p>
           <div class="sm-sub-b"><p id="smLine" aria-live="polite"></p><button class="sm-replay" id="smReplay" type="button" aria-label="Hear it again"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v4.5h4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
         </div>
       </div>
@@ -116,17 +115,17 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <canvas id="fx" aria-hidden="true"></canvas>
 <script>window.W2S_HOLD = 1;</script>
-<script src="/assets/config.js?v=202611170716"></script>
+<script src="/assets/config.js?v=202611171113"></script>
 <script src="/assets/vendor/gsap-3.12.5.min.js" defer></script>
 <script src="/assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
-<script src="/assets/app.js?v=202611170716" defer></script>
-<script src="/assets/home.js?v=202611170716" defer></script>
+<script src="/assets/app.js?v=202611171113" defer></script>
+<script src="/assets/home.js?v=202611171113" defer></script>
 <script>
 /* Speech Mode screen: which Buddy is on stage, the subtitle, the cards over the stage, the bottom sheet and the keyboard layout.
    Works with or without the 3D (buddies.js), which is loaded after the first paint. */
 (function () {
   var sm = document.getElementById('sm'), w = document.getElementById('buddy'); if (!sm || !w) return;
-  var NAME = {mila: 'Ruby', rio: 'Max'}, FROM = {mila: 'from London', rio: 'from New York'}, GENDER = {mila: 'f', rio: 'm'};
+  var NAME = {"kairo": "Kairo", "mila": "Ruby", "rio": "Max"}, FROM = {"kairo": "your Language Buddy", "mila": "from London", "rio": "from New York"}, GENDER = {"kairo": "m", "mila": "f", "rio": "m"}, IDS = ["kairo"];   // from buddy_roster.py
   var $ = function (id) { return document.getElementById(id); }, root = document.documentElement;
   var fire = function (n, d) { window.dispatchEvent(new CustomEvent('w2s:' + n, {detail: d || {}})); };
   var phoneMq = window.matchMedia('(max-width: 899px)'), isPhone = function () { return phoneMq.matches; };
@@ -135,7 +134,7 @@
   /* ---- Buddy: choice, switch, sounds, show or hide ---- */
   function load3d() {
     if (loaded || w.classList.contains('is-hidden')) return; loaded = true;
-    var s = document.createElement('script'); s.type = 'module'; s.src = '/assets/buddies.js?v=202611170716'; s.onerror = function () { w.classList.add('no-3d'); };
+    var s = document.createElement('script'); s.type = 'module'; s.src = '/assets/buddies.js?v=202611171113'; s.onerror = function () { w.classList.add('no-3d'); };
     document.head.appendChild(s);
   }
   function setBuddy(id, announce) {
@@ -212,10 +211,10 @@
   }
 
   function init() {
-    setBuddy(window.W2S_BUDDY === 'rio' ? 'rio' : 'mila', false);
+    setBuddy(IDS.indexOf(window.W2S_BUDDY) >= 0 ? window.W2S_BUDDY : IDS[0], false);
     var muted = false, hidden = false; try { muted = localStorage.getItem('w2s.buddyMute') === '1'; hidden = localStorage.getItem('w2s.buddyHidden') === '1'; } catch (e) {}
     setMute(muted); setShown(!hidden);
-    $('buddySwitch').addEventListener('click', function () { var t = Date.now(); if (t - lock < 950) return; lock = t; setBuddy(w.dataset.buddy === 'mila' ? 'rio' : 'mila', true); });
+    $('buddySwitch').addEventListener('click', function () { var t = Date.now(); if (t - lock < 950) return; lock = t; setBuddy(IDS[(IDS.indexOf(w.dataset.buddy) + 1) % IDS.length], true); });
     $('buddyMute').addEventListener('click', function () { var on = !$('buddyMute').classList.contains('is-off'); setMute(on); try { localStorage.setItem('w2s.buddyMute', on ? '1' : '0'); } catch (e) {} fire('mute', {on: on}); });
     $('buddyShow').addEventListener('change', function () { var on = $('buddyShow').checked; setShown(on); try { localStorage.setItem('w2s.buddyHidden', on ? '0' : '1'); } catch (e) {} fire('shown', {on: on}); });
     $('smMenu').addEventListener('click', function () { sheet(!sm.classList.contains('sheet-open')); });

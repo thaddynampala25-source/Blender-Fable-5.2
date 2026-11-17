@@ -1,5 +1,7 @@
 # Language Buddy models
 
+Which Buddies appear is set in `../buddy_roster.py` (`active`). Today only the chibi template (`template.glb`, id `kairo`) is active; see `../../BUDDY_TEMPLATE_REPORT.md`. Its web copy is made from `references/model.glb` by `../buddy-gen/optimize_template.py`.
+
 Drop a GLB here and the next build uses it instead of the built-in one. Nothing else needs changing.
 
 | File | Buddy | Internal id |

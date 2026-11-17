@@ -1,4 +1,4 @@
-// Language Buddies v2 (Ruby and Max) and the Speech Mode screen: behaviour test.
+// Language Buddies and the Speech Mode screen: behaviour test. Reads the active roster (assets/config.js), so it covers one Buddy or several.
 // Usage: node buddy_test.cjs <outdir>   (dist/ must be served on http://localhost:8765)
 const {chromium} = require('playwright'); const fs = require('fs');
 const OUT = process.argv[2] || 'buddy-test-out'; fs.mkdirSync(OUT, {recursive: true});
@@ -14,6 +14,8 @@ const tap = async (p, part) => { const a = await p.evaluate(x => window.W2SBuddi
   let ctx = await b.newContext({viewport: {width: 1440, height: 900}}), p = await ctx.newPage(); watch(p);
   await p.goto(U, {waitUntil: 'networkidle'}); await ready(p);
   R.loaded = await D(p, () => ({id: window.W2SBuddies.id, rig: window.W2SBuddies.rig, renderer: window.W2SBuddies.renderer, name: document.getElementById('buddyName').textContent, is3d: document.getElementById('buddy').classList.contains('is-3d'), state: document.getElementById('sm').dataset.state}));
+  const ROST = await D(p, () => window.W2S_BUDDIES || [{id: 'mila', name: 'Ruby', file: 'ruby', gender: 'f'}, {id: 'rio', name: 'Max', file: 'max', gender: 'm'}]), multi = ROST.length > 1, A = ROST[0], Bb = ROST[1] || ROST[0];
+  R.roster = ROST.map(b => b.id); R.capabilities = {rig: R.loaded.rig, mouthShapes: /morph/.test(R.loaded.rig) || R.loaded.rig === 'w2s-1', skeleton: R.loaded.rig === 'w2s-1'};
   // lip sync: the mouth moves while the tutor line is spoken, and closes after it
   await p.click('#smStart'); let mx = 0, said = 0, spoke = false; const t0 = Date.now();
   while (Date.now() - t0 < 9000) { const s = await D(p, () => ({m: window.W2SBuddies.mouth, sp: window.W2SBuddies.speaking, on: document.querySelectorAll('#smLine .w.on, #smLine .w.said').length})); if (s.sp) { spoke = true; mx = Math.max(mx, s.m); said = Math.max(said, s.on); } else if (spoke) break; await p.waitForTimeout(60); }
@@ -51,15 +53,17 @@ const tap = async (p, part) => { const a = await p.evaluate(x => window.W2SBuddi
   conv.pass = conv.afterMistake === 'oops' && conv.card === 1 && conv.afterGood === 'good' && conv.afterHelp === 'help' && conv.listening === true; R.conversation = conv;
   // replay button speaks the line again
   await p.waitForTimeout(1500); await p.click('#smReplay'); await p.waitForTimeout(250); R.replay = {speaking: await D(p, () => window.W2SBuddies.speaking)}; R.replay.pass = R.replay.speaking;
-  // Switch Buddy: by tap, announced, saved, survives a reload; then by keyboard
-  await p.waitForTimeout(1200); await p.click('#buddySwitch'); await p.waitForFunction(() => window.W2SBuddies.id === 'rio' && window.W2SBuddies.ready, null, {timeout: 60000}); await p.waitForTimeout(1500);
+  // Switch Buddy: by tap, announced, saved, survives a reload; then by keyboard (with one active Buddy: the button is hidden)
+  if (multi) {
+  await p.waitForTimeout(1200); await p.click('#buddySwitch'); await p.waitForFunction(bid => window.W2SBuddies.id === bid && window.W2SBuddies.ready, Bb.id, {timeout: 60000}); await p.waitForTimeout(1500);
   const sw = {afterTap: await D(p, () => ({id: window.W2SBuddies.id, name: document.getElementById('buddyName').textContent, speaker: document.getElementById('smSpeaker').textContent, live: document.getElementById('buddyLive').textContent, saved: JSON.parse(localStorage.getItem('w2s.v1')).buddy, gender: window.W2S_BUDDY_GENDER}))};
   await p.screenshot({path: OUT + '/t-max.png'});
   await p.reload({waitUntil: 'networkidle'}); await ready(p); sw.afterReload = await D(p, () => ({id: window.W2SBuddies.id, name: document.getElementById('buddyName').textContent}));
-  await p.focus('#buddySwitch'); await p.keyboard.press('Enter'); await p.waitForFunction(() => window.W2SBuddies.id === 'mila' && window.W2SBuddies.ready, null, {timeout: 60000}); await p.waitForTimeout(800);
+  await p.focus('#buddySwitch'); await p.keyboard.press('Enter'); await p.waitForFunction(aid => window.W2SBuddies.id === aid && window.W2SBuddies.ready, A.id, {timeout: 60000}); await p.waitForTimeout(800);
   sw.afterKeyboard = await D(p, () => ({id: window.W2SBuddies.id, name: document.getElementById('buddyName').textContent, live: document.getElementById('buddyLive').textContent}));
   await p.reload({waitUntil: 'networkidle'}); await ready(p); sw.afterReload2 = await D(p, () => window.W2SBuddies.id);
-  sw.pass = sw.afterTap.id === 'rio' && sw.afterTap.name === 'Max' && /Max is your Buddy now/.test(sw.afterTap.live) && sw.afterTap.saved === 'rio' && sw.afterTap.gender === 'm' && sw.afterReload.id === 'rio' && sw.afterReload.name === 'Max' && sw.afterKeyboard.id === 'mila' && sw.afterKeyboard.name === 'Ruby' && sw.afterReload2 === 'mila'; R.switch = sw;
+  sw.pass = sw.afterTap.id === Bb.id && sw.afterTap.name === Bb.name && sw.afterTap.live.includes(Bb.name + ' is your Buddy now') && sw.afterTap.saved === Bb.id && sw.afterTap.gender === Bb.gender && sw.afterReload.id === Bb.id && sw.afterReload.name === Bb.name && sw.afterKeyboard.id === A.id && sw.afterKeyboard.name === A.name && sw.afterReload2 === A.id; R.switch = sw;
+  } else { R.switch = {single: A.id, buttonHidden: await p.locator('#buddySwitch').isHidden(), name: await D(p, () => document.getElementById('buddyName').textContent), gender: await D(p, () => window.W2S_BUDDY_GENDER)}; R.switch.pass = R.switch.buttonHidden && R.switch.name === A.name && R.switch.gender === A.gender; }
   // sound toggle
   await p.click('#buddyMute'); const snd = {offPressed: await p.getAttribute('#buddyMute', 'aria-pressed'), stored: await D(p, () => localStorage.getItem('w2s.buddyMute'))}; await p.click('#buddyMute'); snd.onPressed = await p.getAttribute('#buddyMute', 'aria-pressed'); snd.pass = snd.offPressed === 'false' && snd.stored === '1' && snd.onPressed === 'true'; R.sound = snd;
   // desktop layout: the Buddy takes at least half the width
@@ -92,18 +96,19 @@ const tap = async (p, part) => { const a = await p.evaluate(x => window.W2SBuddi
   ctx = await b.newContext({viewport: {width: 390, height: 844}, reducedMotion: 'reduce', isMobile: true, hasTouch: true}); p = await ctx.newPage(); watch(p);
   await p.goto(U, {waitUntil: 'networkidle'}); await ready(p); await p.tap('#smStart'); let rm = 0, rmSpoke = false; const t1 = Date.now(); while (Date.now() - t1 < 6000) { const s = await D(p, () => ({m: window.W2SBuddies.mouth, sp: window.W2SBuddies.speaking})); if (s.sp) { rmSpoke = true; rm = Math.max(rm, s.m); } else if (rmSpoke) break; await p.waitForTimeout(60); }
   await D(p, () => window.W2SBuddies.poke('legs')); let hopMax = 0; for (let i = 0; i < 10; i++) { hopMax = Math.max(hopMax, await D(p, () => window.W2SBuddies.hopY)); await p.waitForTimeout(60); }
-  await p.tap('#buddySwitch'); await p.waitForFunction(() => window.W2SBuddies.id === 'rio', null, {timeout: 60000});
-  R.reducedMotion = {flag: await D(p, () => window.W2SBuddies.reduced), mouthMax: rm, hopMax, switched: await D(p, () => window.W2SBuddies.id), sheetTransition: await D(p, () => getComputedStyle(document.getElementById('smSheet')).transitionDuration)}; R.reducedMotion.pass = R.reducedMotion.flag && rm > 0.2 && hopMax === 0 && R.reducedMotion.switched === 'rio'; await p.screenshot({path: OUT + '/t-reduced-motion.png'}); await ctx.close();
+  if (multi) { await p.tap('#buddySwitch'); await p.waitForFunction(bid => window.W2SBuddies.id === bid, Bb.id, {timeout: 60000}); }
+  R.reducedMotion = {flag: await D(p, () => window.W2SBuddies.reduced), mouthMax: rm, hopMax, switched: await D(p, () => window.W2SBuddies.id), sheetTransition: await D(p, () => getComputedStyle(document.getElementById('smSheet')).transitionDuration)}; R.reducedMotion.pass = R.reducedMotion.flag && rm > 0.2 && hopMax === 0 && R.reducedMotion.switched === Bb.id; await p.screenshot({path: OUT + '/t-reduced-motion.png'}); await ctx.close();
   await b.close();
   // ---------- no WebGL: static pictures, everything else works ----------
   b = await chromium.launch({args: NOGL}); ctx = await b.newContext({viewport: {width: 360, height: 640}, isMobile: true, hasTouch: true}); p = await ctx.newPage(); watch(p);
   await p.goto(U, {waitUntil: 'networkidle'}); await p.waitForTimeout(2500);
   const ng = await D(p, () => { const w = document.getElementById('buddy'), im = [...document.querySelectorAll('.buddy-fallback .bf')].filter(i => i.offsetParent)[0]; return {no3d: w.classList.contains('no-3d'), is3d: w.classList.contains('is-3d'), picture: im ? im.getAttribute('src') : null, pictureLoaded: !!(im && im.naturalWidth > 0), alt: im ? im.alt.slice(0, 22) : ''}; });
   await p.tap('#smStart'); await p.waitForTimeout(500); ng.subtitle = (await p.locator('#smLine').innerText()).slice(0, 30); await p.fill('#speakInput', 'I have 25 years'); await p.tap('#speakSend'); await p.waitForTimeout(400); ng.fixCard = await p.locator('#smCard:not([hidden])').count();
-  await p.locator('.sm-x').tap(); await p.tap('#buddySwitch'); await p.waitForTimeout(600); ng.afterSwitch = await D(p, () => ({name: document.getElementById('buddyName').textContent, picture: [...document.querySelectorAll('.buddy-fallback .bf')].filter(i => i.offsetParent)[0].getAttribute('src')}));
-  ng.pass = ng.no3d && !ng.is3d && ng.pictureLoaded && /ruby/.test(ng.picture) && ng.subtitle.length > 3 && ng.fixCard === 1 && ng.afterSwitch.name === 'Max' && /max/.test(ng.afterSwitch.picture); R.noWebGL = ng; await p.screenshot({path: OUT + '/t-no-webgl.png'}); await b.close();
+  await p.locator('.sm-x').tap(); if (multi) await p.tap('#buddySwitch'); await p.waitForTimeout(600); ng.afterSwitch = await D(p, () => ({name: document.getElementById('buddyName').textContent, picture: [...document.querySelectorAll('.buddy-fallback .bf')].filter(i => i.offsetParent)[0].getAttribute('src')}));
+  ng.pass = ng.no3d && !ng.is3d && ng.pictureLoaded && ng.picture.includes(A.file) && ng.subtitle.length > 3 && ng.fixCard === 1 && ng.afterSwitch.name === Bb.name && ng.afterSwitch.picture.includes(Bb.file); R.noWebGL = ng; await p.screenshot({path: OUT + '/t-no-webgl.png'}); await b.close();
   R.errors = errors; R.externalHosts = [...hosts];
   const checks = ['lipsync', 'pokes', 'rapid', 'spin', 'delights', 'conversation', 'replay', 'switch', 'sound', 'desktop', 'fps', 'phone', 'sheet', 'keyboard', 'pause', 'noMic', 'reducedMotion', 'noWebGL'];
   R.summary = Object.fromEntries(checks.map(c => [c, !!(R[c] && R[c].pass)])); R.summary.noErrors = errors.length === 0; R.summary.noExternalRequests = hosts.size === 0; R.allPass = Object.values(R.summary).every(Boolean);
+  R.notes = []; if (!R.capabilities.mouthShapes) R.notes.push('lipsync: the mouth value is computed, but this model has no mouth shapes, so nothing moves on screen'); if (!R.capabilities.skeleton) R.notes.push('pokes, delights, conversation: reactions fire and the whole body hops, squashes and spins, but arm, head, eye and eyelid gestures need a skeleton this model does not have');
   fs.writeFileSync(OUT + '/result.json', JSON.stringify(R, null, 1)); console.log(JSON.stringify(R, null, 1));
 })().catch(e => { console.error('TEST CRASHED', e); process.exit(1); });

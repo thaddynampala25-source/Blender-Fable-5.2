@@ -264,20 +264,26 @@ _bgu = open('vendor3/package/examples/jsm/utils/BufferGeometryUtils.js').read().
 _gl = open('vendor3/package/examples/jsm/loaders/GLTFLoader.js').read().replace("from 'three'", f"from '{T3}'").replace("'../utils/BufferGeometryUtils.js'", "'/assets/vendor/BufferGeometryUtils-0.170.0.js'")
 assert T3 in _bgu and T3 in _gl
 open(OUT + '/assets/vendor/BufferGeometryUtils-0.170.0.js', 'w').write(_bgu); open(OUT + '/assets/vendor/GLTFLoader-0.170.0.js', 'w').write(_gl)
-# Language Buddies: models and static pictures. A GLB dropped into buddy-models/ (ruby.glb, max.glb) replaces the built-in one.
+# Language Buddies: models and static pictures for the active Buddies in buddy_roster.py. A GLB (and .webp)
+# in buddy-models/ replaces the built-in one from buddy-gen/out/.
+import buddy_roster as _BR
 os.makedirs(OUT + '/assets/buddies')
-for _n in ('ruby', 'max'):
+for _n in [b_['file'] for b_ in _BR.ACTIVE]:
     _user = f'buddy-models/{_n}.glb'; _own = f'buddy-gen/out/{_n}.glb'
     shutil.copy(_user if os.path.exists(_user) else _own, OUT + f'/assets/buddies/{_n}.glb')
     import gzip as _gz   # the browser inflates this copy itself, so the download is small on any host; the plain .glb is the fallback
     with open(OUT + f'/assets/buddies/{_n}.glb', 'rb') as _f, _gz.GzipFile(OUT + f'/assets/buddies/{_n}.glb.gz', 'wb', compresslevel=9, mtime=0) as _g: _g.write(_f.read())
-    shutil.copy(f'buddy-gen/out/{_n}.webp', OUT + f'/assets/buddies/{_n}.webp')
+    _pic = next((q for q in (f'buddy-models/{_n}.webp', f'buddy-gen/out/{_n}.webp') if os.path.exists(q)), None)
+    if _pic:
+        shutil.copy(_pic, OUT + f'/assets/buddies/{_n}.webp')
+    else:
+        print(f'WARNING: no picture for {_n} (run buddy-gen/poster.cjs once the site is served)')
 FONTFACE = '@font-face{font-family:"Bricolage Grotesque";src:url("/assets/fonts/bricolage.woff2") format("woff2");font-weight:200 800;font-stretch:75% 100%;font-display:swap}\n@font-face{font-family:"Figtree";src:url("/assets/fonts/figtree.woff2") format("woff2");font-weight:300 900;font-display:swap}\n'
 open(OUT + '/assets/site.css', 'w', encoding='utf-8').write(FONTFACE + css + open('extra.css').read() + BB.CSS)
 open(OUT + '/assets/app.js', 'w', encoding='utf-8').write(a)
 open(OUT + '/assets/home.js', 'w', encoding='utf-8').write(h)
 cfg = {'formKey': CFG.get('formKey', ''), 'whatsapp': CFG.get('whatsapp', '')}
-open(OUT + '/assets/config.js', 'w').write('/* Week2Speak site settings. formKey: Web3Forms access key for the Join form. whatsapp: number with country code, digits only. */\nwindow.W2S_CONFIG = ' + json.dumps(cfg) + ';\n')
+open(OUT + '/assets/config.js', 'w').write('/* Week2Speak site settings. formKey: Web3Forms access key for the Join form. whatsapp: number with country code, digits only. */\nwindow.W2S_CONFIG = ' + json.dumps(cfg) + ';\n' + _BR.js())
 for name, (title, desc) in PAGES.items():
     path = ALL[name]; d = OUT + path; os.makedirs(d, exist_ok=True)
     html = head(name, title, desc, path, noindex=(name == 'tutor')) + f'<body data-page="{name}">\n' + page_body(name) + ('<script>window.W2S_HOLD = 1;</script>\n' if name == 'speak' else '') + SCRIPTS + (BB.script(VER) if name == 'speak' else '') + '</body>\n</html>\n'
