@@ -113,7 +113,9 @@ def script(ver):
     if (wd !== lastW) { lastW = wd; maxH = 0; } if (h > maxH) maxH = h;
     var nav = document.querySelector('.nav'); root.style.setProperty('--smtop', (nav ? nav.offsetHeight : 48) + 'px');
     var kb = isPhone() && document.activeElement === $('speakInput') && h < maxH - 120;
-    if (isPhone()) { root.style.setProperty('--vvh', Math.round(h) + 'px'); root.style.setProperty('--vvtop', Math.round(vv ? vv.offsetTop : 0) + 'px'); } else { root.style.removeProperty('--vvh'); root.style.removeProperty('--vvtop'); }
+    // the visible area is only written while typing (it pins the app above the keyboard); otherwise Safari's toolbar
+    // sliding in and out would restyle the page on every scroll event
+    if (kb) { var vh_ = Math.round(h) + 'px', vt_ = Math.round(vv ? vv.offsetTop : 0) + 'px'; if (root.style.getPropertyValue('--vvh') !== vh_) root.style.setProperty('--vvh', vh_); if (root.style.getPropertyValue('--vvtop') !== vt_) root.style.setProperty('--vvtop', vt_); }
     // while typing on a phone the app is pinned to the visible area above the keyboard (iOS scrolls the
     // page under the keyboard otherwise); when the keyboard closes, the page goes back to the top
     if (kb !== sm.classList.contains('kb')) { sm.classList.toggle('kb', kb); fire('layout', {kb: kb}); if (!kb && window.scrollY) window.scrollTo(0, 0); if (kb) follow(true); }
@@ -407,7 +409,7 @@ textarea.field{display:block;resize:none;overflow-y:auto;max-height:calc(1.4em *
   body[data-page="speak"] .nav .tabs{display:none}
   body[data-page="speak"] .nav-in{min-height:0;height:48px;padding-block:0;align-items:center;grid-template-columns:minmax(0,1fr) auto auto;gap:8px}
   body[data-page="speak"] .nav .progress{display:none}
-  .smx{grid-template-columns:minmax(0,1fr);grid-template-areas:"stage" "bar";gap:0;margin-block:0;margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)));min-height:0;max-height:none;height:calc(100vh - var(--smtop,48px));height:calc(var(--vvh,100dvh) - var(--smtop,48px) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+  .smx{grid-template-columns:minmax(0,1fr);grid-template-areas:"stage" "bar";gap:0;margin-block:0;margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)));min-height:0;max-height:none;height:calc(100vh - var(--smtop,48px));height:calc(100svh - var(--smtop,48px) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
   .sm-stage{border-radius:0;box-shadow:none}
   .sm-pill{padding:0 12px;font-size:.875rem}
   .sm-menu-t b{max-width:34vw;white-space:nowrap}
@@ -463,6 +465,8 @@ textarea.field{display:block;resize:none;overflow-y:auto;max-height:calc(1.4em *
   .smx.kb .sm-thread{margin-top:0;border-radius:0;box-shadow:none;padding-top:10px}
 }
 @keyframes smFade{from{opacity:0}to{opacity:1}}
+/* iOS Safari re-composites (flickers) elements with a backdrop blur that sit over a WebGL canvas; the pills are near-opaque anyway */
+@media (pointer:coarse),(max-width:899px){.sm-pill{-webkit-backdrop-filter:none;backdrop-filter:none;background:#fff}}
 @media (max-width:380px){.sm-swap .ic{display:none}.sm-top{gap:5px}}   /* narrow phones: the face says it; the scene name keeps its room */
 @media (min-width:900px){
   .sm-g-tally .tally b{font-size:1.3rem}

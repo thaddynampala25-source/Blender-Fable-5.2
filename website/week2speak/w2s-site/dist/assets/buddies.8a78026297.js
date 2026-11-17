@@ -24,7 +24,9 @@ const buzz = ms => { if (touched && navigator.vibrate && !RM) try { navigator.vi
 
 /* ---------- renderer, scene, lights ---------- */
 let renderer, scene, camera, canvas, shadowLight, ground, blob, raf = 0, running = false, visible = true, W = 1, H = 1, last = 0;
-const QUAL = [{pr: 2, sh: true}, {pr: 1.5, sh: true}, {pr: 1, sh: true}, {pr: 1, sh: false}];   // steps down: pixel ratio first, then shadows
+const QUAL = [{pr: 2, sh: true}, {pr: 1.5, sh: true}, {pr: 1.5, sh: false}, {pr: 1, sh: false}];   // steps down: pixel ratio, then the shadow pass
+// phones start lighter: no shadow pass (the soft contact shadow stays), textures at 1024 px, the second Buddy not on the GPU until it is shown
+const LIGHT = window.matchMedia('(max-width: 899px), (pointer: coarse)').matches;
 function boot() {
   try { if (!document.createElement('canvas').getContext('webgl2')) throw new Error('no WebGL 2'); canvas = document.createElement('canvas'); canvas.className = 'buddy-canvas'; canvas.tabIndex = 0; canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', 'Your Language Buddy. Drag to spin, tap to poke.');
     renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: true, powerPreference: 'high-performance'}); } catch (e) { wrap.classList.add('no-3d'); return false; }
@@ -40,7 +42,7 @@ function boot() {
   blob = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.95), new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false})); blob.rotation.x = -Math.PI / 2; blob.position.y = 0.006; scene.add(blob);   // contact shadow under the feet
   stage.appendChild(canvas); return true;
 }
-function setQuality(q) { D.quality = clamp(q, 0, QUAL.length - 1); const Q = QUAL[D.quality]; renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.pr)); renderer.shadowMap.enabled = Q.sh; shadowLight.castShadow = Q.sh; ground.visible = Q.sh; renderer.setSize(W, H, false); }
+function setQuality(q) { D.quality = clamp(q, 0, QUAL.length - 1); const Q = QUAL[D.quality]; renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.pr)); renderer.shadowMap.enabled = Q.sh; shadowLight.castShadow = Q.sh; ground.visible = Q.sh; renderer.setSize(W, H, false);  if (B && scene && camera) renderer.render(scene, camera); }
 
 /* ---------- a Buddy: model, rig lookup, pose channels ---------- */
 const buddies = {}, loading = {}; let B = null, pending = null;
@@ -55,13 +57,17 @@ async function fetchModel(name) {
 }
 function load(id) { if (buddies[id]) return Promise.resolve(buddies[id]); if (loading[id]) return loading[id];
   return loading[id] = fetchModel(FILE[id]).then(buf => new Promise((ok, no) => new GLTFLoader().parse(buf, '', g => ok(buddies[id] = make(g, id)), no))); }
+function shrinkMap(m) {   // phones: the 2048 px texture at 1024 px (a quarter of the GPU memory; the face is ~150 px wide on screen)
+  const t = m && m.map, im = t && t.image; if (!im || !im.width || im.width <= 1024) return;
+  const c = document.createElement('canvas'); c.width = Math.round(im.width / 2); c.height = Math.round(im.height / 2); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); t.image = c; t.needsUpdate = true;
+}
 function make(gltf, id) {
   const model = gltf.scene, ex = model.userData.w2s || {}, full = ex.rig === 'w2s-1';
   const N = (...names) => { for (const n of names) { const o = model.getObjectByName(n); if (o) return o; } return null; };
   const b = {id, model, ex, full, P: {}, M: {jaw: 0, pucker: 0, wide: 0, smile: 0.3, frown: 0}, Mt: {jaw: 0, pucker: 0, wide: 0, smile: 0.3, frown: 0}, morph: [], blink: 0, gaze: {x: new Spring(0, 90, 14), y: new Spring(0, 90, 14)}, rot: 0, rotV: 0, hop: 0, hopV: 0, sq: new Spring(1, 260, 14), pop: new Spring(1, 170, 13), pony: new Spring(0, 60, 5), pony2: new Spring(0, 60, 5), nextBlink: rnd(1.5, 3.5), shades: null, shadesS: new Spring(0, 180, 13)};
   for (const k in IDLE) b.P[k] = new Spring(IDLE[k], k === 'headS' ? 90 : 130, k === 'headS' ? 9 : 16);
   b.spin = new THREE.Group(); b.tilt = new THREE.Group(); b.sqG = new THREE.Group(); b.spin.add(b.tilt); b.tilt.add(b.sqG); b.sqG.add(model);
-  model.traverse(o => { if (!o.isMesh) return; o.frustumCulled = false; o.castShadow = !/Shine/.test(o.name); o.receiveShadow = !/Eye|Shine|Lid|Lash|Head|Mouth|Brow|Freckle/.test(o.name); const m = o.material; if (m && m.isMeshStandardMaterial) { if (!/Eye|Shine/.test(m.name)) rimPatch(m); if (/Shine/.test(m.name)) m.emissive = new THREE.Color(1, 1, 1); }
+  model.traverse(o => { if (!o.isMesh) return; o.frustumCulled = false; o.castShadow = !/Shine/.test(o.name); o.receiveShadow = !/Eye|Shine|Lid|Lash|Head|Mouth|Brow|Freckle/.test(o.name); const m = o.material; if (m && m.isMeshStandardMaterial) { if (LIGHT) shrinkMap(m); if (!/Eye|Shine/.test(m.name)) rimPatch(m); if (/Shine/.test(m.name)) m.emissive = new THREE.Color(1, 1, 1); }
     if (o.morphTargetDictionary) b.morph.push(o); });
   b.bones = {hips: N('Hips', 'mixamorigHips', 'pelvis'), spine: N('Spine', 'Spine1', 'Chest', 'mixamorigSpine1'), neck: N('Neck', 'mixamorigNeck'), head: N('Head', 'mixamorigHead'), la: N('LeftArm'), lf: N('LeftForeArm'), lh: N('LeftHand'), ra: N('RightArm'), rf: N('RightForeArm'), rh: N('RightHand'), ll: N('LeftUpLeg'), rl: N('RightUpLeg')};
   b.lid = [N('LidL'), N('LidR')]; b.low = [N('LowLidL'), N('LowLidR')]; b.eye = [N('EyeL'), N('EyeR')]; b.brow = [N('BrowL'), N('BrowR')]; b.ponyN = N('Pony'); b.prop = N('Prop');
@@ -390,7 +396,7 @@ function confStep(dt) { if (!conf) return; let any = false; cp.forEach((p, i) =>
 let firstShow = true, firstLoad = true;
 // once the first Buddy is on stage, the others load quietly in the background so Switch Buddy is instant
 function preloadOthers(id) { const c = navigator.connection; if (c && (c.saveData || /2g/.test(c.effectiveType || ''))) return;
-  const go = () => ROSTER.filter(r => r.id !== id && FILE[r.id]).forEach(r => load(r.id).then(b => { b.model.traverse(o => { if (o.material && o.material.map) renderer.initTexture(o.material.map); }); }).catch(() => {}));
+  const go = () => ROSTER.filter(r => r.id !== id && FILE[r.id]).forEach(r => load(r.id).then(b => { if (!LIGHT) b.model.traverse(o => { if (o.material && o.material.map) renderer.initTexture(o.material.map); }); }).catch(() => {}));
   setTimeout(go, 600); }   // not requestIdleCallback: the render loop keeps the page from ever being idle
 function show(id, instant) {
   pending = id;
@@ -417,7 +423,7 @@ function frameCam() {
   const d = H / (2 * ppu * Math.tan(camera.fov * Math.PI / 360)); camera.aspect = W / H; camera.position.set(0, cy, d); camera.lookAt(0, cy, 0); camera.updateProjectionMatrix(); if (sm && !camForce) sm.style.setProperty('--sm-chin', Math.round(topPad + headH * ppu * 0.93) + 'px');   // cards over the stage stop below the chin
   D.info.ppu = Math.round(ppu); D.info.faceShare = +(B.fw * ppu / W).toFixed(2);
 }
-function resize() { const r = stage.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return; W = Math.round(r.width); H = Math.round(r.height); renderer.setSize(W, H, false); frameCam(); }
+function resize() { const r = stage.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return; const w = Math.round(r.width), h = Math.round(r.height); if (w === W && h === H) return; W = w; H = h; renderer.setSize(W, H, false); frameCam(); if (B && scene) renderer.render(scene, camera); }   // setSize clears the canvas: draw now, not next frame
 
 /* ---------- per-frame update ---------- */
 let ptr = {x: 0, y: 0, t: -1e9}, dragging = false, turnAcc = 0;
@@ -512,7 +518,7 @@ function bindPointer() {
 /* ---------- start ---------- */
 function start() {
   if (!wrap || !stage || !boot()) return;
-  resize(); setQuality(0); bindPointer();
+  resize(); setQuality(LIGHT ? 2 : 0); bindPointer();
   new ResizeObserver(resize).observe(stage);
   new IntersectionObserver(es => { visible = es[0].isIntersecting; run(); }, {threshold: 0.02}).observe(stage);
   document.addEventListener('visibilitychange', run);
