@@ -44,12 +44,12 @@
   <div class="smx" id="sm" data-state="landing">
     <div class="sm-stage buddy" id="buddy" data-buddy="kairo">
       <div class="buddy-stage" id="buddyStage"><div class="buddy-fallback">
-        <img class="bf bf-kairo" src="/assets/buddies/kairo-v2.c888b967f1.webp" width="540" height="774" alt="Kairo, a Language Buddy with long locs and an orange beanie, in a striped jacket" decoding="async">
-        <img class="bf bf-may" src="/assets/buddies/may-v1.f3c3bc2d32.webp" width="540" height="774" alt="May, a Language Buddy with long dark brown wavy hair and a beige scarf" decoding="async" loading="lazy">
+        <img class="bf bf-kairo" src="/assets/buddies/kairo-v2.5c2898cca6.webp" width="540" height="774" alt="Kairo, a Language Buddy with long locs and an orange beanie, in a striped jacket" decoding="async">
+        <img class="bf bf-may" src="/assets/buddies/may-v1.d5a6ace491.webp" width="540" height="774" alt="May, a Language Buddy with long dark brown wavy hair and a beige scarf" decoding="async" loading="lazy">
       </div></div>
       <div class="sm-top">
         <button class="sm-pill sm-menu" id="smMenu" type="button" aria-haspopup="dialog" aria-controls="smSheet" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span class="sm-menu-t"><small>Scene</small><b id="missionTitle"></b></span></button>
-        <button class="sm-pill sm-swap" id="buddySwitch" type="button" aria-label="Switch Buddy"><span class="bs-faces" aria-hidden="true"><img class="bs-face bs-kairo" src="/assets/buddies/kairo-v2.c888b967f1.webp" alt="" width="30" height="30" decoding="async"><img class="bs-face bs-may" src="/assets/buddies/may-v1.f3c3bc2d32.webp" alt="" width="30" height="30" decoding="async"></span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h13M17 12l4 4-4 4M21 16H8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Switch Buddy</span></button>
+        <button class="sm-pill sm-swap" id="buddySwitch" type="button" aria-label="Switch Buddy"><span class="bs-faces" aria-hidden="true"><img class="bs-face bs-kairo" src="/assets/buddies/kairo-v2.5c2898cca6.webp" alt="" width="30" height="30" decoding="async"><img class="bs-face bs-may" src="/assets/buddies/may-v1.d5a6ace491.webp" alt="" width="30" height="30" decoding="async"></span><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h13M17 12l4 4-4 4M21 16H8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Switch Buddy</span></button>
         <button class="sm-pill sm-ic" id="buddyMute" type="button" aria-pressed="true" aria-label="Buddy sounds" title="Buddy sounds"><svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 10v4h4l5 4V6l-5 4z" fill="currentColor"/><path class="on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path class="off" d="m17 9 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
       </div>
       <div class="sm-over" id="smOver">
@@ -118,7 +118,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <canvas id="fx" aria-hidden="true"></canvas>
 <script>window.W2S_HOLD = 1;</script>
-<script src="/assets/config.7bec0bb2c4.js"></script>
+<script src="/assets/config.838fe76f58.js"></script>
 <script src="/assets/vendor/gsap-3.12.5.min.js" defer></script>
 <script src="/assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
 <script src="/assets/app.7837d9bd89.js" defer></script>
@@ -137,7 +137,7 @@
   /* ---- Buddy: choice, switch, sounds, show or hide ---- */
   function load3d() {
     if (loaded || w.classList.contains('is-hidden')) return; loaded = true;
-    var s = document.createElement('script'); s.type = 'module'; s.src = '/assets/buddies.91e9f45f47.js'; s.onerror = function () { w.classList.add('no-3d'); };
+    var s = document.createElement('script'); s.type = 'module'; s.src = '/assets/buddies.a10a2cc79d.js'; s.onerror = function () { w.classList.add('no-3d'); };
     document.head.appendChild(s);
   }
   function nextBuddy(id) { return IDS[(IDS.indexOf(id) + 1) % IDS.length]; }

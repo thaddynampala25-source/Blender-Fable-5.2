@@ -68,8 +68,9 @@ The AI tutor path stays as it is for viewers that offer it.
 | Skeletons: Hips, Spine, Head, region weights | done (`buddy-gen/build_buddy.py`) |
 | Both Buddies active + picker (picture, name, personality, selected) | done |
 | Idle life per personality (breathing, posture, look-arounds, blinks) | done |
-| Blink (eyelid cards) | done |
-| Lip-sync (mouth card), driven by real audio start and word events | done; **approximate**, see below |
+| Blink: the eye's own painted lash line (and May's wings) slides down over the eye on the model's own surface; first version used separate eyelid cards, replaced at the owner's request | done |
+| Mouth: the character's own mouth deforms (lips part along their seam, jaw and lower lip drop, corners in/out/up); only the opening between the lips is shaded. First version drew a mouth card on top, replaced at the owner's request | done; **approximate** timing, see below |
+| Integrated face data built per model (`buddy-gen/face_map.py`: front-view raster of the eye band, skin with the eyes painted out, lash-line mask, opening top/height per column, lip seam) | done |
 | States: idle, listening (calmer, small nods), thinking (head angle, half lids; only when a reply is awaited), speaking, positive, confused | done (thinking only fires on the AI path: scripted replies are instant) |
 | Mic states (ready, listening pulse, speaking ring, processing, error) + recovery messages + Try again | done |
 | Stop button while speaking; replay | done |
@@ -88,8 +89,13 @@ The AI tutor path stays as it is for viewers that offer it.
   where the voice provides them (Chrome desktop local voices, Safari) and from an estimate where
   it does not (many Google network voices, much of Android). The subtitle shows which.
 - **Eyes cannot look around.** They are painted; gaze is carried by the head.
-- **No eyebrow or smile geometry.** Brows are painted; smiles and laughs are drawn on the mouth
-  card. Kairo's painted grin is his resting face; May's pout is modelled and stays at rest.
+- **No eyebrow geometry.** Brows are painted and stay still. Smiles lift the mouth corners by deforming
+  the face; Kairo's painted grin is his resting face and his teeth stay painted (his mouth opens below
+  them); May's modelled pout is her mouth and parts along its own lip line.
+- **The face is animated in the body's own material** (a vertex deformation around the mouth and a
+  blink drawn from the model's own lash line before lighting). Nothing is laid on top of the face, so
+  tone and lighting always match; the trade-off is that the eye band is sampled from a 1.5 mm raster
+  while the lid moves, a little softer than the texture for the 0.16 s of a blink.
 - **No arm gestures.** Arms, hair and clothes are one fused mesh; arm bones would tear it.
 - **Only tested in a headless browser here.** Microphone hardware and real voices could not be
   exercised in the cloud test machine; frame rates measured here come from a software renderer.

@@ -1,3 +1,0 @@
-/* Week2Speak site settings. formKey: Web3Forms access key for the Join form. whatsapp: number with country code, digits only. */
-window.W2S_CONFIG = {"formKey": "", "whatsapp": ""};
-window.W2S_BUDDIES = [{"id": "kairo", "file": "kairo-v2.c888b967f1", "name": "Kairo", "from": "laid-back and confident", "gender": "m", "greet": "Hey! I'm Kairo. Let's talk.", "blurb": "Relaxed, funny and easy to talk to. Takes his time.", "persona": "laidback"}, {"id": "may", "file": "may-v1.f3c3bc2d32", "name": "May", "from": "warm and playful", "gender": "f", "greet": "Hi! I'm May. Let's talk.", "blurb": "Warm, playful and expressive. Loves a good chat.", "persona": "playful"}];

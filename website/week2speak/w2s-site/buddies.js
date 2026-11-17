@@ -132,6 +132,102 @@ function faceCard(b, c, w, h, cw, ch) {   // a small grid fitted to the face sur
   m.renderOrder = 2; m.visible = false; m.frustumCulled = false; m.castShadow = false; m.receiveShadow = false; m.name = 'FaceCard'; head.add(m);
   return {mesh: m, cv, g2: cv.getContext('2d'), tex, last: ''};
 }
+
+/* ---------- the integrated face (models built with face2 data, see buddy-gen/face_map.py) ----------
+   No pieces are laid over the face. The body's own material does the work, before lighting, so the
+   features keep the model's skin tone, texture, light and shading:
+   - blink: the eye's own painted lash line (and any wings) slides down over the eye; the white, iris
+     and pupil it passes give way to the skin painted out of a small front-view raster of the eye band;
+   - mouth: the mesh deforms (lower lip and jaw down, upper lip up a little, corners in, out or up) along
+     the line where the lips part, and only the gap that opens between them is shaded. */
+const FACE_VS_HEAD = `
+uniform mat4 uSkinToModel; uniform mat3 uModelToSkin; uniform vec4 uSeam; uniform vec4 uMouth; uniform vec4 uMouthA;
+varying vec3 vFaceP; varying vec3 vFaceN; varying float vFaceDy;
+vec3 w2sMouthDisp(vec3 p, vec3 n) {
+  float hw = uMouth.x, ys = uSeam.x + uSeam.y * p.x + uSeam.z * p.x * p.x, dx = p.x - uSeam.w, u = dx / hw;
+  float front = smoothstep(uMouth.w - 0.13, uMouth.w - 0.07, p.z) * step(-0.2, n.z);
+  float lens = pow(clamp(1.0 - u * u, 0.0, 1.0), 0.6);
+  float jaw = clamp(1.0 - (dx * dx) / (2.6 * hw * hw), 0.0, 1.0);
+  float below = step(p.y, ys), dn = ys - p.y, upd = p.y - ys;
+  float lower = mix(lens, jaw, smoothstep(0.0, 0.05, dn)) * (1.0 - smoothstep(0.09, 0.2, dn)) * below;
+  float upper = lens * (1.0 - smoothstep(0.0, 0.035, upd)) * (1.0 - below);
+  float lipR = clamp(1.0 - u * u / 1.7, 0.0, 1.0) * (1.0 - smoothstep(0.02, 0.07, abs(p.y - ys)));
+  float J = uMouthA.x, P = uMouthA.y, W = uMouthA.z, S = uMouthA.w;
+  vec3 d = vec3(0.0);
+  d.y = -J * uMouth.y * lower + J * uMouth.z * upper + S * 0.009 * u * u * lipR;
+  d.x = dx * (W * 0.2 - P * 0.3) * lipR;
+  d.z = P * 0.012 * lipR - J * 0.006 * lower;
+  return d * front;
+}`;
+const FACE_VS_BODY = `
+  vFaceP = (uSkinToModel * vec4(position, 1.0)).xyz; vFaceN = normalize(mat3(uSkinToModel) * normal);
+  { vec3 w2sD = w2sMouthDisp(vFaceP, vFaceN); vFaceDy = w2sD.y; transformed += uModelToSkin * w2sD; }`;
+const FACE_FS_HEAD = `
+uniform sampler2D uFaceAtlas; uniform sampler2D uFaceProf; uniform vec4 uFaceBox; uniform vec4 uFaceEye;
+uniform vec4 uSeam; uniform vec4 uMouth; uniform vec4 uMouthA; uniform float uMouthKind; uniform float uFaceDbg;
+varying vec3 vFaceP; varying vec3 vFaceN; varying float vFaceDy;
+vec4 w2sAtlas(float col, float row) { float H2 = uFaceBox.w * 2.0; return texture2D(uFaceAtlas, vec2((col + 0.5) / uFaceBox.z, 1.0 - (row + 0.5) / H2)); }
+vec4 w2sProf(float col) { float c0 = floor(col); vec4 a = texelFetch(uFaceProf, ivec2(int(c0), 0), 0), b = texelFetch(uFaceProf, ivec2(int(c0) + 1, 0), 0);
+  if (a.b < 0.5) return b; if (b.b < 0.5) return a; return mix(a, b, col - c0); }`;
+const FACE_FS_BODY = `
+  if (uFaceEye.x > 0.002 && vFaceN.z > 0.25 && vFaceP.z > uFaceEye.y) {
+    float col = (vFaceP.x - uFaceBox.x) / uFaceEye.z, row = (uFaceBox.y - vFaceP.y) / uFaceEye.z, H = uFaceBox.w;
+    if (col >= 0.0 && col < uFaceBox.z - 1.0 && row >= 0.0 && row < H - 1.0) {
+      vec4 pr = w2sProf(col);
+      if (pr.b > 0.5) {
+        float s = uFaceEye.x * pr.g, edge = pr.r + s, cover = 1.0 - smoothstep(edge - 0.6, edge + 0.6, row);
+        if (cover > 0.0) {
+          vec4 cl = w2sAtlas(col, clamp(row, 0.0, H - 1.0) + H);
+          vec3 base = mix(diffuseColor.rgb, cl.rgb, cl.a);                 // the eye gives way to skin
+          float src = row - s; vec4 ln = w2sAtlas(col, clamp(src, 0.0, H - 1.0));
+          base = mix(base, ln.rgb, smoothstep(0.12, 0.55, ln.a) * step(0.0, src));   // its own lash line, moved down (crisp, as painted)
+          base *= 1.0 - 0.07 * uFaceEye.x * (1.0 - smoothstep(0.0, 9.0, edge - row));   // the lid's soft shade
+          diffuseColor.rgb = mix(diffuseColor.rgb, base, cover);
+          if (uFaceDbg > 0.5) diffuseColor.rgb = uFaceDbg < 1.5 ? vec3(ln.a, cl.a, 0.0) : ln.rgb;
+        }
+      }
+    }
+  }
+  float w2sGap = 0.0; vec3 w2sInside = vec3(0.0);
+  if (uMouthA.x > 0.01) {
+    float hw = uMouth.x, ys = uSeam.x + uSeam.y * vFaceP.x + uSeam.z * vFaceP.x * vFaceP.x, u = (vFaceP.x - uSeam.w) / hw;
+    float lens = pow(clamp(1.0 - u * u, 0.0, 1.0), 0.6), J = uMouthA.x;
+    float top = ys + J * uMouth.z * lens, bot = ys - J * uMouth.y * lens, y = vFaceP.y + vFaceDy;
+    float g = smoothstep(bot - 0.0006, bot + 0.0012, y) * (1.0 - smoothstep(top - 0.0012, top + 0.0006, y)) * step(abs(u), 1.0)
+            * smoothstep(uMouth.w - 0.13, uMouth.w - 0.07, vFaceP.z) * step(0.0, top - bot - 0.0004);
+    if (g > 0.0) {
+      w2sInside = vec3(0.020, 0.005, 0.005) * (0.5 + 0.5 * lens); w2sGap = g;   // the mouth's shadowed inside, applied after lighting (no facet shading)
+      diffuseColor.rgb = mix(diffuseColor.rgb, w2sInside, g);
+    }
+  }`;
+function faceSetup(b) {
+  const f2 = b.ex.face2, skin = b.skin; if (!f2 || !skin || !skin.material) return false;
+  const m = skin.material, Wc = f2.w, Hr = f2.h, mo = f2.mouth || {a: -99, b: 0, c: 0, cx: 0, hw: 0.01, kind: 'teeth', front: 0};
+  const img = new Image(); const atlas = new THREE.Texture(img); img.onload = () => { atlas.needsUpdate = true; }; img.src = f2.atlas;
+  atlas.colorSpace = THREE.SRGBColorSpace; atlas.generateMipmaps = false; atlas.minFilter = THREE.LinearFilter; atlas.magFilter = THREE.LinearFilter; atlas.flipY = true;
+  const pd = new Float32Array(Wc * 4); for (let i = 0; i < Wc; i++) { const t = f2.T[i]; pd[i * 4] = t; pd[i * 4 + 1] = f2.S[i]; pd[i * 4 + 2] = t >= 0 ? 1 : 0; pd[i * 4 + 3] = 1; }
+  const prof = new THREE.DataTexture(pd, Wc, 1, THREE.RGBAFormat, THREE.FloatType); prof.needsUpdate = true;
+  b.model.updateMatrixWorld(true);
+  const s2m = new THREE.Matrix4().copy(b.model.matrixWorld).invert().multiply(skin.matrixWorld), m2s = new THREE.Matrix3().setFromMatrix4(s2m).invert();
+  const lips = mo.kind === 'lips';
+  const U = b.faceU = {uSkinToModel: {value: s2m}, uModelToSkin: {value: m2s}, uFaceAtlas: {value: atlas}, uFaceProf: {value: prof},
+    uFaceBox: {value: new THREE.Vector4(f2.x0, f2.top, Wc, Hr)}, uFaceEye: {value: new THREE.Vector4(0, f2.front - 0.15, f2.px, 0)},
+    uSeam: {value: new THREE.Vector4(mo.a, mo.b, mo.c, mo.cx)}, uMouth: {value: new THREE.Vector4(mo.hw, lips ? 0.046 : 0.028, lips ? 0.007 : 0.0, mo.front)},
+    uMouthA: {value: new THREE.Vector4(0, 0, 0, 0)}, uMouthKind: {value: lips ? 1 : 0}, uFaceDbg: {value: 0}};
+  const prev = m.onBeforeCompile;
+  m.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r); Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader.replace('void main() {', FACE_VS_HEAD + '\nvoid main() {').replace('#include <begin_vertex>', '#include <begin_vertex>' + FACE_VS_BODY);
+    sh.fragmentShader = sh.fragmentShader.replace('void main() {', FACE_FS_HEAD + '\nvoid main() {').replace('#include <map_fragment>', '#include <map_fragment>' + FACE_FS_BODY)
+      .replace('#include <opaque_fragment>', 'outgoingLight = mix(outgoingLight, w2sInside, w2sGap);\n#include <opaque_fragment>'); };
+  m.customProgramCacheKey = () => 'w2s-face2'; m.needsUpdate = true;
+  b.face2 = true; b.lids = []; b.mouthCard = null;
+  return true;
+}
+function faceUpdate(b, lid) {
+  const U = b.faceU; if (!U) return; const M = b.M;
+  U.uFaceEye.value.x = clamp(lid, 0, 1);
+  U.uMouthA.value.set(clamp(M.jaw, 0, 1), clamp(M.pucker, 0, 1), clamp(M.wide, 0, 1), clamp(M.smile - 0.3, -0.4, 0.7) - clamp(M.frown, 0, 1) * 0.5);
+}
 function chibiSetup(b) {
   const f = b.ex.face || {}; b.model.updateMatrixWorld(true);
   b.skin = null; b.model.traverse(o => { if (o.isSkinnedMesh || (o.isMesh && !b.skin)) b.skin = o; });
@@ -141,7 +237,8 @@ function chibiSetup(b) {
       b.faceHit = proxyMesh(b.skin, (x, y, z) => x > x0 && x < x1 && y > y0 && y < y1 && z > z0); } }
   b.restQ = {}; for (const k of ['hips', 'spine', 'head']) if (b.bones[k]) b.restQ[k] = b.bones[k].quaternion.clone();
   b.idle = {lx: new Spring(0, 30, 9), ly: new Spring(0, 30, 9), lz: new Spring(0, 30, 9), sw: new Spring(0, 12, 6), lookT: 1, swayT: 2, nodT: 2};
-  b.lids = [];
+  b.lids = []; b.mouthA = new Spring(0, 220, 26);
+  if (faceSetup(b)) return;
   for (const k of ['eye_l', 'eye_r']) { const e = f[k]; if (!e) continue;
     const card = faceCard(b, e.c, e.w * 1.35, e.h * 1.8, 128, 96);
     card.outer = e.c[0] > 0 ? 1 : -1;     // which canvas side is the outer corner
@@ -207,6 +304,7 @@ function chibiUpdate(b, dt, t, gx, gy, bl, idle) {
   boneRot(b, 'head', P.hx.x - gy * 0.1 + I.lx.x - th * 0.07, P.hy.x + gx * 0.2 + I.ly.x + th * 0.1, P.hz.x + ps.tilt * idle + I.lz.x - I.sw.x * 0.5 + th * 0.06);
   if (b.bones.head) b.bones.head.scale.setScalar(P.headS.x);
   const lid = Math.max(bl, th * 0.28, b.hold || 0);
+  if (b.face2) faceUpdate(b, lid);
   for (const c of b.lids) drawLids(c, lid, ps.wing);
   if (b.mouthCard) { const want = (speaking && audioOn) || performance.now() < sayUntil ? 1 : 0; b.mouthA.t = want; b.mouthA.step(dt); drawMouth(b.mouthCard, b.M, clamp(b.mouthA.x, 0, 1)); }
 }
@@ -431,7 +529,10 @@ function start() {
       const bx = new THREE.Box3().setFromObject(B.model), r = (bx.max.x - bx.min.x) / 2; v.set(f[0] * r, f[1] * B.H, 0);
       const rc = new THREE.Raycaster(new THREE.Vector3(v.x, v.y, 10), new THREE.Vector3(0, 0, -1)); if (B.hitBody) B.hitBody.matrixWorld.copy(B.spin.matrixWorld); const hit = rc.intersectObject(B.hitBody || B.model, !B.hitBody)[0]; if (hit) v.copy(hit.point); }
     v.project(camera); const r = canvas.getBoundingClientRect(), x = r.left + (v.x + 1) / 2 * r.width, y = r.top + (1 - v.y) / 2 * r.height; return {x, y, part: partAt(x, y)}; };
-  D.face = () => (B && B.chibi) ? {mouth: !!(B.mouthCard && B.mouthCard.mesh.visible), lids: B.lids.map(c => c.mesh.visible), persona: B.persona === PERSONA.playful ? 'playful' : 'laidback', head: B.bones.head ? B.bones.head.rotation.toArray().slice(0, 3).map(v => +v.toFixed(4)) : null} : null;
+  D.face = () => (B && B.chibi) ? {integrated: !!B.face2, mouth: B.face2 ? B.faceU.uMouthA.value.x > 0.02 : !!(B.mouthCard && B.mouthCard.mesh.visible), lids: B.face2 ? [0, 1].map(() => B.faceU.uFaceEye.value.x > 0.5) : B.lids.map(c => c.mesh.visible), jaw: B.face2 ? +B.faceU.uMouthA.value.x.toFixed(3) : null, persona: B.persona === PERSONA.playful ? 'playful' : 'laidback', head: B.bones.head ? B.bones.head.rotation.toArray().slice(0, 3).map(v => +v.toFixed(4)) : null} : null;
+  D.featurePts = () => { if (!B || !B.ex.face) return null; const r = canvas.getBoundingClientRect(), o = {}; B.model.updateMatrixWorld(true);
+    for (const [k, e] of Object.entries(B.ex.face)) { const v = new THREE.Vector3(...e.c); (B.bones.head || B.model).updateWorldMatrix(true, false); v.applyMatrix4(B.model.matrixWorld); v.project(camera); o[k] = {x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height}; } return o; };
+  D.faceDbg = v => { if (B && B.faceU) B.faceU.uFaceDbg.value = v; };
   D.cached = () => Object.keys(buddies); D.hitInfo = () => B ? {body: B.hitBody ? B.hitBody.geometry.attributes.position.count / 3 : 0, face: B.faceHit ? B.faceHit.geometry.attributes.position.count / 3 : 0, sphere: B.hitBody ? B.hitBody.geometry.boundingSphere.radius : 0} : null;
   D.say = (s, sec) => say(s, sec || 0.5); D.poke = p => poke(p); D.react = n => R[n] && R[n](); D.setQuality = setQuality;
   D.view = o => { o = o || {}; camForce = o.frame || null; D.hold = o.rot != null ? o.rot : null; if (o.pose) pose(o.pose); if (o.blink != null && B) B.hold = o.blink; frameCam(); };

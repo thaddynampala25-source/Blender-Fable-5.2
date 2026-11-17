@@ -143,6 +143,20 @@ if EDIT:
     tex = ns["edit"](tex, pos, nor, covered, info)
     img.pixels.foreach_set(tex.ravel())
     img.update()
+# ---------------------------------------------------------------- 4b. face data for the integrated face animation
+# (see face_map.py: the eyes' own lash lines slide down to blink; the mouth deforms along the line where the lips part)
+import sys as _sys, base64, tempfile
+_sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import face_map
+face2, atlas = face_map.build(tex, pos, nor, covered, info)
+if face2:
+    ah, aw = atlas.shape[:2]
+    aimg = bpy.data.images.new(NAME + "_face", aw, ah, alpha=True)
+    aimg.pixels.foreach_set(np.flipud(atlas).astype(np.float32).ravel())
+    _png = os.path.join(tempfile.mkdtemp(), "face.png"); aimg.filepath_raw = _png; aimg.file_format = "PNG"; aimg.save()
+    face2["atlas"] = "data:image/png;base64," + base64.b64encode(open(_png, "rb").read()).decode()
+    bpy.data.images.remove(aimg)
+    log("face map", aw, "x", ah, "png", os.path.getsize(_png), "mouth", face2.get("mouth"))
 if DUMP:
     os.makedirs(DUMP, exist_ok=True)
     np.savez_compressed(os.path.join(DUMP, NAME + "_texels.npz"), pos=pos.astype(np.float16), nor=nor.astype(np.float16), tex=(tex * 255).astype(np.uint8), covered=covered)
@@ -189,6 +203,8 @@ for k, e in eyes.items():
 if "mouth" in info:
     m = info["mouth"]; face["mouth"] = {"c": gl(m["center"]), "w": round(m["w"], 4), "h": round(m["h"], 4), "kind": m["kind"]}
 sc["w2s"] = {"height": HEIGHT, "faceWidth": round(fw * 0.62, 3), "neck": round(float(neck), 3), "face": face, "rig": "w2s-chibi-1"}
+if face2:
+    sc["w2s"]["face2"] = face2
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.export_scene.gltf(filepath=OUT, export_format="GLB", use_selection=False, export_extras=True,
                           export_image_format="JPEG", export_jpeg_quality=86, export_draco_mesh_compression_enable=False,
