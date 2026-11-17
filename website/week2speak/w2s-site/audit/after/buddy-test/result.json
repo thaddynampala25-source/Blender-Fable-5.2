@@ -19,7 +19,7 @@
  },
  "lipsync": {
   "spoke": true,
-  "mouthMaxWhileSpeaking": 0.645,
+  "mouthMaxWhileSpeaking": 0.521,
   "wordsHighlighted": 9,
   "mouthAfter": 0,
   "stateAfter": "turn",
@@ -44,28 +44,28 @@
    "torso>torso"
   ],
   "log": [
-   "boop",
-   "hairflick",
-   "tickle",
-   "wave",
-   "sip",
    "giggle",
-   "startled",
+   "hairflick",
    "shrug",
    "wave",
    "sip",
    "boop",
+   "startled",
+   "tickle",
+   "shrug",
+   "wave",
+   "giggle",
    "tickle"
   ],
   "distinct": [
-   "boop",
+   "giggle",
    "hairflick",
-   "tickle",
+   "shrug",
    "wave",
    "sip",
-   "giggle",
+   "boop",
    "startled",
-   "shrug"
+   "tickle"
   ],
   "repeats": 0,
   "pass": true
@@ -76,7 +76,7 @@
  },
  "spin": {
   "radiansDragged": 7.3,
-  "turns": 1.25,
+  "turns": 1.17,
   "degrees": 418,
   "pass": true
  },
@@ -119,7 +119,12 @@
   },
   "afterReload2": "kairo",
   "pass": true,
-  "pickerItems": 2
+  "button": {
+   "label": "Switch Buddy to May",
+   "face": [
+    "/assets/buddies/may-v1.f3c3bc2d32.webp"
+   ]
+  }
  },
  "blink": {
   "lidsClosed": [
@@ -172,25 +177,25 @@
   "pass": true
  },
  "fps": {
-  "readout": "5 fps | 4 draw calls, 70k triangles | quality step 3 of 3 (1.00x, shadows off) | ANGLE (Google, Vulkan 1.3.0 (SwiftShader Devic",
+  "readout": "2 fps | 2 draw calls, 70k triangles | quality step 3 of 3 (1.00x, shadows off) | ANGLE (Google, Vulkan 1.3.0 (SwiftShader Devic",
   "samples": [
-   "24fps q2",
+   "13fps q0",
+   "31fps q1",
+   "2fps q1",
    "3fps q2",
    "4fps q2",
    "2fps q3",
    "3fps q3",
-   "3fps q3",
-   "3fps q3",
-   "4fps q3",
-   "5fps q3"
+   "2fps q3",
+   "2fps q3"
   ],
   "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
   "info": {
    "ppu": 254,
    "faceShare": 0.42,
-   "calls": 4,
-   "tris": 70385,
-   "slowFor": 7.6
+   "calls": 2,
+   "tris": 70001,
+   "slowFor": 3.5
   },
   "pass": true,
   "hiddenWithoutFlag": true
@@ -223,7 +228,7 @@
   "barH": 71,
   "barBottom": 350,
   "mic": 0,
-  "faceY": 212,
+  "faceY": 213,
   "faceShare": 0.34,
   "scrollY": 0,
   "overflow": 0,
@@ -248,7 +253,7 @@
  },
  "reducedMotion": {
   "flag": true,
-  "mouthMax": 0.75,
+  "mouthMax": 0.571,
   "hopMax": 0,
   "switched": "may",
   "sheetTransition": "0s",
@@ -257,14 +262,14 @@
  "noWebGL": {
   "no3d": true,
   "is3d": false,
-  "picture": "/assets/buddies/kairo-v2.webp",
+  "picture": "/assets/buddies/kairo-v2.c888b967f1.webp",
   "pictureLoaded": true,
   "alt": "Kairo, a Language Budd",
   "subtitle": "Hi there! Welcome. What can I ",
   "fixCard": 1,
   "afterSwitch": {
    "name": "May",
-   "picture": "/assets/buddies/may-v1.webp"
+   "picture": "/assets/buddies/may-v1.f3c3bc2d32.webp"
   },
   "pass": true
  },

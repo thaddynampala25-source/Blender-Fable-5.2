@@ -99,7 +99,20 @@ function texSampler(map) {   // read colours from the model's own texture, to ma
   g.drawImage(im, 0, 0, W_, H_); const data = g.getImageData(0, 0, W_, H_).data;
   return uv => { const x = clamp(Math.floor(uv.x * W_), 0, W_ - 1), y = clamp(Math.floor(uv.y * H_), 0, H_ - 1), i = (y * W_ + x) * 4; return [data[i], data[i + 1], data[i + 2]]; };
 }
-function hitAt(b, x, y, zf) { const r = new THREE.Raycaster(new THREE.Vector3(x, y, zf + 0.6), new THREE.Vector3(0, 0, -1)); return r.intersectObject(b.skin, false)[0] || null; }
+// Raycasts against a SkinnedMesh re-skin every triangle on every ray (~25 ms for these 70 k triangles).
+// In the rest pose the skinned surface equals the plain geometry, so rays go to plain copies instead:
+// a small face patch for fitting the face cards, and the whole body for taps.
+function proxyMesh(skin, keep) {
+  const g = skin.geometry, P = g.attributes.position, U = g.attributes.uv, I = g.index, M = skin.matrixWorld, n = I ? I.count : P.count;
+  const pos = [], uv = [], v = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+  for (let t = 0; t < n; t += 3) { const ids = [0, 1, 2].map(k => I ? I.getX(t + k) : t + k); ids.forEach((id, k) => v[k].fromBufferAttribute(P, id).applyMatrix4(M));
+    if (keep && !keep((v[0].x + v[1].x + v[2].x) / 3, (v[0].y + v[1].y + v[2].y) / 3, (v[0].z + v[1].z + v[2].z) / 3)) continue;
+    ids.forEach((id, k) => { pos.push(v[k].x, v[k].y, v[k].z); if (U) uv.push(U.getX(id), U.getY(id)); }); }
+  const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); if (U) pg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); pg.computeBoundingSphere(); pg.computeBoundingBox();
+  const m = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({side: THREE.DoubleSide})); m.updateMatrixWorld(true); return m;
+}
+const hitRay = new THREE.Raycaster(), DOWN_Z = new THREE.Vector3(0, 0, -1);
+function hitAt(b, x, y, zf) { hitRay.set(new THREE.Vector3(x, y, zf + 0.6), DOWN_Z); return hitRay.intersectObject(b.faceHit || b.skin, false)[0] || null; }
 function colourAt(b, pts) {
   const acc = [0, 0, 0]; let n = 0;
   for (const [x, y, zf] of pts) { const h = hitAt(b, x, y, zf); if (h && h.uv && b.sample) { const c = b.sample(h.uv); acc[0] += c[0]; acc[1] += c[1]; acc[2] += c[2]; n++; } }
@@ -123,6 +136,9 @@ function chibiSetup(b) {
   const f = b.ex.face || {}; b.model.updateMatrixWorld(true);
   b.skin = null; b.model.traverse(o => { if (o.isSkinnedMesh || (o.isMesh && !b.skin)) b.skin = o; });
   b.sample = texSampler(b.skin && b.skin.material && b.skin.material.map);
+  if (b.skin) { const pts = [f.eye_l, f.eye_r, f.mouth].filter(Boolean); b.hitBody = proxyMesh(b.skin);   // taps: the whole body, unskinned (rest pose)
+    if (pts.length) { const xs = pts.map(e => e.c[0]), ys = pts.map(e => e.c[1]), zs = pts.map(e => e.c[2]), x0 = Math.min(...xs) - 0.2, x1 = Math.max(...xs) + 0.2, y0 = Math.min(...ys) - 0.2, y1 = Math.max(...ys) + 0.2, z0 = Math.min(...zs) - 0.3;
+      b.faceHit = proxyMesh(b.skin, (x, y, z) => x > x0 && x < x1 && y > y0 && y < y1 && z > z0); } }
   b.restQ = {}; for (const k of ['hips', 'spine', 'head']) if (b.bones[k]) b.restQ[k] = b.bones[k].quaternion.clone();
   b.idle = {lx: new Spring(0, 30, 9), ly: new Spring(0, 30, 9), lz: new Spring(0, 30, 9), sw: new Spring(0, 12, 6), lookT: 1, swayT: 2, nodT: 2};
   b.lids = [];
@@ -273,15 +289,20 @@ function confetti(n) { if (!scene) return; if (!conf) { conf = new THREE.Instanc
 function confStep(dt) { if (!conf) return; let any = false; cp.forEach((p, i) => { if (p.life > 0) { any = true; p.life -= dt; p.vy -= 5.5 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.r += p.vr * dt; dummy.position.set(p.x, p.y, p.z); dummy.rotation.set(p.r, p.r * 0.7, p.r * 1.3); dummy.scale.setScalar(p.life > 0.25 ? 1 : Math.max(0.001, p.life * 4)); } else dummy.scale.setScalar(0.0001); dummy.updateMatrix(); conf.setMatrixAt(i, dummy.matrix); }); conf.instanceMatrix.needsUpdate = true; conf.visible = any; }
 
 /* ---------- which Buddy is on stage ---------- */
-let firstShow = true;
+let firstShow = true, firstLoad = true;
+// once the first Buddy is on stage, the others load quietly in the background so Switch Buddy is instant
+function preloadOthers(id) { const c = navigator.connection; if (c && (c.saveData || /2g/.test(c.effectiveType || ''))) return;
+  const go = () => ROSTER.filter(r => r.id !== id && FILE[r.id]).forEach(r => load(r.id).then(b => { b.model.traverse(o => { if (o.material && o.material.map) renderer.initTexture(o.material.map); }); }).catch(() => {}));
+  setTimeout(go, 600); }   // not requestIdleCallback: the render loop keeps the page from ever being idle
 function show(id, instant) {
   pending = id;
+  if (B && !buddies[id]) wrap.classList.remove('is-3d');   // not loaded yet: the new Buddy's picture shows at once, the 3D follows
   return load(id).then(b => { if (pending !== id) return; const old = B;
     const swap = () => { if (old && old !== b) scene.remove(old.spin); B = b; D.id = id; scene.add(b.spin); b.rot = 0; b.rotV = 0; turnAcc = 0; frameCam(); relax();
       if (instant || RM) { b.pop.x = 1; b.pop.t = 1; b.pop.v = 0; } else { b.pop.x = 0.02; b.pop.t = 1; b.pop.v = 6; hop(2.4); confetti(26); SFX.pop(); }
       if (!RM && (firstShow || !instant)) at(firstShow ? 700 : 280, () => { if (performance.now() > busyUntil) R.wave(); }); firstShow = false;
-      wrap.classList.add('is-3d'); D.ready = true; };
-    if (old && old !== b && !instant && !RM) { cancel(); D.ready = false; old.pop.t = 0.02; old.rotV = 16; SFX.whoosh(); setTimeout(swap, 300); } else swap(); })
+      wrap.classList.add('is-3d'); D.ready = true; if (firstLoad) { firstLoad = false; preloadOthers(id); } };
+    if (old && old !== b && !instant && !RM && wrap.classList.contains('is-3d')) { cancel(); D.ready = false; old.pop.t = 0.02; old.rotV = 18; SFX.whoosh(); setTimeout(swap, 170); } else swap(); })
     .catch(() => { if (!B) wrap.classList.add('no-3d'); });
 }
 
@@ -361,7 +382,8 @@ function run() { const want = visible && !document.hidden && !wrap.classList.con
 const ray = new THREE.Raycaster();
 function partAt(cx, cy) {
   if (!B) return null; const r = canvas.getBoundingClientRect(); ray.setFromCamera(new THREE.Vector2((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1), camera);
-  const hits = ray.intersectObject(B.model, true); if (!hits.length) return null; const n = hits[0].object.name, p = B.model.worldToLocal(hits[0].point.clone());
+  let hits; if (B.hitBody) { B.hitBody.matrixWorld.copy(B.spin.matrixWorld); hits = ray.intersectObject(B.hitBody, false); } else hits = ray.intersectObject(B.model, true);   // the unskinned proxy follows the spin and hop
+  if (!hits.length) return null; const n = hits[0].object.name, p = B.model.worldToLocal(hits[0].point.clone());
   if (B.prop && hits[0].point.distanceTo(B.prop.getWorldPosition(new THREE.Vector3())) < 0.19) return 'prop';   // the cup or flask, and the hand round it
   if (/Hair|Pony/.test(n)) return 'hair'; if (/Head|Mouth|Eye|Lid|Lash|Brow|Shine|Freckle/.test(n)) return 'face'; if (/Prop|Headphones|Badge|HandL/.test(n)) return 'prop'; if (/Hand/.test(n)) return 'arm'; if (/Trousers|Shoe/.test(n)) return 'legs';
   if (/Jacket/.test(n)) return Math.abs(p.x) > 0.34 ? 'arm' : 'torso';
@@ -407,9 +429,10 @@ function start() {
     else {   // no skeleton (a generic model): aim at the body by height, on the front of the model
       const f = {face: [0, 0.66], hair: [0.78, 0.62], torso: [0, 0.4], arm: [0.44, 0.4], prop: [0.44, 0.27], legs: [0.12, 0.12]}[part]; if (!f) return null;
       const bx = new THREE.Box3().setFromObject(B.model), r = (bx.max.x - bx.min.x) / 2; v.set(f[0] * r, f[1] * B.H, 0);
-      const hit = new THREE.Raycaster(new THREE.Vector3(v.x, v.y, 10), new THREE.Vector3(0, 0, -1)).intersectObject(B.model, true)[0]; if (hit) v.copy(hit.point); }
+      const rc = new THREE.Raycaster(new THREE.Vector3(v.x, v.y, 10), new THREE.Vector3(0, 0, -1)); if (B.hitBody) B.hitBody.matrixWorld.copy(B.spin.matrixWorld); const hit = rc.intersectObject(B.hitBody || B.model, !B.hitBody)[0]; if (hit) v.copy(hit.point); }
     v.project(camera); const r = canvas.getBoundingClientRect(), x = r.left + (v.x + 1) / 2 * r.width, y = r.top + (1 - v.y) / 2 * r.height; return {x, y, part: partAt(x, y)}; };
   D.face = () => (B && B.chibi) ? {mouth: !!(B.mouthCard && B.mouthCard.mesh.visible), lids: B.lids.map(c => c.mesh.visible), persona: B.persona === PERSONA.playful ? 'playful' : 'laidback', head: B.bones.head ? B.bones.head.rotation.toArray().slice(0, 3).map(v => +v.toFixed(4)) : null} : null;
+  D.cached = () => Object.keys(buddies); D.hitInfo = () => B ? {body: B.hitBody ? B.hitBody.geometry.attributes.position.count / 3 : 0, face: B.faceHit ? B.faceHit.geometry.attributes.position.count / 3 : 0, sphere: B.hitBody ? B.hitBody.geometry.boundingSphere.radius : 0} : null;
   D.say = (s, sec) => say(s, sec || 0.5); D.poke = p => poke(p); D.react = n => R[n] && R[n](); D.setQuality = setQuality;
   D.view = o => { o = o || {}; camForce = o.frame || null; D.hold = o.rot != null ? o.rot : null; if (o.pose) pose(o.pose); if (o.blink != null && B) B.hold = o.blink; frameCam(); };
   D.snap = () => { update(0.016, performance.now()); renderer.render(scene, camera); return canvas.toDataURL('image/png'); };

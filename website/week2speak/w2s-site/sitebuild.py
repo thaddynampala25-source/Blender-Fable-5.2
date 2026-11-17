@@ -311,4 +311,32 @@ open(OUT + '/site.webmanifest', 'w').write(json.dumps({"name": "Week2Speak", "sh
 open(OUT + '/favicon.svg', 'w').write('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#2D4BFF"/><rect x="14" y="12" width="36" height="40" rx="9" fill="#FFD93B" transform="rotate(-6 32 32)"/><text x="32" y="45" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="34" fill="#101642">2</text></svg>')
 nf = head('home', 'Page not found | Week2Speak', 'This page does not exist.', '/404', noindex=True).replace(f'<link rel="canonical" href="{SITE}/404">\n', '')
 open(OUT + '/404.html', 'w', encoding='utf-8').write(nf + '<body class="light" style="background:var(--paper)"><main class="wrap" style="padding-block:80px;display:grid;gap:20px;justify-items:start"><a class="logo" href="/" style="color:var(--ink)">Week<span class="two">2</span>Speak</a><h1 style="font-size:clamp(2.6rem,8vw,4.5rem)">That page does not exist.</h1><p style="color:var(--ink-2);font-size:1.15rem">The link may be old, or the address has a typo.</p><div class="row"><a class="key hl big" href="/">Go to the home page</a><a class="key big" href="/7-day-sprint/">See the 7-Day Sprint</a></div></main></body>\n</html>\n')
-print('SITE', SITE, '| pages', len(PAGES), '| version', VER)
+# ---- fingerprint: every file under /assets that can change gets its content hash in its name, and every
+# reference to it is rewritten. /assets/* is served "immutable" for a year, so a file that kept its name
+# would stay stale in browsers and in CDNs (many ignore ?v= query strings): new pages with old CSS and JS.
+import hashlib, re as _re
+def _hash(*paths):
+    m = hashlib.sha256()
+    for q in paths: m.update(open(q, 'rb').read())
+    return m.hexdigest()[:10]
+_A = OUT + '/assets'
+_cfg = open(_A + '/config.js', encoding='utf-8').read(); _urls = {}
+for _b in _BR.ACTIVE:
+    _n = _b['file']; _files = [_A + f'/buddies/{_n}{e}' for e in ('.glb', '.webp') if os.path.exists(_A + f'/buddies/{_n}{e}')]
+    if not _files: continue
+    _s = f'{_n}.{_hash(*_files)}'
+    for _e in ('.glb', '.glb.gz', '.webp'):
+        if os.path.exists(_A + f'/buddies/{_n}{_e}'): os.rename(_A + f'/buddies/{_n}{_e}', _A + f'/buddies/{_s}{_e}'); _urls[f'/assets/buddies/{_n}{_e}'] = f'/assets/buddies/{_s}{_e}'
+    _cfg = _cfg.replace(f'"file": "{_n}"', f'"file": "{_s}"')   # buddies.js builds the model URL from this
+open(_A + '/config.js', 'w', encoding='utf-8').write(_cfg)
+for _f in ('config.js', 'buddies.js', 'site.css', 'app.js', 'home.js'):
+    _st, _ext = _f.rsplit('.', 1); _new = f'{_st}.{_hash(_A + "/" + _f)}.{_ext}'; os.rename(_A + '/' + _f, _A + '/' + _new); _urls[f'/assets/{_f}'] = f'/assets/{_new}'
+_pat = _re.compile('|'.join(_re.escape(u) for u in sorted(_urls, key=len, reverse=True)) + r'') if _urls else None
+for _root, _dirs, _fs in os.walk(OUT):
+    for _f in _fs:
+        if not _f.endswith(('.html', '.js', '.css')) or _root.startswith(OUT + '/assets/vendor'): continue
+        _pth = os.path.join(_root, _f); _t = open(_pth, encoding='utf-8').read()
+        _t2 = _re.sub(r'(/assets/[\w./-]+?\.(?:css|js))\?v=[\w]+', r'\1', _t)   # the hashed name replaces the query string
+        _t2 = _pat.sub(lambda m: _urls[m.group(0)], _t2) if _pat else _t2
+        if _t2 != _t: open(_pth, 'w', encoding='utf-8').write(_t2)
+print('SITE', SITE, '| pages', len(PAGES), '| version', VER, '| fingerprinted', len(_urls))
