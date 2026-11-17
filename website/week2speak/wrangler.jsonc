@@ -1,0 +1,11 @@
+// Cloudflare deployment: the existing "week2speak" Worker serves the built site as static assets.
+// Deploy with `npm run deploy` (needs CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in the environment).
+{
+  "name": "week2speak",
+  "compatibility_date": "2026-11-17",
+  "assets": {
+    "directory": "./w2s-site/dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}

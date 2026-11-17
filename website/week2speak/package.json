@@ -11,7 +11,8 @@
     "models": "cd w2s-site && node buddy-gen/gen.cjs",
     "posters": "cd w2s-site && node buddy-gen/poster.cjs",
     "turnaround": "cd w2s-site && node buddy-gen/turnaround.cjs audit/after",
-    "promo": "cd w2s-site && node promo/make.cjs"
+    "promo": "cd w2s-site && node promo/make.cjs",
+    "deploy": "npm run build && WRANGLER_SEND_METRICS=false npx --yes wrangler@4 deploy"
   },
   "devDependencies": {
     "playwright": "1.63.0"
