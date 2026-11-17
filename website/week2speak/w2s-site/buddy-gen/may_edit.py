@@ -5,10 +5,10 @@ reference photos (Japanese features), without exaggerating. The face is painted 
 so every change is a texture edit located through the baked 3D position of each texel:
 
 - scarf: pink -> warm beige, keeping its shading
-- hair: the template's flat near-black -> one even brown, all of it
+- hair: the template's black, unchanged
 - eyes: the grey irises recoloured brown (colour only: the eye shape, pupil, catchlight and liner
   are the template's own)
-- brows: dark brown instead of grey-black
+- brows: the template's own
 - lips unchanged; cheeks: a faint warm blush
 - chin: the dark painted crescent under it is painted over with the neck's skin tone
 - texels just outside the UV islands take the colour of the island next to them, so the old
@@ -55,10 +55,8 @@ def edit(tex, pos, nor, covered, info):
     # keep the face's painted features (brows, liner, pupils) out of the hair mask
     face_box = (np.abs(x) < 0.29) & (z > ez - 0.08) & (z < ez + 0.16) & (nor[..., 1] < -0.5)
     hair &= ~face_box
-    # the template paints all its hair one flat grey (~0.08), so the hair becomes one flat brown;
-    # the strands' shading comes from the geometry, as it did before
-    brown = np.array([0.31, 0.20, 0.13], np.float32)
-    rgb[hair] = brown
+    # the hair stays the template's black (owner's choice); the mask is still used to keep the
+    # chin fix off the hair
 
     # ---- eyes
     skin_ref = rgb[frontish & (np.abs(x) < 0.08) & (z > ez - 0.12) & (z < ez - 0.05) & (sat > 0.15) & (val > 0.8)]
@@ -89,9 +87,7 @@ def edit(tex, pos, nor, covered, info):
         dark_b, light_b = np.array([0.22, 0.11, 0.05]), np.array([0.62, 0.40, 0.22])
         rgb[iris] = dark_b + (light_b - dark_b) * L
 
-    # ---- brows: dark brown
-    brow = frontish & (np.abs(x) < 0.3) & (z > ez + 0.04) & (z < ez + 0.17) & (val < 0.35)
-    rgb[brow] = np.clip(rgb[brow] / np.maximum(rgb[brow].mean(-1, keepdims=True), 1e-3) * 0.0 + np.array([0.17, 0.11, 0.08]) * (0.6 + rgb[brow].mean(-1, keepdims=True) * 2), 0, 1)
+    # ---- brows: the template's own (they match the black hair)
 
     # ---- the dark painted crescent under the chin (owner's note: "get rid of that weird black part"):
     # paint it with the neck's own skin tone, shading kept

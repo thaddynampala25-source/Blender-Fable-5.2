@@ -64,7 +64,7 @@ The AI tutor path stays as it is for viewers that offer it.
 |---|---|
 | Audit, checkpoint | done (commit "phase A") |
 | Kairo v2 web model (same look; 70 k triangles; skeleton; face landmarks) | done: `buddy-models/kairo-v2.glb` (v1 `template.glb` kept) |
-| May v1 web model (scarf beige, one even brown hair, brown irises (colour only, template eye shape), brown brows, template lips, chin crescent removed, UV seams padded) | done: `buddy-models/may-v1.glb`, edits in `buddy-gen/may_edit.py` |
+| May v1 web model (scarf beige, black hair and brows as the template, brown irises (colour only, template eye shape), template lips, chin crescent removed, UV seams padded) | done: `buddy-models/may-v1.glb`, edits in `buddy-gen/may_edit.py` |
 | Skeletons: Hips, Spine, Head, region weights | done (`buddy-gen/build_buddy.py`) |
 | Both Buddies active + picker (picture, name, personality, selected) | done |
 | Idle life per personality (breathing, posture, look-arounds, blinks) | done |
