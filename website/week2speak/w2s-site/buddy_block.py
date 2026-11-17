@@ -93,7 +93,7 @@ def script(ver):
   /* ---- Buddy: choice, switch, sounds, show or hide ---- */
   function load3d() {
     if (loaded || w.classList.contains('is-hidden')) return; loaded = true;
-    var s = document.createElement('script'); s.type = 'module'; s.src = '/assets/buddies.js?v=__VER__'; s.onerror = function () { w.classList.add('no-3d'); };
+    var s = document.createElement('script'); s.type = 'module'; s.src = '/assets/buddies.js?v=__VER__'; s.onerror = function () { var r = document.createElement('script'); r.type = 'module'; r.src = s.src.split('?')[0] + '?retry=' + Date.now(); r.onerror = function () { w.classList.add('no-3d'); }; document.head.appendChild(r); };   // one retry under a fresh URL
     document.head.appendChild(s);
   }
   function nextBuddy(id) { return IDS[(IDS.indexOf(id) + 1) % IDS.length]; }

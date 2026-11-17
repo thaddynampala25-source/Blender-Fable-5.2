@@ -53,7 +53,8 @@ function rimPatch(m) { if (m.userData.rim) return; m.userData.rim = 1; m.onBefor
 async function fetchModel(name) {
   const base = '/assets/buddies/' + name + '.glb';
   if ('DecompressionStream' in window) try { const r = await fetch(base + '.gz'); if (r.ok) { const buf = await r.arrayBuffer(), u = new Uint8Array(buf, 0, 4); if (u[0] === 0x67 && u[1] === 0x6C) return buf; return await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer(); } } catch (e) {}
-  const r = await fetch(base); if (!r.ok) throw new Error('model ' + r.status); return r.arrayBuffer();
+  let r = await fetch(base); if (!r.ok) r = await fetch(base + '?retry=' + Date.now(), {cache: 'no-store'});   // a 404 kept from a deploy in progress
+  if (!r.ok) throw new Error('model ' + r.status); return r.arrayBuffer();
 }
 function load(id) { if (buddies[id]) return Promise.resolve(buddies[id]); if (loading[id]) return loading[id];
   return loading[id] = fetchModel(FILE[id]).then(buf => new Promise((ok, no) => new GLTFLoader().parse(buf, '', g => ok(buddies[id] = make(g, id)), no))); }

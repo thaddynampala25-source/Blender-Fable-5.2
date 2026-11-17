@@ -187,15 +187,15 @@ def head(name, title, desc, path, noindex=False):
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v={VER}">
+<link rel="stylesheet" href="/assets/site.css?v={VER}" onerror="if(!this.dataset.retry){{this.dataset.retry=1;this.href=this.href.split('?')[0]+'?retry='+Date.now()}}">
 <script type="application/ld+json">{ld(name)}</script>
 </head>
 '''
-SCRIPTS = f'''<script src="/assets/config.js?v={VER}"></script>
+SCRIPTS = f'''<script src="/assets/config.js?v={VER}" onerror="if(!this.dataset.retry){{this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}}"></script>
 <script src="/assets/vendor/gsap-3.12.5.min.js" defer></script>
 <script src="/assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
-<script src="/assets/app.js?v={VER}" defer></script>
-<script src="/assets/home.js?v={VER}" defer></script>
+<script src="/assets/app.js?v={VER}" defer onerror="if(!this.dataset.retry){{this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}}"></script>
+<script src="/assets/home.js?v={VER}" defer onerror="if(!this.dataset.retry){{this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}}"></script>
 '''
 NAV_END = body.index('</header>') + len('</header>')
 NAV = body[:NAV_END]
@@ -299,7 +299,9 @@ open(OUT + '/_headers', 'w').write('''/*
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: microphone=(self), camera=(), geolocation=()
   X-Frame-Options: SAMEORIGIN
-/assets/*
+/assets/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+/assets/fonts/*
   Cache-Control: public, max-age=31536000, immutable
 /media/*
   Cache-Control: public, max-age=604800
