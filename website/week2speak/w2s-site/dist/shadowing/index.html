@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>English Shadowing Practice for Beginners | Week2Speak</title>
+<meta name="description" content="Speak along with a native voice while the words light up. Shadow a clip for each Sprint day, or your own script, in American, British or Australian English.">
+<link rel="canonical" href="https://week2speak.com/shadowing/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Week2Speak">
+<meta property="og:title" content="English Shadowing Practice for Beginners | Week2Speak">
+<meta property="og:description" content="Speak along with a native voice while the words light up. Shadow a clip for each Sprint day, or your own script, in American, British or Australian English.">
+<meta property="og:url" content="https://week2speak.com/shadowing/">
+<meta property="og:image" content="https://week2speak.com/media/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Week2Speak: Speak English in 7 days">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0B103A">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=202611170716">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "EducationalOrganization", "@id": "https://week2speak.com/#org", "name": "Week2Speak", "url": "https://week2speak.com/", "logo": "https://week2speak.com/apple-touch-icon.png", "description": "English speaking practice and tutoring for Spanish speakers.", "email": "hello@week2speak.com", "founder": {"@type": "Person", "name": "Mei Gabriela Parrablanco"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://week2speak.com/"}, {"@type": "ListItem", "position": 2, "name": "Shadowing", "item": "https://week2speak.com/shadowing/"}]}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is shadowing in language learning?", "acceptedAnswer": {"@type": "Answer", "text": "Shadowing means listening to a native speaker and repeating what they say almost at the same time, a beat behind them. It trains the rhythm, linking and stress of English."}}, {"@type": "Question", "name": "Does shadowing improve your accent?", "acceptedAnswer": {"@type": "Answer", "text": "It can help you hear and copy rhythm and linked sounds. Research on shadowing is still small: one study of 24 learners found it improved how well they heard linked sounds, while the gain in their own pronunciation was not statistically significant. Use it as daily practice, not as a guaranteed accent fix."}}, {"@type": "Question", "name": "How long should I shadow each day?", "acceptedAnswer": {"@type": "Answer", "text": "Five minutes is enough. Shadow one clip three times at Steady speed, then once at Natural speed in Solo mode."}}]}]}</script>
+</head>
+<body data-page="shadow">
+
+
+<header class="nav"><div class="wrap nav-in">
+  <a class="logo" href="/" aria-label="Week2Speak home">Week<span class="two">2</span>Speak</a>
+  <nav class="tabs" aria-label="Sections"><a class="tab-x" href="/">Home</a><a href="/speech-mode/" aria-label="Speech Mode"><span class="tl">Speech Mode</span><span class="ts">Speak</span></a><a href="/games/">Games</a><a href="/shadowing/" aria-label="Shadowing"><span class="tl">Shadowing</span><span class="ts">Shadow</span></a><a href="/7-day-sprint/" aria-label="7-Day Sprint"><span class="tl">7-Day Sprint</span><span class="ts">Sprint</span></a><a href="/course/">Course</a><a class="tab-x" href="/tutor/">Tutor view</a></nav>
+  <div class="stats"><span class="stat num" id="stStreak" title="Day streak"></span><span class="stat num" id="stXp" title="Experience points"></span></div>
+  <a class="nav-join" href="/join/">Join free</a>
+</div><div class="progress" id="progress"></div></header>
+<main id="main">
+<!-- SHADOWING -->
+<section data-view="shadow" class="light"><div class="wrap view">
+  <div class="vh"><h1 data-split>English shadowing studio</h1><p>Shadowing means speaking along with a native voice, a beat behind it. It trains rhythm and sounds faster than reading rules about them.</p></div>
+  <div class="cols">
+    <div class="stack side">
+      <div class="panel"><h2>Clip</h2><div class="chips" id="clips"></div></div>
+      <div class="panel" id="minePanel" hidden><h2>My script</h2><p class="small muted" style="margin-bottom:10px">Type the sentences from your lesson, or your 2-minute talk. They stay on this device.</p><textarea class="field" id="mineText" rows="6" maxlength="900" aria-label="My script" placeholder="Hi, I'm Ana. I'm from Lima, in Peru."></textarea><div class="row" style="margin-top:10px"><button class="key primary" id="mineSave" type="button">Save and shadow it</button><span class="small muted" id="mineMsg" role="status"></span></div></div>
+      <div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>
+      <div class="panel"><h2>Speed</h2><div class="seg" id="speeds" role="group" aria-label="Speed"><button type="button" data-rate="0.75">Slow</button><button type="button" data-rate="0.9">Steady</button><button type="button" data-rate="1">Natural</button></div></div>
+    </div>
+    <div class="panel stage">
+      <div class="stepper" id="modes" role="group" aria-label="Mode">
+        <button type="button" data-mode="listen">Listen</button><button type="button" data-mode="shadow">Shadow</button><button type="button" data-mode="solo">Solo</button>
+      </div>
+      <p class="kline" id="shLine"></p>
+      <div class="row">
+        <button class="key primary big" id="shPlay" type="button"></button>
+        <span class="muted" id="shHelp"></span>
+      </div>
+      <p class="heard mic-only" id="shHeard"></p>
+      <div id="shResult" role="status"></div>
+    </div>
+  </div>
+</div></section>
+<section class="guide light" aria-label="About this page"><div class="wrap prose">
+<h2>What is shadowing?</h2>
+<p>Shadowing is a speaking exercise where you listen to a native speaker and repeat what they say almost at the same time, a beat behind them. It trains the rhythm, stress and linked sounds of English, which reading rules does not.</p>
+<h2>How to shadow in three steps</h2>
+<ol><li><strong>Listen.</strong> Play the clip and follow the words as they light up.</li><li><strong>Shadow.</strong> Speak along with the voice, a beat behind. Do it three times.</li><li><strong>Solo.</strong> The words light up at speaking pace with no voice, and you say the clip alone.</li></ol>
+<p>There is a clip for every day of the 7-Day Sprint, from Introducing yourself to My talk, plus My script, where you type your own sentences and shadow them. Choose from three speeds and three accents: American, British and Australian.</p>
+<h2>Questions people ask</h2>
+<div class="faq">
+<details><summary>What is shadowing in language learning?</summary><p>Shadowing means listening to a native speaker and repeating what they say almost at the same time, a beat behind them. It trains the rhythm, linking and stress of English.</p></details>
+<details><summary>Does shadowing improve your accent?</summary><p>It can help you hear and copy rhythm and linked sounds. Research on shadowing is still small: one study of 24 learners found it improved how well they heard linked sounds, while the gain in their own pronunciation was not statistically significant. Use it as daily practice, not as a guaranteed accent fix.</p></details>
+<details><summary>How long should I shadow each day?</summary><p>Five minutes is enough. Shadow one clip three times at Steady speed, then once at Natural speed in Solo mode.</p></details>
+</div>
+<p class="src">Source: <a href="https://journal.equinoxpub.com/ISLA/article/view/26864" rel="noopener">script-enhanced shadowing study, Instructed Second Language Acquisition</a>.</p>
+</div></section>
+</main>
+<footer><div class="wrap foot">
+  <div class="foot-brand"><a class="logo" href="/" aria-label="Week2Speak home">Week<span class="two">2</span>Speak</a><p>English speaking practice for Spanish speakers. In testing, in English; a Spanish version comes next.</p></div>
+  <nav class="foot-nav" aria-label="Footer"><div><b>Practise</b><a href="/speech-mode/">Speech Mode</a><a href="/games/">Games</a><a href="/shadowing/">Shadowing</a></div>
+  <div><b>Learn</b><a href="/7-day-sprint/">7-Day Sprint</a><a href="/course/">Course</a><a href="/common-mistakes/">Common mistakes</a></div>
+  <div><b>Week2Speak</b><a href="/about/">How we teach</a><a href="/join/">Join the founding cohort</a><a href="/privacy/">Privacy</a><a href="mailto:hello@week2speak.com">hello@week2speak.com</a></div></nav>
+</div></footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<script src="/assets/config.js?v=202611170716"></script>
+<script src="/assets/vendor/gsap-3.12.5.min.js" defer></script>
+<script src="/assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
+<script src="/assets/app.js?v=202611170716" defer></script>
+<script src="/assets/home.js?v=202611170716" defer></script>
+</body>
+</html>

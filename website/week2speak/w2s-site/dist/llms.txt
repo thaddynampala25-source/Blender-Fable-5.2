@@ -1,0 +1,20 @@
+# Week2Speak
+
+> Week2Speak is an English speaking programme for adults whose first language is Spanish. It combines a 7-Day Sprint with a Spanish-speaking tutor, short daily lessons, and browser-based speaking practice: Speech Mode conversations, sentence and sound games, and shadowing in American, British and Australian accents.
+
+Status: in testing (November 2026). The site is in English; a Spanish version is planned. The founding cohort is free and has ten places. Paid plan prices are set before the public launch.
+
+## Main pages
+- [7-Day Sprint](https://week2speak.com/7-day-sprint/): two 45-minute tutor calls (Day 1 and Day 7), about 20 minutes of practice a day in six short tasks, daily voice-note feedback.
+- [Course](https://week2speak.com/course/): seven lessons of 12 minutes or less, each with five key phrases and one mistake that comes from Spanish.
+- [Speech Mode](https://week2speak.com/speech-mode/): scripted speaking practice in six scenes with a three-step hint system.
+- [Games](https://week2speak.com/games/): Word Order, Fill the Gap, Flash Translate, Sound Lab and Quick Answers, with a pack for each day of the Sprint.
+- [Shadowing](https://week2speak.com/shadowing/): a clip for each day plus your own script, three speeds, American, British and Australian accents.
+- [16 English mistakes Spanish speakers make](https://week2speak.com/common-mistakes/): each with the wrong sentence, the right one and the Spanish pattern behind it.
+- [How we teach](https://week2speak.com/about/): the method and the research behind it.
+- [Join](https://week2speak.com/join/): request a founding place.
+
+## Facts
+- Audience: Spanish-speaking adults who understand some English but freeze when speaking.
+- Claim scope: the Sprint does not promise fluency in 7 days. It aims for a 2-minute unscripted talk on Day 7.
+- Live AI tutor: not available to the public yet; Speech Mode on the site is scripted.
