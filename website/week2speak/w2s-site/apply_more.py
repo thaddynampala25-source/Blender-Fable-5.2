@@ -165,6 +165,12 @@ window.addEventListener('w2s:replay', () => { const t = S.turns.slice().reverse(
     { const words = String(text).split(/\\s+/).filter(Boolean), ow = opts.onWord, oe = opts.onEnd;
       opts = Object.assign({}, opts, {onWord: i => { if (i >= 0) emit('word', {word: words[i] || '', i}); if (ow) ow(i); }, onEnd: () => { emit('speakend'); if (oe) oe(); }});
       emit('speak', {text: String(text)}); }""")
+    # Speech Mode 2.0: the moment audio really starts (not when the line is requested), and whether
+    # word timing is real (boundary events) or an estimate. The Buddies' lip-sync and the subtitle use these.
+    rep("u.onstart = () => { if (id !== token) return; started = true; fails = 0;", "u.onstart = () => { if (id !== token) return; started = true; fails = 0; emit('speakstart', {audio: true});")
+    rep("u.onboundary = e => { if (id !== token || (e.name && e.name !== 'word')) return; exact = true;", "u.onboundary = e => { if (id !== token || (e.name && e.name !== 'word')) return; if (!exact) emit('timing', {exact: true}); exact = true;")
+    rep("const viaClaude = () => { plan(text, rate, opts.onWord, null, id);", "const viaClaude = () => { emit('speakstart', {audio: true}); plan(text, rate, opts.onWord, null, id);")
+    rep("    else plan(text, rate, opts.onWord, end, id);\n  }", "    else { emit('speakstart', {audio: false}); plan(text, rate, opts.onWord, end, id); }\n  }")
     rep("function setBtn(on) { $$('.listening').forEach(b => b.classList.remove('listening'));", "function setBtn(on) { emit('mic', {on: !!(on && cur)}); $$('.listening').forEach(b => b.classList.remove('listening'));")
     rep("  S.sent++; renderTally(); addXP(10);", "  emit(errs.length ? 'oops' : 'good');\n  S.sent++; renderTally(); addXP(10);")
     rep("$('#helpBtn').addEventListener('click', () => { if (S.hintLevel < 3) { S.hintLevel++;", "$('#helpBtn').addEventListener('click', () => { if (S.hintLevel < 3) { emit('help'); S.hintLevel++;")

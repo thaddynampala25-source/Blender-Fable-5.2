@@ -70,15 +70,135 @@ function make(gltf, id) {
   // which morph target names this model offers for each mouth control
   const ALIAS = {jaw: ['jawOpen', 'mouthOpen', 'viseme_aa', 'MouthOpen'], pucker: ['mouthPucker', 'mouthFunnel', 'viseme_U', 'viseme_O'], wide: ['mouthWide', 'mouthStretchLeft', 'mouthStretchRight', 'viseme_I', 'viseme_E'], smile: ['mouthSmile', 'mouthSmileLeft', 'mouthSmileRight'], frown: ['mouthFrown', 'mouthFrownLeft', 'mouthFrownRight'], blink: ['eyeBlinkLeft', 'eyeBlinkRight', 'eyesClosed', 'blink', 'Blink']};
   b.mt = {}; for (const k in ALIAS) { b.mt[k] = []; for (const o of b.morph) for (const n of ALIAS[k]) if (n in o.morphTargetDictionary) { b.mt[k].push([o, o.morphTargetDictionary[n]]); if (k === 'jaw' || k === 'pucker') break; } }
-  D.rig = full ? 'w2s-1' : (b.mt.jaw.length ? 'generic with morph targets' : 'generic');
+  b.chibi = ex.rig === 'w2s-chibi-1' && !!b.bones.head;
+  if (b.chibi) { const r_ = ROSTER.find(x => x.id === id) || {}; b.persona = PERSONA[r_.persona] || PERSONA.laidback; chibiSetup(b); }
+  D.rig = full ? 'w2s-1' : b.chibi ? 'w2s-chibi-1' : (b.mt.jaw.length ? 'generic with morph targets' : 'generic');
   return b;
 }
 const setM = (b, k, v) => { for (const [o, i] of b.mt[k]) o.morphTargetInfluences[i] = v; };
 
+
+/* ---------- chibi Buddies (rig "w2s-chibi-1", made by buddy-gen/build_buddy.py) ----------
+   One fused mesh with a painted face and a small skeleton: Hips, Spine, Head. The body breathes and shifts
+   through Spine and Hips, the head turns, nods and tilts. The painted eyes cannot move, so gaze is carried by
+   the head. Two kinds of face "cards" (small canvases fitted to the face, following the head):
+   - eyelids: invisible while the eye is open, they close over the painted eye to blink;
+   - mouth: invisible at rest (the painted mouth shows), it draws an animated mouth over it while the Buddy
+     speaks or reacts, then fades back to the painted one.
+   Lip shapes come from the letters of each word, timed by the voice's word events (exact where the browser
+   reports word boundaries, estimated where it does not). There is no phoneme timing in browser speech. */
+const PERSONA = {
+  laidback: {breath: 4.6, breathAmt: 0.010, tilt: 0.035, look: [3.2, 6.5], lookAmt: 0.06, sway: [6, 11], swayAmt: 0.016, blink: [2.8, 6.5], dbl: 0.08, nod: 0.7, wing: false},
+  playful: {breath: 3.8, breathAmt: 0.012, tilt: -0.03, look: [1.8, 4.2], lookAmt: 0.09, sway: [4, 8], swayAmt: 0.02, blink: [2.0, 5.0], dbl: 0.22, nod: 1.0, wing: true}
+};
+const _q = new THREE.Quaternion(), _e = new THREE.Euler();
+function boneRot(b, k, x, y, z) { const n = b.bones[k]; if (!n) return; n.quaternion.copy(b.restQ[k]).multiply(_q.setFromEuler(_e.set(x, y, z))); }
+function texSampler(map) {   // read colours from the model's own texture, to match skin and lip tones exactly
+  const im = map && map.image; if (!im || !im.width) return null;
+  const c = document.createElement('canvas'), W_ = c.width = Math.min(512, im.width), H_ = c.height = Math.min(512, im.height), g = c.getContext('2d', {willReadFrequently: true});
+  g.drawImage(im, 0, 0, W_, H_); const data = g.getImageData(0, 0, W_, H_).data;
+  return uv => { const x = clamp(Math.floor(uv.x * W_), 0, W_ - 1), y = clamp(Math.floor(uv.y * H_), 0, H_ - 1), i = (y * W_ + x) * 4; return [data[i], data[i + 1], data[i + 2]]; };
+}
+function hitAt(b, x, y, zf) { const r = new THREE.Raycaster(new THREE.Vector3(x, y, zf + 0.6), new THREE.Vector3(0, 0, -1)); return r.intersectObject(b.skin, false)[0] || null; }
+function colourAt(b, pts) {
+  const acc = [0, 0, 0]; let n = 0;
+  for (const [x, y, zf] of pts) { const h = hitAt(b, x, y, zf); if (h && h.uv && b.sample) { const c = b.sample(h.uv); acc[0] += c[0]; acc[1] += c[1]; acc[2] += c[2]; n++; } }
+  return n ? `rgb(${Math.round(acc[0] / n)},${Math.round(acc[1] / n)},${Math.round(acc[2] / n)})` : 'rgb(240,200,170)';
+}
+function faceCard(b, c, w, h, cw, ch) {   // a small grid fitted to the face surface, in the Head bone's space
+  const nx = 12, ny = 8, pos = [], uv = [], idx = [], head = b.bones.head;
+  for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) {
+    const x = c[0] + (i / nx - 0.5) * w, y = c[1] + (j / ny - 0.5) * h, hit = hitAt(b, x, y, c[2]);
+    const p = hit ? hit.point.clone() : new THREE.Vector3(x, y, c[2]); p.z += 0.004;
+    head.worldToLocal(p); pos.push(p.x, p.y, p.z); uv.push(i / nx, j / ny);
+  }
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const a = j * (nx + 1) + i; idx.push(a, a + 1, a + nx + 2, a, a + nx + 2, a + nx + 1); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
+  const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({map: tex, transparent: true, depthWrite: false, roughness: 0.75, metalness: 0, polygonOffset: true, polygonOffsetFactor: -4}));
+  m.renderOrder = 2; m.visible = false; m.frustumCulled = false; m.castShadow = false; m.receiveShadow = false; m.name = 'FaceCard'; head.add(m);
+  return {mesh: m, cv, g2: cv.getContext('2d'), tex, last: ''};
+}
+function chibiSetup(b) {
+  const f = b.ex.face || {}; b.model.updateMatrixWorld(true);
+  b.skin = null; b.model.traverse(o => { if (o.isSkinnedMesh || (o.isMesh && !b.skin)) b.skin = o; });
+  b.sample = texSampler(b.skin && b.skin.material && b.skin.material.map);
+  b.restQ = {}; for (const k of ['hips', 'spine', 'head']) if (b.bones[k]) b.restQ[k] = b.bones[k].quaternion.clone();
+  b.idle = {lx: new Spring(0, 30, 9), ly: new Spring(0, 30, 9), lz: new Spring(0, 30, 9), sw: new Spring(0, 12, 6), lookT: 1, swayT: 2, nodT: 2};
+  b.lids = [];
+  for (const k of ['eye_l', 'eye_r']) { const e = f[k]; if (!e) continue;
+    const card = faceCard(b, e.c, e.w * 1.35, e.h * 1.8, 128, 96);
+    card.outer = e.c[0] > 0 ? 1 : -1;     // which canvas side is the outer corner
+    card.skin = colourAt(b, [[e.c[0], e.c[1] + e.h * 0.95, e.c[2]], [e.c[0] - e.w * 0.25, e.c[1] + e.h * 0.9, e.c[2]], [e.c[0] + e.w * 0.25, e.c[1] + e.h * 0.9, e.c[2]]]);
+    b.lids.push(card); }
+  const mo = f.mouth;
+  if (mo) { const lips = mo.kind === 'lips', w = lips ? Math.max(mo.w * 1.9, 0.13) : mo.w * 1.5, h = lips ? 0.11 : Math.max(mo.h * 3, 0.1);
+    b.mouthCard = faceCard(b, mo.c, w, h, 256, 128); b.mouthCard.lips = lips;
+    b.mouthCard.skin = colourAt(b, [[mo.c[0] + w * 0.62, mo.c[1] + 0.012, mo.c[2]], [mo.c[0] - w * 0.62, mo.c[1] + 0.012, mo.c[2]]]);
+    b.mouthCard.lip = lips ? colourAt(b, [[mo.c[0], mo.c[1] + 0.012, mo.c[2]], [mo.c[0], mo.c[1] - 0.015, mo.c[2]]]) : b.mouthCard.skin;
+    b.mouthCard.cover = [w ? (mo.w / w) * 0.5 * (lips ? 1.25 : 1.3) : 0.45, lips ? 0.36 : Math.min(0.46, (mo.h / h) * 0.5 * 2.2)]; }
+  b.mouthA = new Spring(0, 220, 26);
+}
+function drawLids(card, t, wing) {
+  const key = (t * 40 | 0) + (wing ? 'w' : ''); if (key === card.last) return; card.last = key;
+  const g = card.g2, Wc = card.cv.width, Hc = card.cv.height, cx = Wc / 2, cy = Hc / 2, rx = Wc / 2 / 1.35, ry = Hc / 2 / 1.8;
+  g.clearRect(0, 0, Wc, Hc); card.mesh.visible = t > 0.03; if (!card.mesh.visible) { card.tex.needsUpdate = true; return; }
+  const top = cy - ry * 1.15, closed = cy + ry * 0.7, edge = top + (closed - top) * Math.min(1, t), bow = ry * (0.15 + 0.35 * Math.min(1, t));
+  // canvas y runs down; the card's v runs up, so the eye's top is at small canvas y after the texture flip
+  g.save(); g.beginPath(); g.ellipse(cx, cy, rx * 1.1, ry * 1.25, 0, 0, Math.PI * 2); g.clip();
+  g.beginPath(); g.moveTo(cx - rx * 1.2, 0); g.lineTo(cx + rx * 1.2, 0); g.lineTo(cx + rx * 1.2, edge); g.quadraticCurveTo(cx, edge + bow, cx - rx * 1.2, edge); g.closePath();
+  g.fillStyle = card.skin; g.fill();
+  g.beginPath(); g.moveTo(cx - rx * 1.05, edge + 1); g.quadraticCurveTo(cx, edge + bow, cx + rx * 1.05, edge + 1);
+  g.lineWidth = 5; g.strokeStyle = '#1b1414'; g.lineCap = 'round'; g.stroke(); g.restore();
+  if (wing && t > 0.5) { const ox = cx + card.outer * rx * 1.02; g.beginPath(); g.moveTo(ox, edge + 1); g.lineTo(ox + card.outer * 12, edge - 9); g.lineWidth = 4; g.strokeStyle = '#1b1414'; g.stroke(); }
+  card.tex.needsUpdate = true;
+}
+function drawMouth(card, M, a) {
+  const key = [a, M.jaw, M.pucker, M.wide, M.smile].map(v => (v * 24) | 0).join(); if (key === card.last) return; card.last = key;
+  const g = card.g2, Wc = card.cv.width, Hc = card.cv.height, cx = Wc / 2, cy = Hc / 2;
+  g.clearRect(0, 0, Wc, Hc); card.mesh.visible = a > 0.02; if (!card.mesh.visible) { card.tex.needsUpdate = true; return; }
+  g.save(); g.globalAlpha = Math.min(1, a);
+  // 1) cover the painted mouth (skin for a painted grin; lip colour over modelled lips)
+  const prx = card.cover[0] * Wc, pry = card.cover[1] * Hc;
+  const grd = g.createRadialGradient(cx, cy, Math.min(prx, pry) * 0.5, cx, cy, Math.max(prx, pry));
+  grd.addColorStop(0, card.lips ? card.lip : card.skin); grd.addColorStop(0.82, card.lips ? card.lip : card.skin); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  g.save(); g.scale(1, pry / prx); g.beginPath(); g.arc(cx, cy * prx / pry, prx, 0, Math.PI * 2); g.restore(); g.fillStyle = grd; g.fill();
+  // 2) the mouth shape: width from wide/pucker, height from the jaw, corners lifted by the smile
+  const base = Wc * (card.lips ? 0.36 : 0.31), ow = base * (0.6 + 0.4 * M.wide - 0.35 * M.pucker + 0.15 * M.jaw), oh = 2 + M.jaw * Hc * (card.lips ? 0.42 : 0.38) * (1 + 0.3 * M.pucker), lift = M.smile * 7;
+  if (oh < 4.5) {   // closed: a lip line, curving up a little with the smile
+    g.beginPath(); g.moveTo(cx - ow, cy - lift); g.quadraticCurveTo(cx, cy + 3 + lift, cx + ow, cy - lift); g.lineWidth = 3.5; g.strokeStyle = card.lips ? 'rgba(120,45,55,0.9)' : 'rgba(80,35,30,0.9)'; g.lineCap = 'round'; g.stroke();
+  } else {
+    g.beginPath(); g.moveTo(cx - ow, cy - lift); g.bezierCurveTo(cx - ow * 0.6, cy - oh * 0.9, cx + ow * 0.6, cy - oh * 0.9, cx + ow, cy - lift); g.bezierCurveTo(cx + ow * 0.7, cy + oh * 1.25, cx - ow * 0.7, cy + oh * 1.25, cx - ow, cy - lift); g.closePath();
+    g.fillStyle = '#3d1418'; g.fill(); g.save(); g.clip();
+    if (M.jaw > 0.12) { g.fillStyle = '#fbf7f2'; g.fillRect(cx - ow, cy - oh, ow * 2, oh * 0.62); }
+    if (M.jaw > 0.3) { g.fillStyle = '#c4545f'; g.beginPath(); g.ellipse(cx, cy + oh * 0.95, ow * 0.55, oh * 0.45, 0, 0, Math.PI * 2); g.fill(); }
+    g.restore();
+    g.lineWidth = card.lips ? 7 : 2.5; g.strokeStyle = card.lips ? card.lip : 'rgba(80,35,30,0.8)'; g.stroke();
+  }
+  g.restore(); card.tex.needsUpdate = true;
+}
+function chibiUpdate(b, dt, t, gx, gy, bl, idle) {
+  const P = b.P, ps = b.persona, I = b.idle;
+  // idle life: small look-arounds and posture shifts at varied intervals; calmer while listening
+  I.lookT -= dt; if (I.lookT <= 0) { I.lookT = rnd(ps.look[0], ps.look[1]) * (listening ? 1.7 : 1); const a = ps.lookAmt * (listening ? 0.35 : thinking ? 0.5 : 1) * idle; I.ly.t = rnd(-a, a); I.lx.t = rnd(-a * 0.5, a * 0.4); I.lz.t = rnd(-a * 0.6, a * 0.6); }
+  I.swayT -= dt; if (I.swayT <= 0) { I.swayT = rnd(ps.sway[0], ps.sway[1]); I.sw.t = rnd(-1, 1) * ps.swayAmt * idle * (listening ? 0.4 : 1); }
+  if (listening && idle) { I.nodT -= dt; if (I.nodT <= 0) { I.nodT = rnd(2.4, 4.4); P.hx.v += 0.8 * ps.nod; } }   // an occasional small nod while you talk
+  I.lx.step(dt); I.ly.step(dt); I.lz.step(dt); I.sw.step(dt);
+  const br = Math.sin(t * Math.PI * 2 / ps.breath) * idle, th = thinking ? 1 : 0;
+  boneRot(b, 'hips', 0, I.sw.x * 0.6, I.sw.x);
+  boneRot(b, 'spine', P.sx.x + br * ps.breathAmt + P.lean.x * 0.6, P.sy.x, P.sz.x - I.sw.x * 0.5);
+  if (b.bones.spine) b.bones.spine.scale.set(1 + br * ps.breathAmt * 0.4, 1 + br * ps.breathAmt * 0.7, 1 + br * ps.breathAmt * 0.4);
+  boneRot(b, 'head', P.hx.x - gy * 0.1 + I.lx.x - th * 0.07, P.hy.x + gx * 0.2 + I.ly.x + th * 0.1, P.hz.x + ps.tilt * idle + I.lz.x - I.sw.x * 0.5 + th * 0.06);
+  if (b.bones.head) b.bones.head.scale.setScalar(P.headS.x);
+  const lid = Math.max(bl, th * 0.28, b.hold || 0);
+  for (const c of b.lids) drawLids(c, lid, ps.wing);
+  if (b.mouthCard) { const want = (speaking && audioOn) || performance.now() < sayUntil ? 1 : 0; b.mouthA.t = want; b.mouthA.step(dt); drawMouth(b.mouthCard, b.M, clamp(b.mouthA.x, 0, 1)); }
+}
+
 /* ---------- mouth shapes and lip sync ---------- */
 const SHAPE = {rest: [0, 0, 0], A: [0.8, 0, 0.2], E: [0.42, 0, 0.6], I: [0.26, 0, 0.85], O: [0.6, 0.75, 0], U: [0.3, 1, 0], closed: [0, 0.12, 0], F: [0.12, 0, 0.25], cons: [0.3, 0, 0.25], L: [0.4, 0, 0.1], laugh: [0.7, 0, 0.7], oh: [0.55, 0.6, 0], hmm: [0, 0.3, 0]};
 const VIS = {a: 'A', e: 'E', i: 'I', y: 'I', o: 'O', u: 'U', w: 'U', m: 'closed', b: 'closed', p: 'closed', f: 'F', v: 'F', l: 'L', t: 'cons', d: 'cons', n: 'cons', s: 'cons', z: 'cons', r: 'cons', k: 'cons', g: 'cons', c: 'cons', j: 'cons', h: 'A', q: 'U', x: 'cons'};
-let speaking = false, listening = false, lastWord = 0, vq = [], vqT = 0, sayUntil = 0;
+let speaking = false, listening = false, thinking = false, audioOn = false, lastWord = 0, vq = [], vqT = 0, sayUntil = 0;
 function mouth(shape) { if (!B) return; const s = SHAPE[shape] || SHAPE.rest; B.Mt.jaw = s[0]; B.Mt.pucker = s[1]; B.Mt.wide = s[2]; }
 function say(shape, sec) { mouth(shape); sayUntil = performance.now() + sec * 1000; }
 function sayWord(w) { const q = []; let prev = ''; for (const ch of String(w).toLowerCase()) { const v = VIS[ch]; if (v && v !== prev) { q.push(v); prev = v; } } if (!q.length) q.push('cons'); vq = q.slice(0, 5); vqT = 0; lastWord = performance.now(); }
@@ -125,9 +245,10 @@ function poke(part) {
 }
 
 /* ---------- conversation reactions ---------- */
-function onSpeak() { speaking = D.speaking = true; if (!B) return; B.Mt.smile = 0.15; if (performance.now() > busyUntil) talkPose(); }
+function onSpeak() { thinking = false; }   // the line was requested; the voice may take a moment to start
+function onSpeakStart(e) { speaking = D.speaking = true; audioOn = true; D.audio = !!(e && e.detail && e.detail.audio); D.timing = 'estimated'; if (!B) return; B.Mt.smile = 0.15; if (performance.now() > busyUntil) talkPose(); }
 function onWord(e) { if (!B) return; sayWord(e.detail && e.detail.word || ''); if (performance.now() > busyUntil && !RM) { B.P.rfx.v += rnd(-2.2, 2.2); B.P.rfz.v += rnd(-1.6, 1.6); B.P.rhz.v += rnd(-3, 3); B.P.hx.v += rnd(-0.5, 0.7); B.P.hz.v += rnd(-0.4, 0.4); } }
-function onSpeakEnd() { speaking = D.speaking = false; vq = []; if (!B) return; mouth('rest'); if (performance.now() > busyUntil) relax(); }
+function onSpeakEnd() { speaking = D.speaking = false; audioOn = false; vq = []; if (!B) return; mouth('rest'); if (performance.now() > busyUntil) relax(); }
 function onMic(e) { listening = D.listening = !!(e.detail && e.detail.on); if (B && performance.now() > busyUntil) relax(); }
 function onGood() { if (!B) return; seq('good', [[0, {hx: 0.24, brow: 0.6}], [0, () => { B.Mt.smile = 1; hop(1.5); }], [170, {hx: -0.04}], [330, {hx: 0.2}], [480, {hx: 0}]], 760, {sfx: 'good'}); if (!RM) confetti(14); }
 function onOops() { if (!B) return; seq('oops', [[0, {hx: 0.15, hz: -0.12, brow: 0.7, rfx: -0.8, rfz: 0.2}], [0, () => { B.gazeHold = [0, -0.55]; B.Mt.smile = 0.1; say('oh', 0.35); }], [900, {hx: 0.16, hz: 0}], [900, () => { B.gazeHold = null; B.Mt.smile = 0.8; }], [1060, {hx: 0}], [1220, {hx: 0.14}]], 1500, {sfx: 'hmm'}); }   // looks down at the correction card, then nods
@@ -201,7 +322,7 @@ function update(dt, now) {
   const g = b.gazeHold || (now - ptr.t < 4000 ? [ptr.x, ptr.y] : [Math.sin(t * 0.31) * 0.12 * idle, Math.sin(t * 0.23) * 0.06 * idle]);
   const sgn = Math.cos(b.rot) >= 0 ? 1 : -1; b.gaze.x.t = clamp(g[0], -1, 1) * sgn; b.gaze.y.t = clamp(g[1], -1, 1); const gx = b.gaze.x.step(dt), gy = b.gaze.y.step(dt);
   // blinking with the eyelids
-  b.nextBlink -= dt; if (b.nextBlink <= 0) { b.blinkT = 0.16; b.nextBlink = rnd(2.2, 5.5); } let bl = 0; if (b.blinkT > 0) { b.blinkT -= dt; bl = Math.sin(clamp(1 - b.blinkT / 0.16, 0, 1) * Math.PI); } if (b.hold != null) bl = Math.max(bl, b.hold); b.blink = bl; D.blink = +bl.toFixed(2);
+  b.nextBlink -= dt; if (b.nextBlink <= 0) { b.blinkT = 0.16; const pb = b.persona && b.persona.blink; b.nextBlink = pb ? (Math.random() < b.persona.dbl ? 0.28 : rnd(pb[0], pb[1])) : rnd(2.2, 5.5); } let bl = 0; if (b.blinkT > 0) { b.blinkT -= dt; bl = Math.sin(clamp(1 - b.blinkT / 0.16, 0, 1) * Math.PI); } if (b.hold != null) bl = Math.max(bl, b.hold); b.blink = bl; D.blink = +bl.toFixed(2);
   const K = b.bones, smile = b.M.smile;
   if (b.full) {
     const br = Math.sin(t * 1.7) * 0.009 * idle;   // breathing
@@ -216,7 +337,8 @@ function update(dt, now) {
     b.eye.forEach((n, i) => { if (n) n.rotation.set(-gy * 0.3, gx * 0.42 + P.cross.x * (i ? 0.4 : -0.4), 0); });
     b.brow.forEach((n, i) => { if (n) { n.position.y = b.browY[i] + P.brow.x * 0.03 - P.squint.x * 0.008; n.rotation.z = (i ? 1 : -1) * P.brow.x * 0.06 + P.browTilt.x * 0.22; } });
     if (b.ponyN) { b.pony.t = clamp(-b.rotV * 0.02, -0.6, 0.6) + P.hx.x * 0.5; b.pony2.t = -P.hy.x * 0.5; b.ponyN.rotation.set(clamp(b.pony.step(dt), -0.9, 0.9) + Math.sin(t * 1.3) * 0.02 * idle, 0, clamp(b.pony2.step(dt), -0.9, 0.9)); }
-  } else setM(b, 'blink', bl);
+  } else if (b.chibi) chibiUpdate(b, dt, t, gx, gy, bl, idle);
+  else setM(b, 'blink', bl);
   if (b.shades) { const s = b.shadesS.x; b.shades.visible = s > 0.02; b.shades.scale.setScalar(Math.max(0.001, s)); b.shades.position.y = b.shadesY + (1 - s) * 0.5; }
   lipSync(dt, now); confStep(dt);
 }
@@ -274,12 +396,12 @@ function start() {
   new IntersectionObserver(es => { visible = es[0].isIntersecting; run(); }, {threshold: 0.02}).observe(stage);
   document.addEventListener('visibilitychange', run);
   const on = (n, f) => window.addEventListener('w2s:' + n, f);
-  on('speak', onSpeak); on('word', onWord); on('speakend', onSpeakEnd); on('mic', onMic); on('good', onGood); on('oops', onOops); on('help', onHelp); on('done', onDone);
+  on('speak', onSpeak); on('speakstart', onSpeakStart); on('timing', e => { D.timing = e.detail && e.detail.exact ? 'word boundaries' : 'estimated'; }); on('think', e => { thinking = !!(e.detail && e.detail.on); D.thinking = thinking; }); on('word', onWord); on('speakend', onSpeakEnd); on('mic', onMic); on('good', onGood); on('oops', onOops); on('help', onHelp); on('done', onDone);
   on('buddy', e => { touched = true; show(pick(e.detail && e.detail.id), false); });
   on('mute', e => { muted = !!(e.detail && e.detail.on); if (!muted) { touched = true; SFX.pop(); } });
   on('shown', run); on('layout', () => setTimeout(resize, 30)); on('start', () => { touched = true; });
   // hooks for the tests, the turnaround renders and the static pictures
-  D.anchor = part => { if (!B) return null; const v = new THREE.Vector3(), n = {face: B.bones.head, hair: B.bones.head, torso: B.bones.spine, arm: B.bones.rf || B.bones.ra, prop: B.prop || B.bones.lh, legs: B.bones.ll}[part];
+  D.anchor = part => { if (!B) return null; const v = new THREE.Vector3(), n = B.chibi ? null : {face: B.bones.head, hair: B.bones.head, torso: B.bones.spine, arm: B.bones.rf || B.bones.ra, prop: B.prop || B.bones.lh, legs: B.bones.ll}[part];
     if (n) { n.getWorldPosition(v);
       if (part === 'face') { v.y += B.fw * 0.36; v.z += 0.1; } if (part === 'hair') v.y += B.fw * 0.93; if (part === 'torso') v.y += 0.22; if (part === 'legs') v.y -= 0.25; if (part === 'arm') v.y -= 0.1; }
     else {   // no skeleton (a generic model): aim at the body by height, on the front of the model

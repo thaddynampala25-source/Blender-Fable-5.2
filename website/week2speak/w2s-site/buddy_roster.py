@@ -9,21 +9,31 @@ button is hidden; with two or more it cycles through the active ones in this ord
 """
 
 ROSTER = [
-    {   # the chibi template (references/model.glb), optimised by buddy-gen/optimize_template.py
-        "id": "kairo", "file": "template", "name": "Kairo", "from": "your Language Buddy", "gender": "m",
+    {   # Kairo: the chibi template (references/model.glb), built by buddy-gen/build_buddy.py
+        "id": "kairo", "file": "kairo-v2", "name": "Kairo", "from": "laid-back and confident", "gender": "m",
+        "blurb": "Relaxed, funny and easy to talk to. Takes his time.",
         "greet": "Hey! I'm Kairo. Let's talk.",
         "alt": "Kairo, a Language Buddy with long locs and an orange beanie, in a striped jacket",
+        "persona": "laidback",
+        "active": True,
+    },
+    {   # May: the girl template (references/girl model.glb) + buddy-gen/may_edit.py
+        "id": "may", "file": "may-v1", "name": "May", "from": "warm and playful", "gender": "f",
+        "blurb": "Warm, playful and expressive. Loves a good chat.",
+        "greet": "Hi! I'm May. Let's talk.",
+        "alt": "May, a Language Buddy with long dark brown wavy hair and a beige scarf",
+        "persona": "playful",
         "active": True,
     },
     {
         "id": "mila", "file": "ruby", "name": "Ruby", "from": "from London", "gender": "f",
-        "greet": "Hi! I'm Ruby. Let's talk.",
+        "blurb": "From London.", "greet": "Hi! I'm Ruby. Let's talk.", "persona": "playful",
         "alt": "Ruby, a Language Buddy from London in a blue rain jacket with yellow headphones round her neck",
         "active": False,
     },
     {
         "id": "rio", "file": "max", "name": "Max", "from": "from New York", "gender": "m",
-        "greet": "Hey! I'm Max. Let's talk.",
+        "blurb": "From New York.", "greet": "Hey! I'm Max. Let's talk.", "persona": "laidback",
         "alt": "Max, a Language Buddy from New York in a blue and yellow varsity jacket, holding a coffee cup",
         "active": False,
     },
@@ -36,5 +46,5 @@ assert ACTIVE, "at least one Buddy must be active"
 def js():
     """The active roster for the browser (written into assets/config.js on every page)."""
     import json
-    keep = ("id", "file", "name", "from", "gender", "greet")
+    keep = ("id", "file", "name", "from", "gender", "greet", "blurb", "persona")
     return "window.W2S_BUDDIES = " + json.dumps([{k: b[k] for k in keep} for b in ACTIVE]) + ";\n"

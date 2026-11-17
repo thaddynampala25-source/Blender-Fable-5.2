@@ -13,6 +13,10 @@ PICTURES = '\n'.join(
     f'        <img class="bf bf-{b["id"]}" src="/assets/buddies/{b["file"]}.webp" width="540" height="774" alt="{b["alt"]}" decoding="async"{"" if i == 0 else " loading=\"lazy\""}>'
     for i, b in enumerate(ACTIVE))
 SWITCH_HIDDEN = ' hidden' if len(ACTIVE) < 2 else ''
+CHECK = '<svg class="ic bp-check" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+PICKER = '<div class="bp" id="buddyPick" role="dialog" aria-label="Choose your Buddy" hidden><p class="bp-h">Choose your Buddy</p>' + ''.join(
+    f'<button type="button" class="bp-item" data-pick="{b["id"]}" aria-pressed="false"><img src="/assets/buddies/{b["file"]}.webp" alt="" width="56" height="56" loading="lazy"><span><b>{b["name"]}</b><small>{b.get("blurb", "")}</small></span>{CHECK}</button>'
+    for b in ACTIVE) + '</div>'
 
 I_MENU = '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'
 I_SWAP = '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h13M17 12l4 4-4 4M21 16H8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -28,9 +32,10 @@ APP = f'''<div class="smx" id="sm" data-state="landing">
       </div></div>
       <div class="sm-top">
         <button class="sm-pill sm-menu" id="smMenu" type="button" aria-haspopup="dialog" aria-controls="smSheet" aria-expanded="false">{I_MENU}<span class="sm-menu-t"><small>Scene</small><b id="missionTitle"></b></span></button>
-        <button class="sm-pill" id="buddySwitch" type="button"{SWITCH_HIDDEN}>{I_SWAP}<span>Switch Buddy</span></button>
+        <button class="sm-pill" id="buddySwitch" type="button" aria-haspopup="dialog" aria-controls="buddyPick" aria-expanded="false"{SWITCH_HIDDEN}>{I_SWAP}<span>Switch Buddy</span></button>
         <button class="sm-pill sm-ic" id="buddyMute" type="button" aria-pressed="true" aria-label="Buddy sounds" title="Buddy sounds">{I_SOUND}</button>
       </div>
+      {PICKER}
       <div class="sm-over" id="smOver">
         <div class="sm-landing" id="smLanding">
           <p class="sm-who"><b id="buddyName">{FIRST['name']}</b><span id="buddyFrom">{FIRST['from']}</span></p>
@@ -167,7 +172,12 @@ def script(ver):
     setBuddy(IDS.indexOf(window.W2S_BUDDY) >= 0 ? window.W2S_BUDDY : IDS[0], false);
     var muted = false, hidden = false; try { muted = localStorage.getItem('w2s.buddyMute') === '1'; hidden = localStorage.getItem('w2s.buddyHidden') === '1'; } catch (e) {}
     setMute(muted); setShown(!hidden);
-    $('buddySwitch').addEventListener('click', function () { var t = Date.now(); if (t - lock < 950) return; lock = t; setBuddy(IDS[(IDS.indexOf(w.dataset.buddy) + 1) % IDS.length], true); });
+    var pick = $('buddyPick');
+    function picker(on) { pick.hidden = !on; $('buddySwitch').setAttribute('aria-expanded', String(on)); if (on) { [].forEach.call(pick.querySelectorAll('[data-pick]'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.pick === w.dataset.buddy)); }); var cur = pick.querySelector('[aria-pressed="true"]') || pick.querySelector('[data-pick]'); if (cur) cur.focus(); } }
+    $('buddySwitch').addEventListener('click', function (e) { e.stopPropagation(); picker(pick.hidden); });
+    pick.addEventListener('click', function (e) { var b = e.target.closest('[data-pick]'); if (!b) return; e.stopPropagation(); var t = Date.now(); picker(false); $('buddySwitch').focus(); if (b.dataset.pick === w.dataset.buddy || t - lock < 950) return; lock = t; setBuddy(b.dataset.pick, true); });
+    document.addEventListener('click', function (e) { if (!pick.hidden && !pick.contains(e.target)) picker(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pick.hidden) { picker(false); $('buddySwitch').focus(); } });
     $('buddyMute').addEventListener('click', function () { var on = !$('buddyMute').classList.contains('is-off'); setMute(on); try { localStorage.setItem('w2s.buddyMute', on ? '1' : '0'); } catch (e) {} fire('mute', {on: on}); });
     $('buddyShow').addEventListener('change', function () { var on = $('buddyShow').checked; setShown(on); try { localStorage.setItem('w2s.buddyHidden', on ? '0' : '1'); } catch (e) {} fire('shown', {on: on}); });
     $('smMenu').addEventListener('click', function () { sheet(!sm.classList.contains('sheet-open')); });
@@ -217,6 +227,17 @@ body[data-page="speak"] .vh{order:2;margin-bottom:0}
 __BF_SHOW__{display:block}
 .buddy.is-3d .buddy-fallback{opacity:0;pointer-events:none}
 .sm-pill[hidden]{display:none}
+.bp{position:absolute;z-index:6;top:60px;right:var(--s2);width:min(330px,calc(100% - 16px));padding:var(--s2);border-radius:22px;background:rgba(255,255,255,.97);box-shadow:var(--e2);display:grid;gap:4px;transform-origin:top right;animation:bpIn .18s var(--spring)}
+.bp[hidden]{display:none}
+@keyframes bpIn{from{opacity:0;transform:scale(.94) translateY(-4px)}to{opacity:1;transform:none}}
+.bp-h{margin:4px 8px 6px;font:800 .78rem/1 var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:#5a6190}
+.bp-item{display:grid;grid-template-columns:56px 1fr 22px;align-items:center;gap:12px;width:100%;padding:8px;border:2px solid transparent;border-radius:16px;background:none;text-align:left;color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s}
+.bp-item:hover{background:#f1f3ff}.bp-item:focus-visible{outline:0;border-color:#9aa8ff}
+.bp-item[aria-pressed="true"]{background:#eef1ff;border-color:#2D4BFF}
+.bp-item img{width:56px;height:56px;border-radius:14px;object-fit:cover;object-position:50% 6%;background:linear-gradient(#EDF0FF,#C6D0FF)}
+.bp-item b{display:block;font:800 1rem/1.2 var(--f-body)}.bp-item small{display:block;margin-top:2px;font:500 .84rem/1.3 var(--f-body);color:#5a6190}
+.bp-check{color:#2D4BFF;visibility:hidden}.bp-item[aria-pressed="true"] .bp-check{visibility:visible}
+@media (prefers-reduced-motion: reduce){.bp{animation:none}}
 .buddy.is-hidden .buddy-stage{display:none}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 

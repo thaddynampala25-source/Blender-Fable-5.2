@@ -966,19 +966,19 @@ const Voice = (() => {
       emit('speak', {text: String(text)}); }
     const id = token, rate = opts.rate || 1, r = route();
     const end = () => { if (id !== token) return; clear(); if (opts.onWord) opts.onWord(-1); if (opts.onEnd) opts.onEnd(); };
-    const viaClaude = () => { plan(text, rate, opts.onWord, null, id); tts.speak(text, {rate: Math.min(1.5, Math.max(.7, rate)), language:'en'}).then(end, end); };
+    const viaClaude = () => { emit('speakstart', {audio: true}); plan(text, rate, opts.onWord, null, id); tts.speak(text, {rate: Math.min(1.5, Math.max(.7, rate)), language:'en'}).then(end, end); };
     if (r.kind === 'device') {
       let started = false, exact = false; const offs = offsets(text);
       const u = new SpeechSynthesisUtterance(text);
       u.voice = r.v; u.lang = r.v.lang; u.rate = rate;
-      u.onstart = () => { if (id !== token) return; started = true; fails = 0; plan(text, rate, i => { if (!exact && opts.onWord) opts.onWord(i); }, null, id); };
-      u.onboundary = e => { if (id !== token || (e.name && e.name !== 'word')) return; exact = true; let i = 0; while (i + 1 < offs.length && offs[i + 1] <= e.charIndex) i++; if (opts.onWord) opts.onWord(i); };
+      u.onstart = () => { if (id !== token) return; started = true; fails = 0; emit('speakstart', {audio: true}); plan(text, rate, i => { if (!exact && opts.onWord) opts.onWord(i); }, null, id); };
+      u.onboundary = e => { if (id !== token || (e.name && e.name !== 'word')) return; if (!exact) emit('timing', {exact: true}); exact = true; let i = 0; while (i + 1 < offs.length && offs[i + 1] <= e.charIndex) i++; if (opts.onWord) opts.onWord(i); };
       u.onend = end;
       u.onerror = () => { if (id !== token) return; if (!started) { broken = ++fails >= 2; renderVoiceNotes(); if (tts) return viaClaude(); clear(); plan(text, rate, opts.onWord, end, id); return; } end(); };
       timers.push(setTimeout(() => { if (id !== token) return; try { synth.speak(u); } catch (e) { u.onerror(); } }, 60));
       timers.push(setTimeout(() => { if (id === token && !started) { try { synth.cancel(); } catch (e) {} u.onend = null; u.onerror = null; broken = ++fails >= 2; renderVoiceNotes(); if (tts) viaClaude(); else { clear(); plan(text, rate, opts.onWord, end, id); } } }, 2500));
     } else if (r.kind === 'claude') viaClaude();
-    else plan(text, rate, opts.onWord, end, id);
+    else { emit('speakstart', {audio: false}); plan(text, rate, opts.onWord, end, id); }
   }
   return {speak, pace, stop, note: () => route().note, setTts: t => { tts = t; renderVoiceNotes(); }};
 })();
