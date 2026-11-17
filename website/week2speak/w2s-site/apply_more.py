@@ -140,6 +140,7 @@ $('#days').addEventListener('toggle',""")
     # ---------- Language Buddies: the app tells the 3D characters what is happening ----------
     rep("if (!['us', 'gb', 'au'].includes(state.accent)) state.accent = 'us';", """if (!['us', 'gb', 'au'].includes(state.accent)) state.accent = 'us';
 const emit = (n, d) => { try { window.dispatchEvent(new CustomEvent('w2s:' + n, {detail: d || {}})); } catch (e) {} };
+const paceRate = () => (window.W2S_PACE === 'slow' ? .72 : .95);   // Speech Mode: Normal or Slow
 /* the active Buddies come from buddy_roster.py via assets/config.js; a saved choice that is not active falls back to the first */
 const BUDDIES = (window.W2S_BUDDIES && window.W2S_BUDDIES.length) ? window.W2S_BUDDIES : [{id: 'mila', gender: 'f', greet: "Hi! I'm Ruby. Let's talk."}];
 const buddyOf = id => BUDDIES.find(b => b.id === id);
@@ -149,7 +150,8 @@ window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.deta
   setTimeout(() => { if (currentView === 'speak' && $('#speakAloud').checked) Voice.speak(b.greet, {rate: 1}); }, 700); });
 /* Speech Mode screen: Start talking, Play again and the replay button */
 window.addEventListener('w2s:start', () => { window.W2S_HOLD = 0; startMission(S.id); });
-window.addEventListener('w2s:replay', () => { const t = S.turns.slice().reverse().find(x => x.role === 'tutor'); if (t) Voice.speak(t.text, {rate: .95}); });""")
+window.addEventListener('w2s:replay', () => { const t = S.turns.slice().reverse().find(x => x.role === 'tutor'); if (t) Voice.speak(t.text, {rate: paceRate()}); });
+window.addEventListener('w2s:stop', () => { Voice.stop(); });""")
     # The first tutor line waits for "Start talking": browsers only allow speech after a tap.
     rep("if ($('#speakAloud').checked && currentView === 'speak') Voice.speak(text, {rate:.95});", "if ($('#speakAloud').checked && currentView === 'speak' && !window.W2S_HOLD) Voice.speak(text, {rate:.95});")
     rep("'More help' : 'That is all the help'", "'More help' : 'That is all'")
@@ -167,6 +169,8 @@ window.addEventListener('w2s:replay', () => { const t = S.turns.slice().reverse(
       emit('speak', {text: String(text)}); }""")
     # Speech Mode 2.0: the moment audio really starts (not when the line is requested), and whether
     # word timing is real (boundary events) or an estimate. The Buddies' lip-sync and the subtitle use these.
+    rep("if ($('#speakAloud').checked && currentView === 'speak' && !window.W2S_HOLD) Voice.speak(text, {rate:.95});", "if ($('#speakAloud').checked && currentView === 'speak' && !window.W2S_HOLD) Voice.speak(text, {rate: paceRate()});")
+    rep("Mic.start({button: e.currentTarget, onText: t => { input.value = t; }, onEnd: said => { if (said) sendLine(said); }});", "Mic.start({button: e.currentTarget, onText: t => { input.value = t; }, onEnd: (said, reason) => { if (said) { emit('micresult'); sendLine(said); } else emit('micempty', {reason: reason || ''}); }});")
     rep("u.onstart = () => { if (id !== token) return; started = true; fails = 0;", "u.onstart = () => { if (id !== token) return; started = true; fails = 0; emit('speakstart', {audio: true});")
     rep("u.onboundary = e => { if (id !== token || (e.name && e.name !== 'word')) return; exact = true;", "u.onboundary = e => { if (id !== token || (e.name && e.name !== 'word')) return; if (!exact) emit('timing', {exact: true}); exact = true;")
     rep("const viaClaude = () => { plan(text, rate, opts.onWord, null, id);", "const viaClaude = () => { emit('speakstart', {audio: true}); plan(text, rate, opts.onWord, null, id);")

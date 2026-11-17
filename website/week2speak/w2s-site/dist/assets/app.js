@@ -38,6 +38,7 @@ try { const raw = localStorage.getItem(KEY); if (raw) state = Object.assign(fres
 if (!state.course || !state.course.done) state.course = {done:{}, said:{}};
 if (!['us', 'gb', 'au'].includes(state.accent)) state.accent = 'us';
 const emit = (n, d) => { try { window.dispatchEvent(new CustomEvent('w2s:' + n, {detail: d || {}})); } catch (e) {} };
+const paceRate = () => (window.W2S_PACE === 'slow' ? .72 : .95);   // Speech Mode: Normal or Slow
 /* the active Buddies come from buddy_roster.py via assets/config.js; a saved choice that is not active falls back to the first */
 const BUDDIES = (window.W2S_BUDDIES && window.W2S_BUDDIES.length) ? window.W2S_BUDDIES : [{id: 'mila', gender: 'f', greet: "Hi! I'm Ruby. Let's talk."}];
 const buddyOf = id => BUDDIES.find(b => b.id === id);
@@ -47,7 +48,8 @@ window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.deta
   setTimeout(() => { if (currentView === 'speak' && $('#speakAloud').checked) Voice.speak(b.greet, {rate: 1}); }, 700); });
 /* Speech Mode screen: Start talking, Play again and the replay button */
 window.addEventListener('w2s:start', () => { window.W2S_HOLD = 0; startMission(S.id); });
-window.addEventListener('w2s:replay', () => { const t = S.turns.slice().reverse().find(x => x.role === 'tutor'); if (t) Voice.speak(t.text, {rate: .95}); });
+window.addEventListener('w2s:replay', () => { const t = S.turns.slice().reverse().find(x => x.role === 'tutor'); if (t) Voice.speak(t.text, {rate: paceRate()}); });
+window.addEventListener('w2s:stop', () => { Voice.stop(); });
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
 const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
 const yesterday = () => { const d = new Date(Date.now() - 864e5); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
@@ -297,7 +299,7 @@ function renderMissions() {
 function sayTutor(text) {
   S.turns.push({role:'tutor', text}); bubble('msg t', esc(text));
   S.hintLevel = 0; renderHint();
-  if ($('#speakAloud').checked && currentView === 'speak' && !window.W2S_HOLD) Voice.speak(text, {rate:.95});
+  if ($('#speakAloud').checked && currentView === 'speak' && !window.W2S_HOLD) Voice.speak(text, {rate: paceRate()});
 }
 function startMission(id) {
   if (MISSIONS[id].ai && !cap.sample) id = 'cafe';
@@ -377,7 +379,7 @@ $('#composer').addEventListener('submit', e => { e.preventDefault(); sendLine($(
 $('#speakMic').innerHTML = ic('mic');
 $('#speakMic').addEventListener('click', e => {
   const input = $('#speakInput');
-  Mic.start({button: e.currentTarget, onText: t => { input.value = t; }, onEnd: said => { if (said) sendLine(said); }});
+  Mic.start({button: e.currentTarget, onText: t => { input.value = t; }, onEnd: (said, reason) => { if (said) { emit('micresult'); sendLine(said); } else emit('micempty', {reason: reason || ''}); }});
 });
 $('#helpBtn').addEventListener('click', () => { if (S.hintLevel < 3) { emit('help'); S.hintLevel++; S.helps++; renderTally(); renderHint(); } });
 $('#restartBtn').innerHTML = ic('refresh') + 'Restart scene';

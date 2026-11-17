@@ -409,6 +409,7 @@ function start() {
       const bx = new THREE.Box3().setFromObject(B.model), r = (bx.max.x - bx.min.x) / 2; v.set(f[0] * r, f[1] * B.H, 0);
       const hit = new THREE.Raycaster(new THREE.Vector3(v.x, v.y, 10), new THREE.Vector3(0, 0, -1)).intersectObject(B.model, true)[0]; if (hit) v.copy(hit.point); }
     v.project(camera); const r = canvas.getBoundingClientRect(), x = r.left + (v.x + 1) / 2 * r.width, y = r.top + (1 - v.y) / 2 * r.height; return {x, y, part: partAt(x, y)}; };
+  D.face = () => (B && B.chibi) ? {mouth: !!(B.mouthCard && B.mouthCard.mesh.visible), lids: B.lids.map(c => c.mesh.visible), persona: B.persona === PERSONA.playful ? 'playful' : 'laidback', head: B.bones.head ? B.bones.head.rotation.toArray().slice(0, 3).map(v => +v.toFixed(4)) : null} : null;
   D.say = (s, sec) => say(s, sec || 0.5); D.poke = p => poke(p); D.react = n => R[n] && R[n](); D.setQuality = setQuality;
   D.view = o => { o = o || {}; camForce = o.frame || null; D.hold = o.rot != null ? o.rot : null; if (o.pose) pose(o.pose); if (o.blink != null && B) B.hold = o.blink; frameCam(); };
   D.snap = () => { update(0.016, performance.now()); renderer.render(scene, camera); return canvas.toDataURL('image/png'); };

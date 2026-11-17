@@ -595,7 +595,7 @@ footer .logo{color:#fff}
 :root{--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--e1:0 1px 2px rgba(11,16,58,.10),0 4px 14px rgba(11,16,58,.10);--e2:0 2px 4px rgba(11,16,58,.12),0 14px 38px rgba(11,16,58,.20);--spring:cubic-bezier(.2,.9,.25,1.12)}
 body[data-page="speak"] .view{display:flex;flex-direction:column;padding-bottom:0}
 body[data-page="speak"] .vh{order:2;margin-bottom:0}
-.smx{position:relative;display:grid;gap:var(--s4);grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;grid-template-areas:"stage sheet" "stage bar";height:calc(100vh - var(--smtop,72px) - 40px);height:calc(100dvh - var(--smtop,72px) - 40px);min-height:540px;max-height:940px;margin-block:20px}
+.smx{position:relative;display:grid;gap:var(--s4);grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;grid-template-areas:"stage sheet" "bar bar";height:calc(100vh - var(--smtop,72px) - 40px);height:calc(100dvh - var(--smtop,72px) - 40px);min-height:540px;max-height:940px;margin-block:20px}
 .sm-stage{grid-area:stage;position:relative;min-height:0;overflow:hidden;border-radius:28px;isolation:isolate;background:radial-gradient(60% 46% at 50% 44%,rgba(255,255,255,.95) 0,rgba(255,255,255,0) 100%),radial-gradient(120% 70% at 50% 112%,#93A6FF 0,#C6D0FF 46%,#EDF0FF 100%);box-shadow:var(--e1)}
 .sm-stage[data-buddy="rio"]{background:radial-gradient(60% 46% at 50% 44%,rgba(255,255,255,.95) 0,rgba(255,255,255,0) 100%),radial-gradient(120% 70% at 50% 112%,#FFD93B 0,#FFE98F 40%,#FFF7D9 100%)}
 .buddy-stage{position:absolute;inset:0;touch-action:pan-y;user-select:none;-webkit-user-select:none}
@@ -666,6 +666,20 @@ body[data-page="speak"] .vh{order:2;margin-bottom:0}
 .sm-replay{width:44px;height:44px;flex:none;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;cursor:pointer;transition:transform .25s var(--spring),background .15s}
 .sm-replay:hover{background:rgba(255,255,255,.28)}
 .sm-replay:active{transform:scale(.9) rotate(-40deg)}
+.sm-ctl{display:flex;gap:6px}.sm-stop:active{transform:scale(.9)}
+.sm-sub{animation:smSubIn .28s var(--spring)}@keyframes smSubIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* estimated timing: words fill in gently instead of claiming word-exact highlighting */
+.sm-sub.approx #smLine .w.on{background:none;color:#fff;box-shadow:inset 0 -3px 0 rgba(255,217,59,.55)}
+.smx.no-subs #smLine{display:none}.smx.no-subs .sm-sub-b{grid-template-columns:1fr auto}
+.sm-h3b{margin-top:var(--s3)}
+.sm-again{margin-left:var(--s2)}
+/* the mic button shows what the conversation is doing */
+.smx[data-voice="speaking"] #speakMic{box-shadow:0 0 0 4px rgba(45,75,255,.22)}
+.smx[data-voice="processing"] #speakMic{opacity:.7}
+.smx[data-voice="error"] #speakMic{filter:grayscale(1);opacity:.55}
+#speakMic.listening{box-shadow:0 0 0 0 rgba(255,90,90,.5);animation:micPulse 1.3s ease-out infinite}
+@keyframes micPulse{0%{box-shadow:0 0 0 0 rgba(255,90,90,.5)}100%{box-shadow:0 0 0 14px rgba(255,90,90,0)}}
+@media (prefers-reduced-motion: reduce){.sm-sub{animation:none}#speakMic.listening{animation:none}}
 .sm-card{background:var(--surface);border-radius:20px;padding:var(--s3) var(--s3) var(--s3) var(--s4);box-shadow:var(--e2);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s3);align-items:center;border-left:6px solid var(--note)}
 .sm-card.note{border-left-color:var(--cobalt)}
 .sm-card-b{display:grid;gap:4px;font-size:1rem;line-height:1.35}
@@ -706,11 +720,12 @@ body[data-page="speak"] .vh{order:2;margin-bottom:0}
 .sm-more{display:none}
 .sm-scrim{display:none}
 
-.sm-bar{grid-area:bar;display:flex;align-items:center;gap:var(--s2);padding:var(--s3);background:var(--surface);border-radius:24px;box-shadow:var(--e1)}
+.sm-bar{grid-area:bar;display:flex;align-items:flex-end;gap:var(--s3);padding:var(--s3) var(--s4);background:var(--surface);border-radius:24px;box-shadow:var(--e1)}
 .sm-bar #speakMic{flex:none;width:60px;height:60px;min-height:60px}
 .sm-field{position:relative;flex:1;min-width:0;display:flex;gap:var(--s2)}
-.sm-field .field{min-height:52px;font-size:1.05rem}
-.sm-field #speakSend{flex:none;min-height:52px}
+.sm-field .field{min-height:56px;font-size:1.1rem;line-height:1.4}
+textarea.field{display:block;resize:none;overflow-y:auto;max-height:calc(1.4em * 3 + 28px);padding:14px 16px;font-family:inherit;field-sizing:content}
+.sm-field #speakSend{flex:none;min-height:56px;min-width:96px}
 .sm-field #speakSend .ic{display:none}
 .sm-help{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:48px;min-width:96px;padding:0 14px;border:2px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:700 .92rem/1 var(--f-body);cursor:pointer;white-space:nowrap;transition:transform .25s var(--spring),border-color .15s}
 .sm-help:hover{border-color:var(--ink-2)}
@@ -726,10 +741,12 @@ body[data-page="speak"] .vh{order:2;margin-bottom:0}
   .sm-stage{border-radius:0;box-shadow:none}
   .sm-pill{padding:0 12px;font-size:.875rem}
   .sm-menu-t b{max-width:34vw;white-space:nowrap}
-  .sm-bar{height:76px;padding:4px 8px 8px;gap:6px;border-radius:0;box-shadow:none;border-top:1px solid var(--line)}
+  .sm-bar{display:grid;grid-template-columns:1fr 64px 1fr;grid-template-areas:"field field field" ". mic help";align-items:center;row-gap:6px;column-gap:8px;height:auto;padding:8px 10px 8px;border-radius:0;box-shadow:none;border-top:1px solid var(--line)}
+  .sm-bar #speakMic{grid-area:mic}.sm-bar .sm-field{grid-area:field}.sm-bar .sm-help{grid-area:help;justify-self:end}
+  .smx.kb .sm-bar{grid-template-areas:"field field field"}.smx.kb .sm-bar .sm-help{display:none}
   .sm-bar #speakMic{width:64px;height:64px;min-height:64px}
-  .sm-field .field{min-height:54px;font-size:1rem;padding:8px 52px 8px 12px;border-radius:16px}
-  .sm-field #speakSend{position:absolute;right:5px;top:5px;width:44px;height:44px;min-height:44px;padding:0;border-radius:12px;box-shadow:none;transition:opacity .15s,transform .25s var(--spring)}
+  .sm-field .field{min-height:54px;font-size:1rem;line-height:1.35;padding:15px 52px 15px 12px;border-radius:16px;max-height:calc(1.35em * 3 + 30px)}
+  .sm-field #speakSend{position:absolute;right:5px;bottom:5px;width:44px;height:44px;min-height:44px;min-width:44px;padding:0;border-radius:12px;box-shadow:none;transition:opacity .15s,transform .25s var(--spring)}
   .sm-field #speakSend:active{transform:scale(.92)}
   .sm-field #speakSend .ic{display:block}
   .sm-send-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}

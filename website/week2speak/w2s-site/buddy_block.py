@@ -22,6 +22,7 @@ I_MENU = '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden
 I_SWAP = '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h13M17 12l4 4-4 4M21 16H8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 I_SOUND = '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 10v4h4l5 4V6l-5 4z" fill="currentColor"/><path class="on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path class="off" d="m17 9 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'
 I_REPLAY = '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v4.5h4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+I_STOP = '<svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>'
 I_SEND = '<svg class="ic" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 I_CLOSE = '<svg class="ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>'
 
@@ -47,7 +48,7 @@ APP = f'''<div class="smx" id="sm" data-state="landing">
         <div class="sm-done" id="smDone" hidden></div>
         <div class="sm-sub" id="smSub" hidden>
           <p class="sm-sub-h"><b id="smSpeaker">{FIRST['name']}</b><span class="sm-turn" id="smTurn"></span></p>
-          <div class="sm-sub-b"><p id="smLine" aria-live="polite"></p><button class="sm-replay" id="smReplay" type="button" aria-label="Hear it again">{I_REPLAY}</button></div>
+          <div class="sm-sub-b"><p id="smLine" aria-live="polite"></p><div class="sm-ctl"><button class="sm-replay sm-stop" id="smStop" type="button" aria-label="Stop speaking" hidden>{I_STOP}</button><button class="sm-replay" id="smReplay" type="button" aria-label="Hear it again">{I_REPLAY}</button></div></div>
         </div>
       </div>
       <pre class="sm-fps" id="smFps" hidden></pre>
@@ -61,14 +62,16 @@ APP = f'''<div class="smx" id="sm" data-state="landing">
           <div class="row"><button class="key sm" id="restartBtn" type="button"></button></div></section>
         <div class="sm-g2"><section class="sm-g sm-g-accent"><h3>Tutor accent</h3><div class="chips" data-accents></div><p class="small muted" data-voicenote></p>
           <div class="sm-togs"><label class="tog"><input type="checkbox" id="speakAloud" checked> Read tutor lines aloud</label>
-          <label class="tog"><input type="checkbox" id="buddyShow" checked> Show the Buddy</label></div></section>
+          <label class="tog"><input type="checkbox" id="buddyShow" checked> Show the Buddy</label>
+          <label class="tog"><input type="checkbox" id="smSubs" checked> Show subtitles</label></div>
+          <h3 class="sm-h3b">Speaking pace</h3><div class="chips" id="smPace"><button type="button" class="chip" data-pace="normal" aria-pressed="true">Normal</button><button type="button" class="chip" data-pace="slow" aria-pressed="false">Slow</button></div></section>
         <section class="sm-g sm-g-tally"><h3>This session</h3><div class="tally"><div><b class="num" id="sSent">0</b><span>sentences</span></div><div><b class="num" id="sFix">0</b><span>fixes</span></div><div><b class="num" id="sHelp">0</b><span>hints used</span></div></div></section></div>
         <nav class="sm-more" aria-label="More practice"><a href="/games/">Games</a><a href="/shadowing/">Shadowing</a><a href="/7-day-sprint/">7-Day Sprint</a><a href="/course/">Course</a><a href="/">Home</a></nav>
       </div>
     </div>
     <form class="composer sm-bar" id="composer" autocomplete="off">
       <button class="key round mic-only" id="speakMic" type="button" aria-label="Speak your answer"></button>
-      <div class="sm-field"><input class="field" id="speakInput" type="text" enterkeyhint="send" autocapitalize="sentences" placeholder="Type your answer in English" aria-label="Your answer">
+      <div class="sm-field"><textarea class="field" id="speakInput" rows="1" enterkeyhint="send" autocapitalize="sentences" spellcheck="true" placeholder="Type your answer in English" aria-label="Your answer"></textarea>
         <button class="key primary" id="speakSend" type="submit"><span class="sm-send-t">Send</span>{I_SEND}</button></div>
       <button class="sm-help" id="helpBtn" type="button"></button>
     </form>
@@ -133,6 +136,7 @@ def script(ver):
   function mark(i) { var ws = $('smLine').children; for (var k = 0; k < ws.length; k++) { ws[k].classList.toggle('on', k === i); ws[k].classList.toggle('said', i >= 0 && k < i); } }
   function turnText() { $('smTurn').textContent = mic ? 'Listening' : state === 'turn' ? 'Your turn' : state === 'speaking' && speaking ? 'Speaking' : ''; sm.dataset.mic = mic ? 'on' : 'off'; }
   function set(s) { state = s; sm.dataset.state = s; turnText(); }
+  function voice(v) { sm.dataset.voice = v; var m = $('speakMic'); if (m) m.setAttribute('aria-label', {listening: 'Stop and send what you said', speaking: 'Interrupt and answer', processing: 'Working on what you said', error: 'Microphone unavailable', ready: 'Speak your answer'}[v] || 'Speak your answer'); }
 
   /* ---- cards over the lower stage ---- */
   function hideCard() { clearTimeout(cardT); $('smCard').hidden = true; }
@@ -169,6 +173,11 @@ def script(ver):
   }
 
   function init() {
+    voice('ready');
+    var ta = $('speakInput'), lastVal = null;
+    function grow() { if (ta.value === lastVal) return; lastVal = ta.value; ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight + 2, parseFloat(getComputedStyle(ta).maxHeight) || 140) + 'px'; }
+    ta.addEventListener('input', grow); setInterval(grow, 250);   // also catches text set by the microphone or the word bank
+    ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); var f = $('composer'); if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event('submit', {cancelable: true})); } });
     setBuddy(IDS.indexOf(window.W2S_BUDDY) >= 0 ? window.W2S_BUDDY : IDS[0], false);
     var muted = false, hidden = false; try { muted = localStorage.getItem('w2s.buddyMute') === '1'; hidden = localStorage.getItem('w2s.buddyHidden') === '1'; } catch (e) {}
     setMute(muted); setShown(!hidden);
@@ -186,14 +195,28 @@ def script(ver):
     $('missions').addEventListener('click', function (e) { if (e.target.closest('[data-mission]') && sm.classList.contains('sheet-open')) sheet(false); });
     $('smStart').addEventListener('click', function () { window.W2S_HOLD = 0; set('speaking'); fire('start'); clearTimeout(turnT); turnT = setTimeout(function () { if (!speaking && state === 'speaking') set('turn'); }, 600); });
     $('smReplay').addEventListener('click', function () { fire('replay'); });
+    $('smStop').addEventListener('click', function () { fire('stop'); });
+    var pref = function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } }, keep = function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} };
+    function setPace(v) { window.W2S_PACE = v; [].forEach.call($('smPace').querySelectorAll('[data-pace]'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.pace === v)); }); }
+    setPace(pref('w2s.pace', 'normal')); $('smPace').addEventListener('click', function (e) { var b = e.target.closest('[data-pace]'); if (!b) return; setPace(b.dataset.pace); keep('w2s.pace', b.dataset.pace); });
+    function setSubs(on) { sm.classList.toggle('no-subs', !on); $('smSubs').checked = on; }
+    setSubs(pref('w2s.subs', '1') === '1'); $('smSubs').addEventListener('change', function () { setSubs($('smSubs').checked); keep('w2s.subs', $('smSubs').checked ? '1' : '0'); });
+    // the microphone never invents a transcript: an empty result or a refusal gets a clear way forward
+    var MICMSG = {not_granted: 'The microphone is blocked for this site. Allow it in your browser\u2019s site settings, then reload. You can keep typing below.', unavailable: 'Speech recognition is not available in this browser. Type your answer below.'};
+    window.addEventListener('w2s:micempty', function (e) { var r = e.detail && e.detail.reason || ''; voice(MICMSG[r] ? 'error' : 'ready'); var t = document.createElement('span'); t.textContent = MICMSG[r] || 'I didn\u2019t catch that. Try again, a little closer to the microphone, or type it.'; var k = [t];
+      if (!MICMSG[r]) { var again = document.createElement('button'); again.type = 'button'; again.className = 'key sm sm-again'; again.textContent = 'Try again'; again.addEventListener('click', function () { hideCard(); $('speakMic').click(); }); k.push(again); }
+      card(k, MICMSG[r] ? 'fix' : 'note'); });
+    window.addEventListener('w2s:micresult', function () { voice('processing'); setTimeout(function () { if (sm.dataset.voice === 'processing') voice('ready'); }, 1200); });
+    window.addEventListener('w2s:speakstart', function () { voice('speaking'); $('smStop').hidden = false; $('smSub').classList.add('approx'); });
+    window.addEventListener('w2s:timing', function (e) { if (e.detail && e.detail.exact) $('smSub').classList.remove('approx'); });
     $('smDone').addEventListener('click', function (e) {
       if (e.target.closest('[data-again]')) { fire('start'); }
       else if (e.target.closest('[data-next]')) { var all = [].slice.call($('missions').querySelectorAll('[data-mission]')).filter(function (b) { return b.offsetParent !== null || isPhone(); }).filter(function (b) { return !b.classList.contains('ai-only') || root.classList.contains('has-ai'); }); var i = all.findIndex(function (b) { return b.getAttribute('aria-pressed') === 'true'; }); (all[(i + 1) % all.length] || all[0]).click(); }
     });
     window.addEventListener('w2s:speak', function (e) { speaking = true; var t = e.detail && e.detail.text || ''; if (t && t !== cur) { temp = true; line(t); } else if (temp) { temp = false; line(cur); } if (state === 'turn') set('speaking'); else turnText(); });
     window.addEventListener('w2s:word', function (e) { mark(e.detail ? e.detail.i : -1); });
-    window.addEventListener('w2s:speakend', function () { if (!speaking) return; speaking = false; mark(-1); if (temp) { temp = false; line(cur); } if (state === 'speaking') set('turn'); else turnText(); });
-    window.addEventListener('w2s:mic', function (e) { mic = !!(e.detail && e.detail.on); turnText(); });
+    window.addEventListener('w2s:speakend', function () { $('smStop').hidden = true; if (sm.dataset.voice === 'speaking') voice('ready'); if (!speaking) return; speaking = false; mark(-1); if (temp) { temp = false; line(cur); } if (state === 'speaking') set('turn'); else turnText(); });
+    window.addEventListener('w2s:mic', function (e) { mic = !!(e.detail && e.detail.on); if (mic) voice('listening'); else if (sm.dataset.voice === 'listening') voice('ready'); turnText(); });
     window.addEventListener('w2s:done', function (e) { done(e.detail); });
     watchChat(); var first = $('chat').querySelector('.msg.t:last-of-type'); if (first) { cur = first.textContent.trim(); line(cur); }
     fit(); if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); } window.addEventListener('resize', fit); window.addEventListener('orientationchange', fit);
@@ -214,7 +237,7 @@ CSS = '''
 :root{--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--e1:0 1px 2px rgba(11,16,58,.10),0 4px 14px rgba(11,16,58,.10);--e2:0 2px 4px rgba(11,16,58,.12),0 14px 38px rgba(11,16,58,.20);--spring:cubic-bezier(.2,.9,.25,1.12)}
 body[data-page="speak"] .view{display:flex;flex-direction:column;padding-bottom:0}
 body[data-page="speak"] .vh{order:2;margin-bottom:0}
-.smx{position:relative;display:grid;gap:var(--s4);grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;grid-template-areas:"stage sheet" "stage bar";height:calc(100vh - var(--smtop,72px) - 40px);height:calc(100dvh - var(--smtop,72px) - 40px);min-height:540px;max-height:940px;margin-block:20px}
+.smx{position:relative;display:grid;gap:var(--s4);grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;grid-template-areas:"stage sheet" "bar bar";height:calc(100vh - var(--smtop,72px) - 40px);height:calc(100dvh - var(--smtop,72px) - 40px);min-height:540px;max-height:940px;margin-block:20px}
 .sm-stage{grid-area:stage;position:relative;min-height:0;overflow:hidden;border-radius:28px;isolation:isolate;background:radial-gradient(60% 46% at 50% 44%,rgba(255,255,255,.95) 0,rgba(255,255,255,0) 100%),radial-gradient(120% 70% at 50% 112%,#93A6FF 0,#C6D0FF 46%,#EDF0FF 100%);box-shadow:var(--e1)}
 .sm-stage[data-buddy="rio"]{background:radial-gradient(60% 46% at 50% 44%,rgba(255,255,255,.95) 0,rgba(255,255,255,0) 100%),radial-gradient(120% 70% at 50% 112%,#FFD93B 0,#FFE98F 40%,#FFF7D9 100%)}
 .buddy-stage{position:absolute;inset:0;touch-action:pan-y;user-select:none;-webkit-user-select:none}
@@ -285,6 +308,20 @@ __BF_SHOW__{display:block}
 .sm-replay{width:44px;height:44px;flex:none;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;cursor:pointer;transition:transform .25s var(--spring),background .15s}
 .sm-replay:hover{background:rgba(255,255,255,.28)}
 .sm-replay:active{transform:scale(.9) rotate(-40deg)}
+.sm-ctl{display:flex;gap:6px}.sm-stop:active{transform:scale(.9)}
+.sm-sub{animation:smSubIn .28s var(--spring)}@keyframes smSubIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* estimated timing: words fill in gently instead of claiming word-exact highlighting */
+.sm-sub.approx #smLine .w.on{background:none;color:#fff;box-shadow:inset 0 -3px 0 rgba(255,217,59,.55)}
+.smx.no-subs #smLine{display:none}.smx.no-subs .sm-sub-b{grid-template-columns:1fr auto}
+.sm-h3b{margin-top:var(--s3)}
+.sm-again{margin-left:var(--s2)}
+/* the mic button shows what the conversation is doing */
+.smx[data-voice="speaking"] #speakMic{box-shadow:0 0 0 4px rgba(45,75,255,.22)}
+.smx[data-voice="processing"] #speakMic{opacity:.7}
+.smx[data-voice="error"] #speakMic{filter:grayscale(1);opacity:.55}
+#speakMic.listening{box-shadow:0 0 0 0 rgba(255,90,90,.5);animation:micPulse 1.3s ease-out infinite}
+@keyframes micPulse{0%{box-shadow:0 0 0 0 rgba(255,90,90,.5)}100%{box-shadow:0 0 0 14px rgba(255,90,90,0)}}
+@media (prefers-reduced-motion: reduce){.sm-sub{animation:none}#speakMic.listening{animation:none}}
 .sm-card{background:var(--surface);border-radius:20px;padding:var(--s3) var(--s3) var(--s3) var(--s4);box-shadow:var(--e2);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s3);align-items:center;border-left:6px solid var(--note)}
 .sm-card.note{border-left-color:var(--cobalt)}
 .sm-card-b{display:grid;gap:4px;font-size:1rem;line-height:1.35}
@@ -325,11 +362,12 @@ __BF_SHOW__{display:block}
 .sm-more{display:none}
 .sm-scrim{display:none}
 
-.sm-bar{grid-area:bar;display:flex;align-items:center;gap:var(--s2);padding:var(--s3);background:var(--surface);border-radius:24px;box-shadow:var(--e1)}
+.sm-bar{grid-area:bar;display:flex;align-items:flex-end;gap:var(--s3);padding:var(--s3) var(--s4);background:var(--surface);border-radius:24px;box-shadow:var(--e1)}
 .sm-bar #speakMic{flex:none;width:60px;height:60px;min-height:60px}
 .sm-field{position:relative;flex:1;min-width:0;display:flex;gap:var(--s2)}
-.sm-field .field{min-height:52px;font-size:1.05rem}
-.sm-field #speakSend{flex:none;min-height:52px}
+.sm-field .field{min-height:56px;font-size:1.1rem;line-height:1.4}
+textarea.field{display:block;resize:none;overflow-y:auto;max-height:calc(1.4em * 3 + 28px);padding:14px 16px;font-family:inherit;field-sizing:content}
+.sm-field #speakSend{flex:none;min-height:56px;min-width:96px}
 .sm-field #speakSend .ic{display:none}
 .sm-help{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:48px;min-width:96px;padding:0 14px;border:2px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:700 .92rem/1 var(--f-body);cursor:pointer;white-space:nowrap;transition:transform .25s var(--spring),border-color .15s}
 .sm-help:hover{border-color:var(--ink-2)}
@@ -345,10 +383,12 @@ __BF_SHOW__{display:block}
   .sm-stage{border-radius:0;box-shadow:none}
   .sm-pill{padding:0 12px;font-size:.875rem}
   .sm-menu-t b{max-width:34vw;white-space:nowrap}
-  .sm-bar{height:76px;padding:4px 8px 8px;gap:6px;border-radius:0;box-shadow:none;border-top:1px solid var(--line)}
+  .sm-bar{display:grid;grid-template-columns:1fr 64px 1fr;grid-template-areas:"field field field" ". mic help";align-items:center;row-gap:6px;column-gap:8px;height:auto;padding:8px 10px 8px;border-radius:0;box-shadow:none;border-top:1px solid var(--line)}
+  .sm-bar #speakMic{grid-area:mic}.sm-bar .sm-field{grid-area:field}.sm-bar .sm-help{grid-area:help;justify-self:end}
+  .smx.kb .sm-bar{grid-template-areas:"field field field"}.smx.kb .sm-bar .sm-help{display:none}
   .sm-bar #speakMic{width:64px;height:64px;min-height:64px}
-  .sm-field .field{min-height:54px;font-size:1rem;padding:8px 52px 8px 12px;border-radius:16px}
-  .sm-field #speakSend{position:absolute;right:5px;top:5px;width:44px;height:44px;min-height:44px;padding:0;border-radius:12px;box-shadow:none;transition:opacity .15s,transform .25s var(--spring)}
+  .sm-field .field{min-height:54px;font-size:1rem;line-height:1.35;padding:15px 52px 15px 12px;border-radius:16px;max-height:calc(1.35em * 3 + 30px)}
+  .sm-field #speakSend{position:absolute;right:5px;bottom:5px;width:44px;height:44px;min-height:44px;min-width:44px;padding:0;border-radius:12px;box-shadow:none;transition:opacity .15s,transform .25s var(--spring)}
   .sm-field #speakSend:active{transform:scale(.92)}
   .sm-field #speakSend .ic{display:block}
   .sm-send-t{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}

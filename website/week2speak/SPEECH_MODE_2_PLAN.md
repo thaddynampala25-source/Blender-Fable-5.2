@@ -62,11 +62,34 @@ The AI tutor path stays as it is for viewers that offer it.
 
 | Item | Status |
 |---|---|
-| Audit, checkpoint | done |
-| Girl web copy (decimated, scarf beige, hair lighter) | in progress |
-| Both Buddies active + picker | planned |
-| Skeletons (region weights) | planned |
-| Idle / blink / mouth cards / states | planned |
-| Mic states, subtitle, replay/stop, pace, subtitles toggle | planned |
-| Difficulty, branching script, session summary | planned |
-| Measurements and tests | planned |
+| Audit, checkpoint | done (commit "phase A") |
+| Kairo v2 web model (same look; 70 k triangles; skeleton; face landmarks) | done: `buddy-models/kairo-v2.glb` (v1 `template.glb` kept) |
+| May v1 web model (scarf beige, hair dark brown, brown eyes, softer almond lid, brown brows, rosier lips) | done: `buddy-models/may-v1.glb`, edits in `buddy-gen/may_edit.py` |
+| Skeletons: Hips, Spine, Head, region weights | done (`buddy-gen/build_buddy.py`) |
+| Both Buddies active + picker (picture, name, personality, selected) | done |
+| Idle life per personality (breathing, posture, look-arounds, blinks) | done |
+| Blink (eyelid cards) | done |
+| Lip-sync (mouth card), driven by real audio start and word events | done; **approximate**, see below |
+| States: idle, listening (calmer, small nods), thinking (head angle, half lids; only when a reply is awaited), speaking, positive, confused | done (thinking only fires on the AI path: scripted replies are instant) |
+| Mic states (ready, listening pulse, speaking ring, processing, error) + recovery messages + Try again | done |
+| Stop button while speaking; replay | done |
+| Speaking pace Normal / Slow; Show subtitles toggle | done |
+| Honest highlighting: softer style while word timing is estimated | done |
+| Difficulty levels | next |
+| Branching / varied scripted dialogue | next |
+| Translation of the last tutor line (authored Spanish for scripted lines) | next |
+| Session summary (corrections, vocabulary, phrases to practise) | next |
+| Per-Buddy voice selection beyond gender preference | next |
+
+## 5. Known limits (say these out loud, do not hide them)
+
+- **Lip-sync is approximate.** Browser speech gives no phonemes and no audio samples. Mouth
+  shapes come from the letters of each word; their timing comes from word-boundary events
+  where the voice provides them (Chrome desktop local voices, Safari) and from an estimate where
+  it does not (many Google network voices, much of Android). The subtitle shows which.
+- **Eyes cannot look around.** They are painted; gaze is carried by the head.
+- **No eyebrow or smile geometry.** Brows are painted; smiles and laughs are drawn on the mouth
+  card. Kairo's painted grin is his resting face; May's pout is modelled and stays at rest.
+- **No arm gestures.** Arms, hair and clothes are one fused mesh; arm bones would tear it.
+- **Only tested in a headless browser here.** Microphone hardware and real voices could not be
+  exercised in the cloud test machine; frame rates measured here come from a software renderer.
