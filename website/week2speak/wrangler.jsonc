@@ -13,7 +13,7 @@
     "run_worker_first": ["/api/*", "/paid/*"]
   },
   "d1_databases": [
-    {"binding": "DB", "database_name": "week2speak", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "./migrations"}
+    {"binding": "DB", "database_name": "week2speak", "database_id": "0ed2ac80-682e-4ab1-8989-5ac8eba893dd", "migrations_dir": "./migrations"}
   ],
   "vars": {
     "PLACES_TOTAL": "5",
