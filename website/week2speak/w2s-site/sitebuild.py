@@ -5,8 +5,10 @@ import seo_content as C
 from body_parts import FOOTER
 import privacy_content as PC
 import buddy_block as BB
+import i18n as I
+import features as F
 SRC = '../w2s-show/showcase.html'
-OUT = 'dist'
+OUT = os.environ.get('W2S_OUT', 'dist')
 SITE = os.environ.get('SITE_URL', 'https://week2speak.pages.dev').rstrip('/')
 VER = time.strftime('%Y%m%d%H%M')
 s = open(SRC, encoding='utf-8').read()
@@ -37,6 +39,7 @@ NULLJS = open('nulljs.txt').read()
 # ---------- app.js: path routing, cross-page go links, browser mic, sign-up form ----------
 a = app_js
 a = rep(a, OLDSEL, NULLJS)
+a = rep(a, 'function markActivity(key) {', "function markActivity(key) {\n  document.dispatchEvent(new CustomEvent('w2s:activity', {detail: {key}}));")
 a = rep(a, "burstFrom($('.prompt', gameBody) || $('.tray', gameBody))", "burstFrom(gameBody.querySelector('.prompt') || gameBody.querySelector('.tray') || gameBody.querySelector('.pool') || gameBody)")
 a = rep(a, "/* ---------- router ---------- */", "/* ---------- router ---------- */\nconst PATHS = " + json.dumps(PATHS) + ";\nconst pathOf = v => PATHS[v] || '/';")
 a = rep(a, "  const name = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';", "  const name = document.body.dataset.page || 'home';")
@@ -135,22 +138,26 @@ PAGES = {
  'about':    ('How Week2Speak Teaches English', 'Week2Speak gets Spanish speakers saying English sentences from day one: speaking first, task-based lessons, spaced review and feedback on Spanish-speaker errors.'),
 }
 CFG = json.load(open('config.json')) if os.path.exists('config.json') else {}
-ALL = dict(PATHS, mistakes='/common-mistakes/', about='/about/', privacy='/privacy/')
+PAGES.update({k: v['en'] for k, v in F.TITLES.items()})
+NOINDEX = {'tutor', 'account', 'thanks'}
+EXTRA_SCRIPTS = '<script src="/assets/account.js?v=' + VER + '" defer></script>\n'
+ALL = dict(PATHS, mistakes='/common-mistakes/', about='/about/', privacy='/privacy/', terms='/terms/', account='/account/', thanks='/thanks/')
 CRUMB = {'speak': 'Speech Mode', 'games': 'Games', 'shadow': 'Shadowing', 'sprint': '7-Day Sprint', 'course': 'Course', 'join': 'Join', 'mistakes': 'Common mistakes', 'about': 'About', 'privacy': 'Privacy'}
 ORG = {"@type": "EducationalOrganization", "@id": SITE + "/#org", "name": "Week2Speak", "url": SITE + "/", "logo": SITE + "/apple-touch-icon.png",
        "description": "English speaking practice and tutoring for Spanish speakers.", "email": "hello@week2speak.com", "founder": {"@type": "Person", "name": "Mei Gabriela Parrablanco"}}
-def ld(name):
+def ld(name, lang='es'):
+    L = I.SLUG[lang]; ALL_ = {k: L.get(k, v) for k, v in ALL.items()}
     g = [ORG]
     if name == 'home':
-        g.append({"@type": "WebSite", "@id": SITE + "/#site", "url": SITE + "/", "name": "Week2Speak", "inLanguage": "en", "publisher": {"@id": SITE + "/#org"}})
+        g.append({"@type": "WebSite", "@id": SITE + "/#site", "url": SITE + L["home"], "name": "Week2Speak", "inLanguage": lang, "publisher": {"@id": SITE + "/#org"}})
         g.append({"@type": "VideoObject", "name": "Week2Speak practice app walkthrough", "description": "A 53-second screen recording of the Week2Speak practice rooms: a first sentence, Word Order, Speech Mode with a Spanish-speaker fix, and shadowing.",
                   "thumbnailUrl": SITE + "/media/poster.jpg", "contentUrl": SITE + "/media/demo.mp4", "uploadDate": C.UPDATED_ISO, "duration": "PT53S", "inLanguage": "en"})
     if name in CRUMB:
-        g.append({"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": SITE + "/"}, {"@type": "ListItem", "position": 2, "name": CRUMB[name], "item": SITE + ALL[name]}]})
+        g.append({"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": SITE + L["home"]}, {"@type": "ListItem", "position": 2, "name": CRUMB[name], "item": SITE + ALL_[name]}]})
     if name in ('course', 'sprint'):
         g.append({"@type": "Course", "name": "7-Day English Speaking Sprint" if name == 'sprint' else "Week2Speak 7-lesson English speaking course",
-                  "description": PAGES[name][1], "provider": {"@id": SITE + "/#org"}, "inLanguage": "en", "educationalLevel": "Beginner",
-                  "teaches": "Spoken English for Spanish speakers", "url": SITE + ALL[name], "isAccessibleForFree": True,
+                  "description": PAGES[name][1], "provider": {"@id": SITE + "/#org"}, "inLanguage": lang, "educationalLevel": "Beginner",
+                  "teaches": "Spoken English for Spanish speakers", "url": SITE + ALL_[name],
                   "hasCourseInstance": {"@type": "CourseInstance", "courseMode": "Online", "courseWorkload": "PT20M"}})
     if name in C.FAQ:
         g.append(C.faq_ld(C.FAQ[name]))
@@ -158,17 +165,20 @@ def ld(name):
         g.extend(C.mistakes_ld(SITE))
     return json.dumps({"@context": "https://schema.org", "@graph": g}, ensure_ascii=False)
 FONTS = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Figtree:wght@400..800&display=swap'
-def head(name, title, desc, path, noindex=False):
+def head(name, title, desc, path, noindex=False, lang='es', alt=None):
     url = SITE + path; e = lambda x: x.replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;')
+    alts = ''.join(f'<link rel="alternate" hreflang="{l}" href="{SITE}{p}">\n' for l, p in (alt or {}).items())
+    if alt: alts += f'<link rel="alternate" hreflang="x-default" href="{SITE}{alt["es"]}">\n'
+    loc, loc2 = ('es_ES', 'en_GB') if lang == 'es' else ('en_GB', 'es_ES')
     return f'''<!doctype html>
-<html lang="en">
+<html lang="{lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
 <link rel="canonical" href="{url}">
-<meta name="robots" content="{'noindex,follow' if noindex else 'index,follow,max-image-preview:large'}">
+{alts}<meta name="robots" content="{'noindex,follow' if noindex else 'index,follow,max-image-preview:large'}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Week2Speak">
 <meta property="og:title" content="{e(title)}">
@@ -178,7 +188,8 @@ def head(name, title, desc, path, noindex=False):
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Week2Speak: Speak English in 7 days">
-<meta property="og:locale" content="en_GB">
+<meta property="og:locale" content="{loc}">
+<meta property="og:locale:alternate" content="{loc2}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0B103A">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -188,7 +199,7 @@ def head(name, title, desc, path, noindex=False):
 <link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/site.css?v={VER}" onerror="if(!this.dataset.retry){{this.dataset.retry=1;this.href=this.href.split('?')[0]+'?retry='+Date.now()}}">
-<script type="application/ld+json">{ld(name)}</script>
+<script type="application/ld+json">{ld(name, lang)}</script>
 </head>
 '''
 SCRIPTS = f'''<script src="/assets/config.js?v={VER}" onerror="if(!this.dataset.retry){{this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}}"></script>
@@ -214,7 +225,7 @@ for href, short in SHORT.items():
 for href in ('/', '/tutor/'):
     NAV = rep(NAV, f'<a href="{href}">', f'<a class="tab-x" href="{href}">')
 NAV = rep(NAV, '<a href="/join/">Join</a>', '')
-NAV = rep(NAV, '<span class="stat num" id="stXp" title="Experience points"></span></div>', '<span class="stat num" id="stXp" title="Experience points"></span></div>\n  <a class="nav-join" href="/join/">Join free</a>')
+NAV = rep(NAV, '<span class="stat num" id="stXp" title="Experience points"></span></div>', '<span class="stat num" id="stXp" title="Experience points"></span></div>\n  <a class="nav-lang" href="__LANGSW_HREF__" hreflang="__LANGSW_CODE__" lang="__LANGSW_CODE__" aria-label="__LANGSW_LABEL__">__LANGSW_TEXT__</a>\n  <a class="nav-join" href="/join/">Join free</a>')
 # Speech Mode is rebuilt around the Buddy: the old two-column panel is replaced by one screen (stage, subtitle, reply bar, bottom sheet).
 _i = ROOMS['speak'].index('<div class="cols">'); _j = ROOMS['speak'].rindex('</div></section>')
 ROOMS['speak'] = ROOMS['speak'][:_i] + BB.APP + ROOMS['speak'][_j:]
@@ -230,7 +241,10 @@ H1 = {'speak': [('<h1 data-split>Speech Mode</h1>', '<h1 data-split>Speech Mode:
       'course': [('<h1 data-split>The course</h1>', '<h1 data-split>Free English speaking course</h1>')]}
 
 
-def page_body(name):
+def page_body(name, lang='es'):
+    if name in F.PAGES:
+        main = F.page(name, lang, CFG, ROOMS.get(name))
+        return NAV + '\n<main id="main">\n' + main + '</main>\n' + FOOTER
     if name == 'home':
         main = HOME
     elif name == 'mistakes':
@@ -258,6 +272,7 @@ shutil.copy(NMOD + '/gsap/dist/gsap.min.js', OUT + '/assets/vendor/gsap-3.12.5.m
 shutil.copy(NMOD + '/gsap/dist/ScrollTrigger.min.js', OUT + '/assets/vendor/ScrollTrigger-3.12.5.min.js')
 shutil.copy('vendor3/package/build/three.module.min.js', OUT + '/assets/vendor/three-0.170.0.module.min.js')
 shutil.copy('buddies.js', OUT + '/assets/buddies.js')
+open(OUT + '/assets/account.js', 'w', encoding='utf-8').write(open('account.js', encoding='utf-8').read().replace('__SLUGS__', json.dumps(I.SLUG)))
 # three.js GLTF loader, self-hosted. Its bare "three" import is pointed at the self-hosted build.
 T3 = '/assets/vendor/three-0.170.0.module.min.js'
 _bgu = open('vendor3/package/examples/jsm/utils/BufferGeometryUtils.js').read().replace("from 'three'", f"from '{T3}'")
@@ -279,19 +294,39 @@ for _n in [b_['file'] for b_ in _BR.ACTIVE]:
     else:
         print(f'WARNING: no picture for {_n} (run buddy-gen/poster.cjs once the site is served)')
 FONTFACE = '@font-face{font-family:"Bricolage Grotesque";src:url("/assets/fonts/bricolage.woff2") format("woff2");font-weight:200 800;font-stretch:75% 100%;font-display:swap}\n@font-face{font-family:"Figtree";src:url("/assets/fonts/figtree.woff2") format("woff2");font-weight:300 900;font-display:swap}\n'
-open(OUT + '/assets/site.css', 'w', encoding='utf-8').write(FONTFACE + css + open('extra.css').read() + BB.CSS)
-open(OUT + '/assets/app.js', 'w', encoding='utf-8').write(a)
-open(OUT + '/assets/home.js', 'w', encoding='utf-8').write(h)
+open(OUT + '/assets/site.css', 'w', encoding='utf-8').write(FONTFACE + css + open('extra.css').read() + BB.CSS + open('features.css').read())
+LANG_ASSETS = ('app', 'home', 'buddies')
+_bud = open(OUT + '/assets/buddies.js', encoding='utf-8').read(); os.remove(OUT + '/assets/buddies.js')
+for lang in I.LANGS:
+    for _nm, _code in (('app', a), ('home', h), ('buddies', _bud)):
+        _c = I.js(_code, lang)
+        if _nm == 'app': _c = _c.replace('"home": "/"', '"home": "' + I.SLUG[lang]['home'] + '"')
+        open(OUT + f'/assets/{_nm}.{lang}.js', 'w', encoding='utf-8').write(_c)
 cfg = {'formKey': CFG.get('formKey', ''), 'whatsapp': CFG.get('whatsapp', '')}
 open(OUT + '/assets/config.js', 'w').write('/* Week2Speak site settings. formKey: Web3Forms access key for the Join form. whatsapp: number with country code, digits only. */\nwindow.W2S_CONFIG = ' + json.dumps(cfg) + ';\n' + _BR.js())
-for name, (title, desc) in PAGES.items():
-    path = ALL[name]; d = OUT + path; os.makedirs(d, exist_ok=True)
-    html = head(name, title, desc, path, noindex=(name == 'tutor')) + f'<body data-page="{name}">\n' + page_body(name) + ('<script>window.W2S_HOLD = 1;</script>\n' if name == 'speak' else '') + SCRIPTS + (BB.script(VER) if name == 'speak' else '') + '</body>\n</html>\n'
-    open(d + 'index.html', 'w', encoding='utf-8').write(html)
+LSW = {'es': ('EN', 'en', 'Read this page in English'), 'en': ('ES', 'es', 'Leer esta página en español')}
+def page_html(name, lang):
+    title, desc = F.TITLES[name][lang] if name in F.TITLES else PAGES[name]
+    path = I.SLUG[lang][name]; alt = {l: I.SLUG[l][name] for l in I.LANGS}
+    other = 'en' if lang == 'es' else 'es'
+    html = head(name, title, desc, path, noindex=(name in NOINDEX), lang=lang, alt=None if name in NOINDEX else alt) + f'<body data-page="{name}" data-lang="{lang}">\n' + page_body(name, lang) + ('<script>window.W2S_HOLD = 1;</script>\n' if name == 'speak' else '') + SCRIPTS + (BB.script(VER) if name == 'speak' else '') + EXTRA_SCRIPTS + '</body>\n</html>\n'
+    html = I.html(html, lang)
+    tx, code, label = LSW[lang]
+    html = html.replace('__LANGSW_HREF__', I.SLUG[other][name]).replace('__LANGSW_CODE__', code).replace('__LANGSW_LABEL__', label).replace('__LANGSW_TEXT__', tx)
+    for asset in LANG_ASSETS: html = html.replace(f'/assets/{asset}.js', f'/assets/{asset}.{lang}.js')
+    return html
+for lang in I.LANGS:
+    for name in PAGES:
+        d = OUT + I.SLUG[lang][name]; os.makedirs(d, exist_ok=True)
+        open(d + 'index.html', 'w', encoding='utf-8').write(page_html(name, lang))
+os.makedirs(OUT + '/paid', exist_ok=True)
+for lang in I.LANGS: open(OUT + f'/paid/sprint.{lang}.json', 'w', encoding='utf-8').write(F.paid_json(lang))
 for f in ('demo.mp4', 'poster.jpg'): shutil.copy('../w2s-show/' + f, OUT + '/media/' + f)
 lastmod = time.strftime('%Y-%m-%d')
-open(OUT + '/sitemap.xml', 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + ''.join(
-    f'  <url><loc>{SITE}{ALL[n]}</loc><lastmod>{lastmod}</lastmod><priority>{"1.0" if n == "home" else "0.8"}</priority></url>\n' for n in PAGES if n != 'tutor') + '</urlset>\n')
+open(OUT + '/sitemap.xml', 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n' + ''.join(
+    f'  <url><loc>{SITE}{I.SLUG[l][n]}</loc>' + ''.join(f'<xhtml:link rel="alternate" hreflang="{l2}" href="{SITE}{I.SLUG[l2][n]}"/>' for l2 in I.LANGS) + f'<lastmod>{lastmod}</lastmod><priority>{"1.0" if n == "home" else "0.8"}</priority></url>\n'
+    for n in PAGES if n not in NOINDEX for l in I.LANGS) + '</urlset>\n')
+open(OUT + '/_redirects', 'w').write(''.join(f'{src} {I.SLUG["es"][k]} 301\n' for k, src in I.SRC_PATHS.items() if src != I.SLUG['es'][k]))
 open(OUT + '/llms.txt', 'w').write(C.LLMS.replace('{site}', SITE))
 open(OUT + '/robots.txt', 'w').write(f'User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n')
 open(OUT + '/_headers', 'w').write('''/*
@@ -311,8 +346,11 @@ open(OUT + '/_headers', 'w').write('''/*
 open(OUT + '/site.webmanifest', 'w').write(json.dumps({"name": "Week2Speak", "short_name": "Week2Speak", "start_url": "/", "display": "standalone", "background_color": "#F3F5FF", "theme_color": "#0B103A",
     "icons": [{"src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png"}, {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"}]}))
 open(OUT + '/favicon.svg', 'w').write('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#2D4BFF"/><rect x="14" y="12" width="36" height="40" rx="9" fill="#FFD93B" transform="rotate(-6 32 32)"/><text x="32" y="45" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="34" fill="#101642">2</text></svg>')
-nf = head('home', 'Page not found | Week2Speak', 'This page does not exist.', '/404', noindex=True).replace(f'<link rel="canonical" href="{SITE}/404">\n', '')
-open(OUT + '/404.html', 'w', encoding='utf-8').write(nf + '<body class="light" style="background:var(--paper)"><main class="wrap" style="padding-block:80px;display:grid;gap:20px;justify-items:start"><a class="logo" href="/" style="color:var(--ink)">Week<span class="two">2</span>Speak</a><h1 style="font-size:clamp(2.6rem,8vw,4.5rem)">That page does not exist.</h1><p style="color:var(--ink-2);font-size:1.15rem">The link may be old, or the address has a typo.</p><div class="row"><a class="key hl big" href="/">Go to the home page</a><a class="key big" href="/7-day-sprint/">See the 7-Day Sprint</a></div></main></body>\n</html>\n')
+for lang in I.LANGS:
+    nf = head('home', 'Page not found | Week2Speak', 'This page does not exist.', '/404', noindex=True, lang=lang).replace(f'<link rel="canonical" href="{SITE}/404">\n', '')
+    page = nf + '<body class="light" style="background:var(--paper)"><main class="wrap" style="padding-block:80px;display:grid;gap:20px;justify-items:start"><a class="logo" href="/" style="color:var(--ink)">Week<span class="two">2</span>Speak</a><h1 style="font-size:clamp(2.6rem,8vw,4.5rem)">That page does not exist.</h1><p style="color:var(--ink-2);font-size:1.15rem">The link may be old, or the address has a typo.</p><div class="row"><a class="key hl big" href="/">Go to the home page</a><a class="key big" href="/7-day-sprint/">See the 7-Day Sprint</a></div></main></body>\n</html>\n'
+    d = OUT + ('/' if lang == 'es' else '/en/'); os.makedirs(d, exist_ok=True)
+    open(d + '404.html', 'w', encoding='utf-8').write(I.html(page, lang))
 # ---- fingerprint: every file under /assets that can change gets its content hash in its name, and every
 # reference to it is rewritten. /assets/* is served "immutable" for a year, so a file that kept its name
 # would stay stale in browsers and in CDNs (many ignore ?v= query strings): new pages with old CSS and JS.
@@ -331,7 +369,7 @@ for _b in _BR.ACTIVE:
         if os.path.exists(_A + f'/buddies/{_n}{_e}'): os.rename(_A + f'/buddies/{_n}{_e}', _A + f'/buddies/{_s}{_e}'); _urls[f'/assets/buddies/{_n}{_e}'] = f'/assets/buddies/{_s}{_e}'
     _cfg = _cfg.replace(f'"file": "{_n}"', f'"file": "{_s}"')   # buddies.js builds the model URL from this
 open(_A + '/config.js', 'w', encoding='utf-8').write(_cfg)
-for _f in ('config.js', 'buddies.js', 'site.css', 'app.js', 'home.js'):
+for _f in ['config.js', 'site.css', 'account.js'] + [f'{n}.{l}.js' for n in LANG_ASSETS for l in I.LANGS]:
     _st, _ext = _f.rsplit('.', 1); _new = f'{_st}.{_hash(_A + "/" + _f)}.{_ext}'; os.rename(_A + '/' + _f, _A + '/' + _new); _urls[f'/assets/{_f}'] = f'/assets/{_new}'
 _pat = _re.compile('|'.join(_re.escape(u) for u in sorted(_urls, key=len, reverse=True)) + r'') if _urls else None
 for _root, _dirs, _fs in os.walk(OUT):
@@ -341,4 +379,5 @@ for _root, _dirs, _fs in os.walk(OUT):
         _t2 = _re.sub(r'(/assets/[\w./-]+?\.(?:css|js))\?v=[\w]+', r'\1', _t)   # the hashed name replaces the query string
         _t2 = _pat.sub(lambda m: _urls[m.group(0)], _t2) if _pat else _t2
         if _t2 != _t: open(_pth, 'w', encoding='utf-8').write(_t2)
-print('SITE', SITE, '| pages', len(PAGES), '| version', VER, '| fingerprinted', len(_urls))
+print('SITE', SITE, '| pages', len(PAGES), 'x', len(I.LANGS), 'languages | version', VER, '| fingerprinted', len(_urls))
+if os.environ.get('I18N_REPORT'): print('catalogue entries never used:', len(I.unused())); [print('  ', k[:90]) for k in I.unused()]

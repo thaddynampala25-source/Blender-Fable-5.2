@@ -263,6 +263,13 @@ async function stripeWebhook(req, env) {
 export default {
   async fetch(req, env) {
     const url = new URL(req.url), path = url.pathname, m = req.method;
+    // the paid Sprint's content: only for paid students and the tutor
+    if (path.startsWith('/paid/')) {
+      const u = await currentUser(req, env); if (!u) return err('signed_out', 401);
+      if (u.role !== 'tutor' && !isPaid(await enrollmentOf(env, u.id))) return err('not_paid', 403);
+      const r = await env.ASSETS.fetch(req), h = new Headers(r.headers); h.set('cache-control', 'private, no-store');
+      return new Response(r.body, {status: r.status, headers: h});
+    }
     if (!path.startsWith('/api/')) return env.ASSETS.fetch(req);
     try {
       if (path === '/api/stripe/webhook' && m === 'POST') return await stripeWebhook(req, env);
