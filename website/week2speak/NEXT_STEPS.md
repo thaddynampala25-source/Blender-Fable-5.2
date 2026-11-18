@@ -13,13 +13,11 @@ that branch first.
 
 ## Still to do, in order
 
-1. **Stripe (test mode first).** The Stripe connector must be connected at claude.ai/customize/connectors
-   with Mei's Stripe account (she is the seller). Then Claude:
-   - creates the product "Sprint de 7 días" and one price + Payment Link per tier
-     (`gbp` £49, `eur` €49, `eur_es` €39, `usd` US$49, `usd_latam` US$29, `mxn` MX$690, `cop` COP 119.900;
-     tiers and countries are in `worker/index.js`, `TIERS` / `COUNTRY_TIER`);
-   - sets each link's after-payment redirect to `https://week2speak.com/gracias/`;
-   - writes the links into `wrangler.jsonc` → `vars.PAY_LINKS` as `{"gbp": "https://buy.stripe.com/...", ...}`.
+1. **Stripe, test mode: DONE (18 Nov).** In the "Week2Speak sandbox" Stripe account: product "Sprint de 7 días"
+   (`prod_VeQv3MkoPWy0mA`), one price per tier (lookup keys `sprint_gbp`, `sprint_eur`, `sprint_eur_es`, `sprint_usd`,
+   `sprint_usd_latam`, `sprint_mxn`, `sprint_cop`) and a Payment Link each, redirecting to `/gracias/`, with
+   Managed Payments off. The test links are in `wrangler.jsonc` → `PAY_LINKS`. **Before launch:** recreate them in
+   live mode (same settings) and swap the links in.
 2. **Stripe webhook.** Endpoint `https://week2speak.com/api/stripe/webhook`, events `checkout.session.completed`
    and `checkout.session.async_payment_succeeded`. Its signing secret (`whsec_...`) is pasted **by the owner**
    into Cloudflare → Workers & Pages → week2speak → Settings → Variables and Secrets → Secret
@@ -28,7 +26,7 @@ that branch first.
 4. **Mei's details** (the owner gives them in chat; not secret) → `wrangler.jsonc` vars:
    `TUTOR_EMAILS` (her login email), `TUTOR_WHATSAPP` (digits with country code), `CAL_LINK`
    (Cal.com event "Llamada del Sprint", 25 min, Google Meet).
-5. **Database + deploy.** Needs an environment with `CLOUDFLARE_API_TOKEN` (template "Edit Cloudflare Workers"
+5. **Database: DONE** (created by another session; id in `wrangler.jsonc`). Check the tables exist, then **deploy.** Needs an environment with `CLOUDFLARE_API_TOKEN` (template "Edit Cloudflare Workers"
    plus Account → D1 → Edit), `CLOUDFLARE_ACCOUNT_ID=6e99521ecb4f385dc5fcdcc5ec403742`,
    `WRANGLER_SEND_METRICS=false`, as environment variables (not network secrets). Then:
    `npx wrangler@4 d1 create week2speak` → put the id in `wrangler.jsonc` →
