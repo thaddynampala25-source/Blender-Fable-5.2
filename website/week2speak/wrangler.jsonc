@@ -1,11 +1,26 @@
-// Cloudflare deployment: the existing "week2speak" Worker serves the built site as static assets.
+// Cloudflare deployment: the "week2speak" Worker serves the built site (static assets) and the /api/* account backend.
 // Deploy with `npm run deploy` (needs CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in the environment).
+// One-time setup (see ACCOUNTS_SETUP.md): create the D1 database, put its id below, apply the migrations, set the secrets.
 {
   "name": "week2speak",
+  "main": "./worker/index.js",
   "compatibility_date": "2026-11-17",
   "assets": {
     "directory": "./w2s-site/dist",
+    "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
-    "not_found_handling": "404-page"
-  }
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {"binding": "DB", "database_name": "week2speak", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "./migrations"}
+  ],
+  "vars": {
+    "PLACES_TOTAL": "5",
+    "TUTOR_EMAILS": "",
+    "TUTOR_WHATSAPP": "",
+    "CAL_LINK": "",
+    "PAY_LINKS": "{}"
+  },
+  "observability": {"enabled": true}
 }
