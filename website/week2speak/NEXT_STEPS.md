@@ -26,11 +26,10 @@ that branch first.
 4. **Mei's details** (the owner gives them in chat; not secret) → `wrangler.jsonc` vars:
    `TUTOR_EMAILS` (her login email), `TUTOR_WHATSAPP` (digits with country code), `CAL_LINK`
    (Cal.com event "Llamada del Sprint", 25 min, Google Meet).
-5. **Database: DONE** (created by another session; id in `wrangler.jsonc`). Check the tables exist, then **deploy.** Needs an environment with `CLOUDFLARE_API_TOKEN` (template "Edit Cloudflare Workers"
+5. **Database: DONE** (created by another session, tables applied, checked 18 Nov). Remaining: **deploy.** Needs an environment with `CLOUDFLARE_API_TOKEN` (template "Edit Cloudflare Workers"
    plus Account → D1 → Edit), `CLOUDFLARE_ACCOUNT_ID=6e99521ecb4f385dc5fcdcc5ec403742`,
    `WRANGLER_SEND_METRICS=false`, as environment variables (not network secrets). Then:
-   `npx wrangler@4 d1 create week2speak` → put the id in `wrangler.jsonc` →
-   `npx wrangler@4 d1 migrations apply week2speak --remote` → `npm run deploy`.
+   `npx wrangler@4 d1 migrations apply week2speak --remote` (skips if already applied) → `npm run deploy`.
 6. **Check together.** Mei signs up on `/cuenta/` with her email → sees "Mi panel". Test purchase with a Stripe
    test card on `/unete/` → `/gracias/` turns green, Sprint unlocks. Then switch Stripe to live links.
 
