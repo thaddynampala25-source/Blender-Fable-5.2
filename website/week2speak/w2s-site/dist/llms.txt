@@ -1,20 +1,22 @@
 # Week2Speak
 
-> Week2Speak is an English speaking programme for adults whose first language is Spanish. It combines a 7-Day Sprint with a Spanish-speaking tutor, short daily lessons, and browser-based speaking practice: Speech Mode conversations, sentence and sound games, and shadowing in American, British and Australian accents.
+> Week2Speak es un programa para hablar inglés, pensado para adultos cuya lengua materna es el español. Combina un Sprint de 7 días con Mei, una tutora que habla español, lecciones cortas y práctica oral en el navegador: conversaciones en Modo Habla, juegos de frases y de sonidos, y shadowing con acento estadounidense, británico y australiano.
 
-Status: in testing (November 2026). The site is in English; a Spanish version is planned. The founding cohort is free and has ten places. Paid plan prices are set before the public launch.
+Estado: fase de prueba (noviembre de 2026). El sitio está en español (en /) y en inglés (en /en/). Hay una sola oferta de pago, el Sprint de 7 días, con cinco plazas en esta fase. En el Reino Unido cuesta 49 £; en otros países el precio se muestra en la moneda local antes de pagar. Con una cuenta gratis se usan Modo Habla, los juegos, el shadowing y las lecciones 1 y 2 del curso, con un límite diario.
 
-## Main pages
-- [7-Day Sprint](https://week2speak.com/7-day-sprint/): two 45-minute tutor calls (Day 1 and Day 7), about 20 minutes of practice a day in six short tasks, daily voice-note feedback.
-- [Course](https://week2speak.com/course/): seven lessons of 12 minutes or less, each with five key phrases and one mistake that comes from Spanish.
-- [Speech Mode](https://week2speak.com/speech-mode/): scripted speaking practice in six scenes with a three-step hint system.
-- [Games](https://week2speak.com/games/): Word Order, Fill the Gap, Flash Translate, Sound Lab and Quick Answers, with a pack for each day of the Sprint.
-- [Shadowing](https://week2speak.com/shadowing/): a clip for each day plus your own script, three speeds, American, British and Australian accents.
-- [16 English mistakes Spanish speakers make](https://week2speak.com/common-mistakes/): each with the wrong sentence, the right one and the Spanish pattern behind it.
-- [How we teach](https://week2speak.com/about/): the method and the research behind it.
-- [Join](https://week2speak.com/join/): request a founding place.
+## Páginas principales
+- [Sprint de 7 días](https://week2speak.com/sprint-7-dias/): dos llamadas 1 a 1 de 25 minutos con Mei, WhatsApp directo con ella toda la semana, unos 20 minutos de práctica al día y una charla de 2 minutos al final.
+- [Únete](https://week2speak.com/unete/): precio en tu moneda, plazas libres y fecha de inicio.
+- [Curso](https://week2speak.com/curso/): siete lecciones de 12 minutos o menos, cada una con cinco frases clave y un error que viene del español.
+- [Modo Habla](https://week2speak.com/modo-habla/): práctica oral guiada en seis escenas, con pistas en tres pasos.
+- [Juegos](https://week2speak.com/juegos/): Ordena la frase, Completa la frase, Traducción flash, Laboratorio de sonidos y Respuestas rápidas, con un paquete para cada día del Sprint.
+- [Shadowing](https://week2speak.com/shadowing/): un clip para cada día y tu propio guion, tres velocidades y tres acentos.
+- [16 errores de inglés que cometen los hispanohablantes](https://week2speak.com/errores-comunes/): cada uno con la frase incorrecta, la correcta y el patrón del español que lo causa.
+- [Cómo enseñamos](https://week2speak.com/como-ensenamos/): el método y la investigación en la que se basa.
+- [English version](https://week2speak.com/en/): the same site in English.
 
-## Facts
-- Audience: Spanish-speaking adults who understand some English but freeze when speaking.
-- Claim scope: the Sprint does not promise fluency in 7 days. It aims for a 2-minute unscripted talk on Day 7.
-- Live AI tutor: not available to the public yet; Speech Mode on the site is scripted.
+## Datos
+- Público: adultos hispanohablantes que empiezan desde cero, o que entienden algo de inglés pero se bloquean al hablar.
+- Alcance: el Sprint no promete fluidez en 7 días. Busca que al final puedas dar una charla de 2 minutos sin guion.
+- Reembolso: completo solo antes de la primera llamada.
+- Tutor de IA en vivo: no disponible; Modo Habla es práctica guiada con guion.

@@ -25,10 +25,10 @@ const STR = {
   softTitle: '¿Guardamos tu progreso?', softBody: 'Crea tu cuenta gratis en 20 segundos y no pierdas lo que has practicado.', later: 'Ahora no',
   freeTitle: 'Has llegado al límite de hoy', freeBody: 'Mañana tienes más práctica gratis. O empieza tu Sprint: práctica sin límites y Mei a tu lado toda la semana.', seeSprint: 'Ver el Sprint', tomorrow: 'Vale, hasta mañana',
   lessonTitle: 'Esta lección es del Sprint', lessonAnon: 'Crea tu cuenta gratis para abrir la lección 2. El curso completo viene con el Sprint.', lessonFree: 'Las lecciones 3 a 7 vienen con el Sprint, junto con las llamadas y el WhatsApp de Mei.',
-  kinds: {speak: 'respuestas en Modo Habla', game: 'partidas', shadow: 'repeticiones de shadowing', lesson: 'lecciones'},
-  left: 'Te quedan {n} {what} hoy.', unlimited: 'Sin límites', close: 'Cerrar',
-  places: n => n === 1 ? '¡Queda 1 plaza!' : n > 1 ? `Quedan ${n} plazas` : 'Plazas agotadas',
-  of: (n, t) => `${n} de ${t} plazas libres en esta fase de prueba`,
+  kinds: {speak: 'Respuestas en Modo Habla', game: 'Partidas de juegos', shadow: 'Repeticiones de shadowing', lesson: 'Lecciones del curso'},
+  myDesk: 'Mi panel', consent: 'Marca la casilla para confirmar cuándo empieza tu Sprint.', left: (n, what) => `${what}: ${n === 1 ? 'te queda 1' : 'te quedan ' + n} hoy`, unlimited: 'Sin límites', close: 'Cerrar',
+  places: n => n === 1 ? 'Queda 1 plaza' : n > 1 ? `Quedan ${n} plazas` : 'Plazas agotadas',
+  of: (n, t) => `de ${t} en esta fase de prueba`,
   perDay: 'Son {p} al día durante tu semana.', value: 'Valor',
   monday: 'Lunes', reserving: 'Reservando tu plaza…', toPay: 'Te llevamos al pago seguro…', reservedNoPay: 'Plaza reservada. Mei te escribirá en menos de 24 horas para completar el pago.',
   alreadyPaid: 'Ya tienes tu plaza. ¡Vamos al Sprint!', signFirst: 'Primero crea tu cuenta gratis (o entra) y seguimos con la reserva.',
@@ -49,7 +49,7 @@ const STR = {
   tyHi: '¡{name}, ', confirming: 'Confirmando tu pago… (suele tardar unos segundos)', confirmed: 'Pago confirmado. Tu plaza es tuya.', notYet: 'Tu plaza está reservada. Si acabas de pagar, la confirmación llegará en un momento; si no, Mei te escribirá.',
   countLeft: (d, h) => d > 0 ? `Faltan ${d} ${d === 1 ? 'día' : 'días'} y ${h} ${h === 1 ? 'hora' : 'horas'}` : h > 0 ? `Faltan ${h} ${h === 1 ? 'hora' : 'horas'}` : '¡Es hoy!',
   icsTitle: 'Sprint Week2Speak: día {n}', icsDesc: '20 minutos de inglés en voz alta. Abre tu Sprint: {url}',
-  desk: {paid: 'En el Sprint', pending: 'Pendiente', free: 'Gratis', places: 'Plazas', active: 'Activos hoy', markPaid: 'Marcar pagado', cancel: 'Cancelar plaza', note: 'Mensaje para el alumno', send: 'Enviar', reset: 'Enlace de contraseña', copied: 'Enlace copiado', lastSeen: 'Última vez', never: 'nunca', from: 'Desde', start: 'Inicio', practice: 'Práctica', day: 'Día', none: 'Nadie por aquí todavía.', wait: 'Lista de espera', source: 'Vino de'},
+  desk: {paid: 'En el Sprint', pending: 'Pendiente', free: 'Gratis', places: 'Plazas libres', active: 'Activos hoy', markPaid: 'Marcar pagado', cancel: 'Cancelar plaza', note: 'Mensaje para el alumno', send: 'Enviar', reset: 'Enlace de contraseña', copied: 'Enlace copiado', lastSeen: 'Última vez', never: 'nunca', from: 'Desde', start: 'Inicio', practice: 'Práctica', day: 'Día', none: 'Nadie por aquí todavía.', wait: 'Lista de espera', source: 'Vino de'},
   ago: s => s < 3600 ? `hace ${Math.max(1, Math.round(s / 60))} min` : s < 86400 ? `hace ${Math.round(s / 3600)} h` : `hace ${Math.round(s / 86400)} d`,
  },
  en: {
@@ -65,10 +65,10 @@ const STR = {
   softTitle: 'Shall we save your progress?', softBody: "Create your free account in 20 seconds and don't lose what you've practised.", later: 'Not now',
   freeTitle: "You've reached today's limit", freeBody: 'Tomorrow you get more free practice. Or start your Sprint: unlimited practice and Mei by your side all week.', seeSprint: 'See the Sprint', tomorrow: 'OK, see you tomorrow',
   lessonTitle: 'This lesson is part of the Sprint', lessonAnon: 'Create your free account to open lesson 2. The full course comes with the Sprint.', lessonFree: "Lessons 3 to 7 come with the Sprint, along with the calls and Mei's WhatsApp.",
-  kinds: {speak: 'Speech Mode replies', game: 'game rounds', shadow: 'shadowing plays', lesson: 'lessons'},
-  left: 'You have {n} {what} left today.', unlimited: 'No limits', close: 'Close',
-  places: n => n === 1 ? 'Only 1 place left!' : n > 1 ? `${n} places left` : 'Sold out',
-  of: (n, t) => `${n} of ${t} places free in this testing phase`,
+  kinds: {speak: 'Speech Mode replies', game: 'Game rounds', shadow: 'Shadowing plays', lesson: 'Course lessons'},
+  myDesk: 'Tutor desk', consent: 'Tick the box to confirm when your Sprint starts.', left: (n, what) => `${what}: ${n} left today`, unlimited: 'No limits', close: 'Close',
+  places: n => n === 1 ? 'Only 1 place left' : n > 1 ? `${n} places left` : 'Sold out',
+  of: (n, t) => `of ${t} in this testing phase`,
   perDay: "That's {p} a day during your week.", value: 'Value',
   monday: 'Monday', reserving: 'Booking your place…', toPay: 'Taking you to secure payment…', reservedNoPay: 'Place booked. Mei will message you within 24 hours to complete the payment.',
   alreadyPaid: 'You already have your place. On to the Sprint!', signFirst: 'First create your free account (or sign in) and we carry on with the booking.',
@@ -89,7 +89,7 @@ const STR = {
   tyHi: '{name}, ', confirming: 'Confirming your payment… (it usually takes a few seconds)', confirmed: 'Payment confirmed. The place is yours.', notYet: "Your place is booked. If you've just paid, confirmation will arrive in a moment; if not, Mei will message you.",
   countLeft: (d, h) => d > 0 ? `${d} ${d === 1 ? 'day' : 'days'} and ${h} ${h === 1 ? 'hour' : 'hours'} to go` : h > 0 ? `${h} ${h === 1 ? 'hour' : 'hours'} to go` : "It's today!",
   icsTitle: 'Week2Speak Sprint: day {n}', icsDesc: '20 minutes of English out loud. Open your Sprint: {url}',
-  desk: {paid: 'In the Sprint', pending: 'Pending', free: 'Free', places: 'Places', active: 'Active today', markPaid: 'Mark paid', cancel: 'Cancel place', note: 'Message for the student', send: 'Send', reset: 'Password link', copied: 'Link copied', lastSeen: 'Last seen', never: 'never', from: 'From', start: 'Start', practice: 'Practice', day: 'Day', none: 'Nobody here yet.', wait: 'Waitlist', source: 'Came from'},
+  desk: {paid: 'In the Sprint', pending: 'Pending', free: 'Free', places: 'Places free', active: 'Active today', markPaid: 'Mark paid', cancel: 'Cancel place', note: 'Message for the student', send: 'Send', reset: 'Password link', copied: 'Link copied', lastSeen: 'Last seen', never: 'never', from: 'From', start: 'Start', practice: 'Practice', day: 'Day', none: 'Nobody here yet.', wait: 'Waitlist', source: 'Came from'},
   ago: s => s < 3600 ? `${Math.max(1, Math.round(s / 60))} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} d ago`,
  },
 }[LANG];
@@ -131,7 +131,7 @@ function money(minor, cur, sym) {
   const n = v.toLocaleString(LANG === 'es' ? 'es-ES' : 'en-GB', {minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2});
   return cur === 'COP' ? 'COP ' + n : (sym || '') + n;
 }
-function dateLong(iso) { const d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString(LANG === 'es' ? 'es-ES' : 'en-GB', {weekday: 'long', day: 'numeric', month: 'long'}); }
+function dateLong(iso, cap) { const d = new Date(iso + 'T12:00:00'); const s = d.toLocaleDateString(LANG === 'es' ? 'es-ES' : 'en-GB', {weekday: 'long', day: 'numeric', month: 'long'}); return cap ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 function sprintDayNow(start) {   // 0 before the start, 1..7 during, 8 after
   if (!start) return 0; const s = new Date(start + 'T00:00:00'), n = new Date(); n.setHours(0, 0, 0, 0);
   const d = Math.floor((n - s) / 86400000) + 1; return d < 1 ? 0 : Math.min(8, d);
@@ -200,7 +200,7 @@ const MAYPIC = (window.W2S_BUDDIES || []).filter(b => b.id === 'may').map(b => '
 function paintNav() {
   const join = $('.nav-join'); if (!join) return;
   const u = user(), pl = plan();
-  join.textContent = pl === 'tutor' ? STR.desk : pl === 'paid' ? STR.mySprint : STR.startSprint;
+  join.textContent = pl === 'tutor' ? STR.myDesk : pl === 'paid' ? STR.mySprint : STR.startSprint;
   join.href = pl === 'tutor' ? P.tutor : pl === 'paid' ? P.sprint : P.join;
   let me = $('.nav-me');
   if (!me) { me = document.createElement('a'); me.className = 'nav-me'; join.parentNode.insertBefore(me, join); }
@@ -225,7 +225,7 @@ async function count(kind) {
 }
 function blocked(kind) {
   if (unlimited() || leftOf(kind) > 0) return false;
-  if (!user()) askAccount(STR.anonTitle, STR.anonBody, () => toast(fill(STR.left, {n: leftOf(kind), what: STR.kinds[kind]})));
+  if (!user()) askAccount(STR.anonTitle, STR.anonBody, () => toast(STR.left(leftOf(kind), STR.kinds[kind])));
   else modal(`<div class="fx-gate"><img src="${MAYPIC}" alt="" width="72" height="72"><h2 id="fxMT">${STR.freeTitle}</h2><p>${STR.freeBody}</p><div class="fx-gate-a"><a class="key hl big" href="${P.join}">${STR.seeSprint}</a><button class="key" type="button" data-close>${STR.tomorrow}</button></div></div>`);
   return true;
 }
@@ -257,7 +257,7 @@ function nudge() {
 function usageBadge() {
   const kind = {speak: 'speak', games: 'game', shadow: 'shadow'}[PAGE]; if (!kind || unlimited()) return;
   let b = $('#fxUse'); if (!b) { b = document.createElement('a'); b.id = 'fxUse'; b.className = 'fx-use'; b.href = user() ? P.join : P.account; document.body.appendChild(b); }
-  const n = leftOf(kind); b.innerHTML = `${ic('spark')}<span>${fill(STR.left, {n, what: STR.kinds[kind]})}</span>`; b.classList.toggle('low', n <= 1);
+  const n = leftOf(kind); b.innerHTML = `${ic('spark')}<span>${STR.left(n, STR.kinds[kind])}</span>`; b.classList.toggle('low', n <= 1);
 }
 setInterval(() => { if (ME) usageBadge(); }, 2500);
 
@@ -282,16 +282,16 @@ async function pageJoin() {
   const pr = ME.price, pl = ME.places;
   if (pr) {
     $('#pAmount').textContent = money(pr.amount, pr.currency, pr.symbol);
-    $('#pAnchor').textContent = money(pr.anchor, pr.currency, pr.symbol); $('#pAnchor').setAttribute('aria-label', STR.value + ' ' + money(pr.anchor, pr.currency, pr.symbol));
+    if (pr.anchor) { $('#pAnchor').textContent = money(pr.anchor, pr.currency, pr.symbol); $('#pAnchor').setAttribute('aria-label', STR.value + ' ' + money(pr.anchor, pr.currency, pr.symbol)); } else $('#pAnchor').hidden = true;
     $('#pDay').innerHTML = fill(STR.perDay, {p: '<b>' + money(Math.round(pr.amount / 7), pr.currency, pr.symbol) + '</b>'});
   }
   if (pl) {
-    $('#placesText').textContent = STR.places(pl.left) + ' · ' + STR.of(pl.left, pl.total);
+    $('#placesText').textContent = pl.left > 0 ? STR.places(pl.left) + ' ' + STR.of(pl.left, pl.total) : STR.places(0);
     $('#placesLine').classList.toggle('few', pl.left <= 2);
     if (pl.left <= 0 && !(ME.enrollment && ME.enrollment.status === 'pending')) { $('#buyBtn').hidden = true; $('#startPick').hidden = true; $('#waitForm').hidden = false; }
   }
   const st = await api('/api/starts'); const starts = (st.data && st.data.starts) || [];
-  $('#starts').innerHTML = starts.map((d, i) => `<label class="fx-day-pick"><input type="radio" name="start" value="${d}"${i === 0 ? ' checked' : ''}><span><b>${dateLong(d)}</b></span></label>`).join('');
+  $('#starts').innerHTML = starts.map((d, i) => `<label class="fx-day-pick"><input type="radio" name="start" value="${d}"${i === 0 ? ' checked' : ''}><span><b>${dateLong(d, true)}</b></span></label>`).join('');
   if (plan() === 'paid') { $('#buyBtn').textContent = STR.goSprint; }
   $('#buyBtn').addEventListener('click', buy);
   $('#waitForm').addEventListener('submit', async e => { e.preventDefault(); const r = await api('/api/waitlist', {email: e.target.email.value, name: user() ? user().name : ''}); $('#buyMsg').textContent = r.ok ? STR.waitOk : (STR.err[r.data.error] || STR.err.server); });
@@ -301,6 +301,7 @@ async function buy() {
   if (plan() === 'paid') { location.href = P.sprint; return; }
   if (!user()) { msg.textContent = STR.signFirst; askAccount(STR.signup, STR.signFirst, buy); return; }
   const start = ($('input[name=start]:checked') || {}).value;
+  const ok = $('#buyConsent'); if (ok && !ok.checked) { msg.textContent = STR.consent; ok.closest('label').classList.add('need'); ok.focus(); return; }
   msg.textContent = STR.reserving; $('#buyBtn').disabled = true;
   const r = await api('/api/enroll', {start}); $('#buyBtn').disabled = false;
   if (!r.ok) { msg.textContent = STR.err[r.data.error] || STR.err.server; if (r.data.error === 'full') { await refresh(); pageJoin(); } return; }
@@ -315,7 +316,7 @@ async function pageThanks() {
   const u = user(), e = ME.enrollment;
   if (u) $('#tyName').textContent = fill(STR.tyHi, {name: u.name.split(' ')[0]});
   const start = (e && e.start) || X.get('start', null);
-  if (start) { $('#tyStart').textContent = dateLong(start); tick(start); setInterval(() => tick(start), 60000); } else $('#tyCount').hidden = true;
+  if (start) { $('#tyStart').textContent = dateLong(start, true); tick(start); setInterval(() => tick(start), 60000); } else $('#tyCount').hidden = true;
   confetti(); if (!reduced) chime();
   const status = $('#tyStatus');
   if (plan() !== 'paid' && u) {
@@ -493,7 +494,7 @@ function drawLib() {
 function route() {
   usageBadge();
   if (PAGE === 'join') pageJoin();
-  else if (PAGE === 'thanks') pageThanks();
+  else if (PAGE === 'thanks') { if (LANG === 'es' && user() && user().lang === 'en') { location.replace(SLUGS.en.thanks + location.search); return; } pageThanks(); }
   else if (PAGE === 'account') pageAccount();
   else if (PAGE === 'tutor') pageTutor();
   else if (PAGE === 'sprint') pageSprint();

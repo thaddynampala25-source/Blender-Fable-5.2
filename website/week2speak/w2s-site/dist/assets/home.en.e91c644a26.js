@@ -104,7 +104,7 @@ if (live && ST) {
 /* ---------- films ---------- */
 const fPlay = $('#fPlay'), fSeek = $('#fSeek'), fTime = $('#fTime'), fCap = $('#fCap'), vid = $('#recVid');
 const CAPS = {
-  speak: 'Speech Mode. The learner answers out loud, a mistake from Spanish gets a one-line fix, and Help me offers a starter when they freeze.',
+  speak: 'Speech Mode. You answer out loud, a mistake that comes from Spanish gets a one-line fix, and if you freeze, Help me gives you a way to start.',
   order: 'Word Order. Build the sentence from tiles, then say it. Each correct sentence raises the combo.',
   shadow: 'Shadowing. Listen, speak along, then go solo. The score counts how many words came through clearly.',
   rec: 'A screen recording of the test app, captured in a browser. No sound.'
@@ -297,7 +297,7 @@ $('#acRow').addEventListener('click', e => {
   W.setAccent(a.id); $$('.ac').forEach(x => x.setAttribute('aria-pressed', x === b));
   if (live) gs.fromTo(b, {scale: .9}, {scale: 1, duration: .5, ease: 'elastic.out(1.2,.4)'});
   W.Voice.speak(AC_TEXT, {rate: .95, onWord: i => acWords.forEach((w, k) => w.classList.toggle('on', k === i))});
-  $('#acNote').textContent = W.Voice.note() + ' Every room now uses this accent.';
+  $('#acNote').textContent = W.Voice.note() + ' The whole site now uses this accent.';
 });
 if (live && ST) gs.from('.ac', {y: 50, scale: .8, duration: .6, ease: 'back.out(1.8)', stagger: .07, scrollTrigger: {trigger: '#acRow', start: 'top 88%'}});
 if (live && ST) {

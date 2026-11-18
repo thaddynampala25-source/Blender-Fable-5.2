@@ -63,23 +63,7 @@ assert 'href="#$' not in a, re.findall(r'href="#\$[^"]*"', a)
 a = rep(a, "  const uid = cap.db ? await myId() : null;\n  if (!cap.db || !uid) { jMsg('Requests are saved only for signed-in testers. Open this page signed in to Claude, or message the team directly.'); return; }",
 """  const uid = cap.db ? await myId() : null;
   if (!cap.db || !uid) { await sendJoin(name); return; }""")
-a = rep(a, "async function loadSignups() {", r"""async function sendJoin(name) {
-  const C = window.W2S_CONFIG || {}, btn = $('#jSend');
-  const data = {name: name.slice(0, 60), contact: contactOf(), accent: (ACCENTS.find(x => x.id === $('#jAccent').value) || {}).name || '', level: $('#jLevel').value, goal: $('#jGoal').value};
-  const text = 'Hi! I would like a founding place in Week2Speak.\nName: ' + data.name + '\nContact: ' + (data.contact || '-') + '\nAccent: ' + data.accent + '\nLevel: ' + data.level + '\nWhy English: ' + data.goal;
-  if (C.formKey) {
-    btn.disabled = true; jMsg('Sending.');
-    try {
-      const r = await fetch('https://api.web3forms.com/submit', {method: 'POST', headers: {'Content-Type': 'application/json', Accept: 'application/json'}, body: JSON.stringify(Object.assign({access_key: C.formKey, subject: 'Founding place request: ' + data.name, from_name: 'Week2Speak website', botcheck: ''}, data))});
-      const j = await r.json().catch(() => ({}));
-      if (r.ok && j.success !== false) { jMsg('Request sent. The tutor will message you about a founding place.', true); burstFrom(btn); $('#joinForm').reset(); }
-      else jMsg('The request did not go through. Check your connection and send it again.');
-    } catch (err) { jMsg('The request did not go through. Check your connection and send it again.'); }
-    btn.disabled = false; return;
-  }
-  if (C.whatsapp) { const url = 'https://wa.me/' + String(C.whatsapp).replace(/\D/g, '') + '?text=' + encodeURIComponent(text); jMsg('Opening WhatsApp with your request.', true); window.open(url, '_blank', 'noopener'); return; }
-  jMsg('Sign-ups open soon. Check back in a few days.');
-}
+a = rep(a, "async function loadSignups() {", r"""async function sendJoin(name) { location.href = pathOf('join'); }
 async function loadSignups() {""")
 # browser speech recognition when Claude dictation is not available
 a = rep(a, "window.W2S = {", r"""/* ---------- microphone for every visitor: the browser's own speech recognition ---------- */
@@ -134,7 +118,7 @@ PAGES = {
  'tutor':    ('Tutor view | Week2Speak', 'What a tutor sees before a lesson: sentences spoken and the errors that keep coming back.'),
  'join':     ('Join the Week2Speak Founding Cohort', 'Ask for one of ten free founding places: the full 7-Day Sprint with a Spanish-speaking tutor, daily voice-note feedback, and your Day 1 and Day 7 on record.'),
  'mistakes': ('16 English Mistakes Spanish Speakers Make | Week2Speak', 'The 16 most common English mistakes Spanish speakers make, like "I have 25 years" and "I am agree", with the correct sentence and why each one happens.'),
- 'privacy':  ('Privacy Notice | Week2Speak', 'How Week2Speak collects, uses and protects your personal data: practice progress, join requests, lesson recordings, the providers we use and your rights.'),
+ 'privacy':  ('Privacy Notice | Week2Speak', 'How Week2Speak collects, uses and protects your personal data: your account, practice progress, the Sprint, the providers we use and your rights.'),
  'about':    ('How Week2Speak Teaches English', 'Week2Speak gets Spanish speakers saying English sentences from day one: speaking first, task-based lessons, spaced review and feedback on Spanish-speaker errors.'),
 }
 CFG = json.load(open('config.json')) if os.path.exists('config.json') else {}
@@ -162,7 +146,7 @@ def ld(name, lang='es'):
     if name in C.FAQ:
         g.append(C.faq_ld(C.FAQ[name]))
     if name == 'mistakes':
-        g.extend(C.mistakes_ld(SITE))
+        g.extend(C.mistakes_ld(SITE, I.SLUG[lang]['mistakes'], lang))
     return json.dumps({"@context": "https://schema.org", "@graph": g}, ensure_ascii=False)
 FONTS = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Figtree:wght@400..800&display=swap'
 def head(name, title, desc, path, noindex=False, lang='es', alt=None):
@@ -225,7 +209,7 @@ for href, short in SHORT.items():
 for href in ('/', '/tutor/'):
     NAV = rep(NAV, f'<a href="{href}">', f'<a class="tab-x" href="{href}">')
 NAV = rep(NAV, '<a href="/join/">Join</a>', '')
-NAV = rep(NAV, '<span class="stat num" id="stXp" title="Experience points"></span></div>', '<span class="stat num" id="stXp" title="Experience points"></span></div>\n  <a class="nav-lang" href="__LANGSW_HREF__" hreflang="__LANGSW_CODE__" lang="__LANGSW_CODE__" aria-label="__LANGSW_LABEL__">__LANGSW_TEXT__</a>\n  <a class="nav-join" href="/join/">Join free</a>')
+NAV = rep(NAV, '<span class="stat num" id="stXp" title="Experience points"></span></div>', '<span class="stat num" id="stXp" title="Experience points"></span></div>\n  <div class="nav-act"><a class="nav-lang" href="__LANGSW_HREF__" hreflang="__LANGSW_CODE__" lang="__LANGSW_CODE__" aria-label="__LANGSW_LABEL__">__LANGSW_TEXT__</a>\n  <a class="nav-join" href="/join/">Join free</a></div>')
 # Speech Mode is rebuilt around the Buddy: the old two-column panel is replaced by one screen (stage, subtitle, reply bar, bottom sheet).
 _i = ROOMS['speak'].index('<div class="cols">'); _j = ROOMS['speak'].rindex('</div></section>')
 ROOMS['speak'] = ROOMS['speak'][:_i] + BB.APP + ROOMS['speak'][_j:]
@@ -252,7 +236,7 @@ def page_body(name, lang='es'):
     elif name == 'about':
         main = C.about_page()
     elif name == 'privacy':
-        main = PC.privacy_page(CFG.get('owner', ''))
+        main = PC.privacy_page(CFG.get('owner', ''), lang)
     else:
         main = ROOMS[name]
         for old, new in H1.get(name, []): main = rep(main, old, new)
@@ -263,7 +247,10 @@ def page_body(name, lang='es'):
     return nav + '\n<main id="main">\n' + main + '</main>\n' + FOOTER
 
 
-if os.path.exists(OUT): shutil.rmtree(OUT)
+if os.path.exists(OUT):   # empty it but keep the folder, so a running `wrangler dev` keeps serving it
+    for _e in os.listdir(OUT):
+        _p = os.path.join(OUT, _e); shutil.rmtree(_p) if os.path.isdir(_p) and not os.path.islink(_p) else os.remove(_p)
+else: os.makedirs(OUT)
 shutil.copytree('email', OUT + '/email'); os.makedirs(OUT + '/assets/fonts'); os.makedirs(OUT + '/assets/vendor'); os.makedirs(OUT + '/media')
 NMOD = '../w2s-show/node_modules'
 shutil.copy(NMOD + '/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-standard-normal.woff2', OUT + '/assets/fonts/bricolage.woff2')
@@ -327,7 +314,8 @@ open(OUT + '/sitemap.xml', 'w').write('<?xml version="1.0" encoding="UTF-8"?>\n<
     f'  <url><loc>{SITE}{I.SLUG[l][n]}</loc>' + ''.join(f'<xhtml:link rel="alternate" hreflang="{l2}" href="{SITE}{I.SLUG[l2][n]}"/>' for l2 in I.LANGS) + f'<lastmod>{lastmod}</lastmod><priority>{"1.0" if n == "home" else "0.8"}</priority></url>\n'
     for n in PAGES if n not in NOINDEX for l in I.LANGS) + '</urlset>\n')
 open(OUT + '/_redirects', 'w').write(''.join(f'{src} {I.SLUG["es"][k]} 301\n' for k, src in I.SRC_PATHS.items() if src != I.SLUG['es'][k]))
-open(OUT + '/llms.txt', 'w').write(C.LLMS.replace('{site}', SITE))
+open(OUT + '/llms.txt', 'w').write(I.t(C.LLMS, 'es').replace('{site}', SITE))
+open(OUT + '/en/llms.txt', 'w').write(I.t(C.LLMS, 'en').replace('{site}', SITE))
 open(OUT + '/robots.txt', 'w').write(f'User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n')
 open(OUT + '/_headers', 'w').write('''/*
   X-Content-Type-Options: nosniff

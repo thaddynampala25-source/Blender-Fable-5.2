@@ -1,10 +1,12 @@
 // Language Buddies and the Speech Mode screen: behaviour test. Reads the active roster (assets/config.js), so it covers one Buddy or several.
 // Usage: node buddy_test.cjs <outdir>   (dist/ must be served on http://localhost:8765)
+// The checks read the English labels, so they run on the English Speech Mode page (W2S_BUDDY_PATH to change).
 const {chromium} = require('playwright'); const fs = require('fs');
 const OUT = process.argv[2] || 'buddy-test-out'; fs.mkdirSync(OUT, {recursive: true});
 const GL = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'], NOGL = ['--disable-gpu', '--disable-webgl', '--disable-webgl2', '--disable-3d-apis'];
-const U = 'http://localhost:8765/speech-mode/', R = {}, errors = [], hosts = new Set();
-const watch = p => { p.on('pageerror', e => errors.push('PAGEERROR ' + e.message)); p.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); }); p.on('request', r => { try { const h = new URL(r.url()).host; if (h !== 'localhost:8765' && !r.url().startsWith('data:') && !r.url().startsWith('blob:')) hosts.add(h); } catch (e) {} }); };
+const BASE = (process.env.W2S_BASE || 'http://localhost:8765').replace(/\/$/, ''), U = BASE + (process.env.W2S_BUDDY_PATH || '/en/speech-mode/'), R = {}, errors = [], hosts = new Set();
+// the sign-up nudge (60 s into a visit without an account) is covered elsewhere; keep it out of the Buddy checks
+const watch = p => { p.addInitScript(() => { try { sessionStorage.setItem('w2s.nudged', '1'); } catch (e) {} }); p.on('pageerror', e => errors.push('PAGEERROR ' + e.message)); p.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); }); p.on('request', r => { try { const h = new URL(r.url()).host; if (h !== new URL(BASE).host && !r.url().startsWith('data:') && !r.url().startsWith('blob:')) hosts.add(h); } catch (e) {} }); };
 const ready = async p => { await p.waitForFunction(() => window.W2SBuddies && window.W2SBuddies.ready, null, {timeout: 90000}); await p.evaluate(() => { window.W2SBuddies.lockQuality = true; window.W2SBuddies.setQuality(3); }); await p.waitForTimeout(1900); };   // the software renderer used here is slow, so behaviour is tested at the lowest quality step; the fps check below covers the stepping
 const D = (p, f) => p.evaluate(f);
 const tap = async (p, part) => { const a = await p.evaluate(x => window.W2SBuddies.anchor(x), part); await p.mouse.click(a.x, a.y); return a.part; };

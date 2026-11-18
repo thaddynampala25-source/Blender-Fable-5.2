@@ -104,10 +104,10 @@ if (live && ST) {
 /* ---------- films ---------- */
 const fPlay = $('#fPlay'), fSeek = $('#fSeek'), fTime = $('#fTime'), fCap = $('#fCap'), vid = $('#recVid');
 const CAPS = {
-  speak: 'Speech Mode. The learner answers out loud, a mistake from Spanish gets a one-line fix, and Help me offers a starter when they freeze.',
-  order: 'Word Order. Build the sentence from tiles, then say it. Each correct sentence raises the combo.',
-  shadow: 'Shadowing. Listen, speak along, then go solo. The score counts how many words came through clearly.',
-  rec: 'A screen recording of the test app, captured in a browser. No sound.'
+  speak: 'Modo Habla. Respondes en voz alta, un error que viene del español recibe una corrección de una línea y, si te bloqueas, Ayúdame te da cómo empezar.',
+  order: 'Ordena la frase. Arma la frase con fichas y luego dila. Cada frase correcta sube el combo.',
+  shadow: 'Shadowing. Escucha, habla a la vez y luego hazlo solo. La puntuación cuenta cuántas palabras se oyeron con claridad.',
+  rec: 'Grabación de pantalla de la app de prueba, hecha en un navegador. Sin sonido.'
 };
 const F = {active: 'speak', playing: false, inView: false, tls: {}, drag: false, fresh: false};
 const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
@@ -173,12 +173,12 @@ function ctl() {
   if (!tl) return {dur: () => 0, get: () => 0, set() {}, play() {}, pause() {}};
   return {dur: () => tl.duration(), get: () => tl.progress(), set: p => tl.progress(p), play: () => tl.play(), pause: () => tl.pause()};
 }
-function setPlaying(on) { F.playing = on; const c = ctl(); if (on && F.fresh && F.tls[F.active] && F.active !== 'rec') { F.fresh = false; F.tls[F.active].restart(); } else if (on) c.play(); else c.pause(); fPlay.innerHTML = on ? PAUSE : PLAY; fPlay.setAttribute('aria-label', on ? 'Pause film' : 'Play film'); }
+function setPlaying(on) { F.playing = on; const c = ctl(); if (on && F.fresh && F.tls[F.active] && F.active !== 'rec') { F.fresh = false; F.tls[F.active].restart(); } else if (on) c.play(); else c.pause(); fPlay.innerHTML = on ? PAUSE : PLAY; fPlay.setAttribute('aria-label', on ? 'Pausar video' : 'Reproducir video'); }
 function showFilm(id) {
   ctl().pause(); F.active = id;
   $$('.film').forEach(f => { f.hidden = f.dataset.film !== id; });
   $$('#ftabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.film === id));
-  fCap.textContent = CAPS[id]; const tr = {speak: ['/modo-habla/', 'Try Speech Mode'], order: ['/juegos/', 'Play Word Order'], shadow: ['/shadowing/', 'Open the shadowing studio'], rec: ['/sprint-7-dias/', 'Start the 7-Day Sprint']}[id]; $('#fTry').setAttribute('href', tr[0]); $('#fTry').textContent = tr[1];
+  fCap.textContent = CAPS[id]; const tr = {speak: ['/modo-habla/', 'Prueba el Modo Habla'], order: ['/juegos/', 'Juega a Ordena la frase'], shadow: ['/shadowing/', 'Abre el estudio de shadowing'], rec: ['/sprint-7-dias/', 'Empieza el Sprint de 7 días']}[id]; $('#fTry').setAttribute('href', tr[0]); $('#fTry').textContent = tr[1];
   if (gs && BUILD[id]) { if (F.tls[id]) F.tls[id].kill(); F.tls[id] = BUILD[id](); F.tls[id].time(F.tls[id].duration() - .05); F.fresh = true; }
   if (id === 'rec') vid.currentTime = 0;
   $('#fctl').hidden = id !== 'rec' && !gs;
@@ -215,8 +215,8 @@ function catchIt() {
   cOut.innerHTML = html + esc(text.slice(pos));
   const key = hits.map(h => h.r.name).join('|') + (text.trim() ? '' : '#empty');
   if (key === lastKey) return; lastKey = key;
-  if (!text.trim()) cFix.innerHTML = '<div class="fixc"><b>Waiting for a sentence</b><span>Type one above, or tap an example.</span></div>';
-  else if (!hits.length) cFix.innerHTML = '<div class="clean">Nothing caught. That sentence has none of the usual Spanish-speaker mistakes.</div>';
+  if (!text.trim()) cFix.innerHTML = '<div class="fixc"><b>Esperando una frase</b><span>Escribe una arriba o toca un ejemplo.</span></div>';
+  else if (!hits.length) cFix.innerHTML = '<div class="clean">Nada que corregir. Esa frase no tiene ninguno de los errores típicos de quien habla español.</div>';
   else cFix.innerHTML = hits.map(h => `<div class="fixc"><b>${esc(h.r.name)}</b><span>${esc(h.r.tip)}</span><small>${esc(h.r.es)}</small></div>`).join('');
   if (live) gs.from(cFix.children, {y: 14, opacity: 0, scale: .96, duration: .4, ease: 'back.out(1.6)', stagger: .07});
 }
@@ -231,7 +231,7 @@ const shuffle = a => { const r = a.slice(); for (let i = r.length - 1; i > 0; i-
 function gDotsDraw() { gDots.innerHTML = GS.map((_, k) => `<i class="${k < GM.i ? 'd' : k === GM.i ? 'c' : ''}"></i>`).join(''); }
 function gLoad() {
   GM.busy = false; gTray.classList.remove('ok'); gTray.innerHTML = ''; gMsg.textContent = ''; gMsg.className = 'gmsg'; gDotsDraw();
-  if (GM.i >= GS.length) { gPool.innerHTML = '<button type="button" class="key cobalt" id="gAgain">Play again</button>'; gMsg.textContent = 'Four sentences built. Now say each one out loud.'; gMsg.className = 'gmsg ok'; return; }
+  if (GM.i >= GS.length) { gPool.innerHTML = '<button type="button" class="key cobalt" id="gAgain">Jugar otra vez</button>'; gMsg.textContent = '¡Cuatro frases armadas! Ahora di cada una en voz alta.'; gMsg.className = 'gmsg ok'; return; }
   GM.toks = GS[GM.i].replace(/[.,?!]/g, '').split(' ');
   let p; do { p = shuffle(GM.toks.map((_, k) => k)); } while (p.every((v, k) => v === k));
   gPool.innerHTML = p.map(k => `<button type="button" class="tile" data-k="${k}">${esc(GM.toks[k])}</button>`).join('');
@@ -248,11 +248,11 @@ function gClick(e) {
   if (gPool.children.length) return;
   const built = $$('.tile', gTray).map(x => x.textContent).join(' ').toLowerCase();
   if (built === GM.toks.join(' ').toLowerCase()) {
-    GM.busy = true; gTray.classList.add('ok'); gMsg.textContent = GS[GM.i] + ' Say it out loud.'; gMsg.className = 'gmsg ok'; W.burst(gTray); W.Voice.speak(GS[GM.i], {rate: .95}); W.addXP(10); W.logLine('Home: Word Order', GS[GM.i]);
+    GM.busy = true; gTray.classList.add('ok'); gMsg.textContent = GS[GM.i] + ' Dila en voz alta.'; gMsg.className = 'gmsg ok'; W.burst(gTray); W.Voice.speak(GS[GM.i], {rate: .95}); W.addXP(10); W.logLine('Inicio: Ordena la frase', GS[GM.i]);
     if (live) gs.fromTo(gTray.children, {y: 0}, {y: -10, duration: .18, ease: 'power2.out', yoyo: true, repeat: 1, stagger: .04});
     setTimeout(() => { GM.i++; gLoad(); }, 1900);
   } else {
-    gMsg.textContent = 'Not yet. It starts with "' + GM.toks.slice(0, 2).join(' ') + '". Tap a word to take it back.'; gMsg.className = 'gmsg no';
+    gMsg.textContent = 'Todavía no. Empieza por "' + GM.toks.slice(0, 2).join(' ') + '". Toca una palabra para quitarla.'; gMsg.className = 'gmsg no';
     if (live) gs.fromTo(gTray, {x: -8}, {x: 0, duration: .5, ease: 'elastic.out(1.2,.25)'});
   }
 }
@@ -260,13 +260,13 @@ gTray.addEventListener('click', gClick); gPool.addEventListener('click', gClick)
 
 /* ---------- the week, sideways ---------- */
 const DAYS = [
-  ['First sentences', 'Introduce yourself out loud.', ['Shadow a self-introduction', 'Meet someone new', 'Word Order round']],
-  ['Ordering and asking', 'Order a drink and food without help.', ['Fill the Gap round', 'Café order', 'Shadow "Ordering coffee"']],
-  ['Questions', 'Ask what a traveller needs to ask.', ['Flash Translate round', 'Airport check-in', 'Shadow "At the airport"']],
-  ['Your story', 'Keep small talk going for a minute.', ['Word Order, round two', 'Meet someone, no hints', 'Shadow "Small talk"']],
-  ['Work English', 'Answer two interview questions.', ['Fill the Gap, round two', 'Job interview', 'Shadow an interview answer']],
-  ['Thinking in English', 'Finish a scene without Help me.', ['Flash Translate, round two', 'Café order, no hints', 'Solo shadow at natural speed']],
-  ['The 2-minute talk', 'Speak for two minutes, unscripted.', ['Plan three things to say', 'Give your talk', 'Compare with Day 1']]
+  ['Primeras frases', 'Preséntate en voz alta.', ['Shadowing de una presentación', 'Conocer a alguien', 'Una ronda de Ordena la frase']],
+  ['Pedir y preguntar', 'Pide bebida y comida sin ayuda.', ['Una ronda de Completa la frase', 'Pedir en una cafetería', 'Shadowing de «Pedir un café»']],
+  ['Preguntas', 'Pregunta lo que necesita saber un viajero.', ['Una ronda de Traducción flash', 'Check-in en el aeropuerto', 'Shadowing de «En el aeropuerto»']],
+  ['Tu historia', 'Mantén una charla informal durante un minuto.', ['Ordena la frase, segunda ronda', 'Conocer a alguien, sin pistas', 'Shadowing de «Charla informal»']],
+  ['Inglés para el trabajo', 'Responde dos preguntas de entrevista.', ['Completa la frase, segunda ronda', 'Entrevista de trabajo', 'Shadowing de una respuesta de entrevista']],
+  ['Pensar en inglés', 'Termina una escena sin Ayúdame.', ['Traducción flash, segunda ronda', 'Pedir en una cafetería, sin pistas', 'Shadowing en solitario a velocidad natural']],
+  ['La charla de 2 minutos', 'Habla dos minutos, sin guion.', ['Prepara tres cosas que decir', 'Da tu charla', 'Compárala con el Día 1']]
 ];
 $('#wkTrack').innerHTML = DAYS.map((d, i) => `<article class="dcard${i === 6 ? ' last' : ''}"><div class="n num">${i + 1}</div><h3>${esc(d[0])}</h3><p>${esc(d[1])}</p><ul>${d[2].map(t => `<li>${esc(t)}</li>`).join('')}</ul></article>`).join('');
 if (live && ST) {
@@ -284,9 +284,9 @@ if (live && ST) {
 const jack = '<rect width="28" height="20" fill="#012169"/><path d="M0 0l28 20M28 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l28 20M28 0L0 20" stroke="#C8102E" stroke-width="1.6"/><path d="M14 0v20M0 10h28" stroke="#fff" stroke-width="6"/><path d="M14 0v20M0 10h28" stroke="#C8102E" stroke-width="3.4"/>';
 const stripes = Array.from({length: 7}, (_, i) => `<rect y="${(i * 2 * 20 / 13).toFixed(2)}" width="28" height="${(20 / 13).toFixed(2)}" fill="#B22234"/>`).join('');
 const ACC = [
-  {id:'us', name:'American', lang:'en-US', svg:`<rect width="28" height="20" fill="#fff"/>${stripes}<rect width="12" height="10.8" fill="#3C3B6E"/>`},
-  {id:'gb', name:'British', lang:'en-GB', svg:jack},
-  {id:'au', name:'Australian', lang:'en-AU', svg:`<rect width="28" height="20" fill="#012169"/><g transform="scale(.5)">${jack}</g><g fill="#fff"><circle cx="7" cy="15.5" r="1.7"/><circle cx="21" cy="4" r="1.1"/><circle cx="24.5" cy="8.5" r="1.1"/><circle cx="21" cy="16" r="1.1"/><circle cx="17.5" cy="9.5" r="1.1"/></g>`},
+  {id:'us', name:'Americano', lang:'en-US', svg:`<rect width="28" height="20" fill="#fff"/>${stripes}<rect width="12" height="10.8" fill="#3C3B6E"/>`},
+  {id:'gb', name:'Británico', lang:'en-GB', svg:jack},
+  {id:'au', name:'Australiano', lang:'en-AU', svg:`<rect width="28" height="20" fill="#012169"/><g transform="scale(.5)">${jack}</g><g fill="#fff"><circle cx="7" cy="15.5" r="1.7"/><circle cx="21" cy="4" r="1.1"/><circle cx="24.5" cy="8.5" r="1.1"/><circle cx="21" cy="16" r="1.1"/><circle cx="17.5" cy="9.5" r="1.1"/></g>`},
 ];
 const AC_TEXT = 'Could I have a window seat, please?';
 $('#acLine').innerHTML = AC_TEXT.split(' ').map(w => `<span class="w">${esc(w)}</span>`).join(' ');
@@ -297,7 +297,7 @@ $('#acRow').addEventListener('click', e => {
   W.setAccent(a.id); $$('.ac').forEach(x => x.setAttribute('aria-pressed', x === b));
   if (live) gs.fromTo(b, {scale: .9}, {scale: 1, duration: .5, ease: 'elastic.out(1.2,.4)'});
   W.Voice.speak(AC_TEXT, {rate: .95, onWord: i => acWords.forEach((w, k) => w.classList.toggle('on', k === i))});
-  $('#acNote').textContent = W.Voice.note() + ' Every room now uses this accent.';
+  $('#acNote').textContent = W.Voice.note() + ' Ahora todo el sitio usa este acento.';
 });
 if (live && ST) gs.from('.ac', {y: 50, scale: .8, duration: .6, ease: 'back.out(1.8)', stagger: .07, scrollTrigger: {trigger: '#acRow', start: 'top 88%'}});
 if (live && ST) {

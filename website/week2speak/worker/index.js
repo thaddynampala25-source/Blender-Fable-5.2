@@ -34,7 +34,8 @@ const EURO = new Set(['AT', 'BE', 'CY', 'DE', 'EE', 'FI', 'FR', 'GR', 'HR', 'IE'
 function tierFor(country) { return COUNTRY_TIER[country] || (EURO.has(country) ? 'eur' : 'usd'); }
 function price(country, env) {
   const id = tierFor(country), t = TIERS[id]; let links = {}; try { links = JSON.parse(env.PAY_LINKS || '{}'); } catch (e) {}
-  return {tier: id, currency: t.currency, amount: t.amount, anchor: t.anchor, symbol: t.symbol, perDay: Math.round(t.amount / 7), payable: !!links[id]};
+  // the struck-through reference price shows only when SHOW_ANCHOR is "1": UK law requires it to be a genuine price (e.g. the price after the testing phase)
+  return {tier: id, currency: t.currency, amount: t.amount, anchor: env.SHOW_ANCHOR === '1' ? t.anchor : null, symbol: t.symbol, perDay: Math.round(t.amount / 7), payable: !!links[id]};
 }
 
 /* ---------- helpers ---------- */
@@ -250,7 +251,7 @@ async function stripeWebhook(req, env) {
   const expected = hex(await crypto.subtle.sign('HMAC', key, enc.encode(parts.t + '.' + raw)));
   if (!same(expected, parts.v1)) return err('signature', 400);
   const ev = JSON.parse(raw);
-  if (ev.type === 'checkout.session.completed' && ev.data && ev.data.object) {
+  if ((ev.type === 'checkout.session.completed' || ev.type === 'checkout.session.async_payment_succeeded') && ev.data && ev.data.object) {
     const s = ev.data.object, ref = s.client_reference_id;
     if (ref && s.payment_status === 'paid')
       await env.DB.prepare("UPDATE enrollments SET status = 'paid', paid_at = ?1, stripe_session = ?2, amount = COALESCE(?3, amount), currency = COALESCE(UPPER(?4), currency) WHERE id = ?5")

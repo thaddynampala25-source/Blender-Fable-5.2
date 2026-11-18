@@ -28,7 +28,7 @@ const QUAL = [{pr: 2, sh: true}, {pr: 1.5, sh: true}, {pr: 1.5, sh: false}, {pr:
 // phones start lighter: no shadow pass (the soft contact shadow stays), textures at 1024 px, the second Buddy not on the GPU until it is shown
 const LIGHT = window.matchMedia('(max-width: 899px), (pointer: coarse)').matches;
 function boot() {
-  try { if (!document.createElement('canvas').getContext('webgl2')) throw new Error('no WebGL 2'); canvas = document.createElement('canvas'); canvas.className = 'buddy-canvas'; canvas.tabIndex = 0; canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', 'Your Language Buddy. Drag to spin, tap to poke.');
+  try { if (!document.createElement('canvas').getContext('webgl2')) throw new Error('no WebGL 2'); canvas = document.createElement('canvas'); canvas.className = 'buddy-canvas'; canvas.tabIndex = 0; canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', 'Tu Buddy. Arrástralo para girarlo y tócalo para que reaccione.');
     renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: true, powerPreference: 'high-performance'}); } catch (e) { wrap.classList.add('no-3d'); return false; }
   const gl = renderer.getContext(); try { const x = gl.getExtension('WEBGL_debug_renderer_info'); D.renderer = String(x ? gl.getParameter(x.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)); } catch (e) {}
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.setClearColor(0x000000, 0);

@@ -49,6 +49,7 @@ _TXT = {}     # plain entries: whole text node, attribute or literal
 for row in CAT:
     src, es = row[0], row[1]
     en = row[2] if len(row) > 2 and row[2] else src
+    if '<' not in src: es, en = es.strip(), en.strip()
     (_RAW if '<' in src else _TXT)[src if '<' in src else _norm(src)] = {'es': es, 'en': en}
 _RAW_KEYS = sorted(_RAW, key=len, reverse=True)
 _USED = set()
@@ -139,9 +140,95 @@ def _js_lit(m, lang):
     return s
 
 
+# A small JavaScript scanner rather than one regex over the file: it skips comments and regex literals and
+# follows ${...} inside templates, so quotes inside a regex (/don't/) or nested templates don't throw string
+# matching out of step. Whole string literals go to fn.
+_RX_PREV = set('(,=:[!&|?{};+-*%<>~^')
+_RX_WORDS = {'return', 'typeof', 'case', 'in', 'of', 'do', 'else', 'void', 'delete', 'new', 'instanceof', 'yield', 'await'}
+_WORD = re.compile(r'[A-Za-z0-9_$]+')
+
+
+def js_sub(code, lit_re, fn):
+    out = []
+    n = len(code)
+
+    def expr(i, nested):
+        """Code from i; when nested, stop after the '}' that closes a ${ ... }. Returns the end index."""
+        last, prev, word, depth = i, '', '', 0
+        while i < n:
+            c = code[i]
+            if c in '\'"':
+                m = lit_re.match(code, i)
+                if not m:
+                    i += 1; continue
+                out.append(code[last:i]); out.append(fn(m)); i = last = m.end(); prev, word = 'a', ''; continue
+            if c == '`':
+                out.append(code[last:i]); i = last = template(i); prev, word = 'a', ''; continue
+            if c == '/':
+                d = code[i + 1] if i + 1 < n else ''
+                if d == '/':
+                    j = code.find('\n', i); i = n if j < 0 else j; continue
+                if d == '*':
+                    j = code.find('*/', i + 2); i = n if j < 0 else j + 2; continue
+                if prev == '' or prev in _RX_PREV or word in _RX_WORDS:
+                    j, cls = i + 1, False
+                    while j < n and code[j] != '\n':
+                        ch = code[j]
+                        if ch == '\\':
+                            j += 2; continue
+                        if ch == '[': cls = True
+                        elif ch == ']': cls = False
+                        elif ch == '/' and not cls: break
+                        j += 1
+                    if j < n and code[j] == '/':
+                        i = j + 1; prev, word = 'a', ''; continue
+                prev, word = '/', ''; i += 1; continue
+            if c == '{':
+                depth += 1
+            elif c == '}':
+                if nested and depth == 0:
+                    out.append(code[last:i + 1]); return i + 1
+                depth -= 1
+            if c.isspace():
+                i += 1; continue
+            m = _WORD.match(code, i)
+            if m:
+                word = m.group(0); prev = 'a'; i = m.end(); continue
+            prev, word = c, ''; i += 1
+        out.append(code[last:i]); return i
+
+    def template(i):
+        """A template literal starting at i. Without ${ } it is one whole literal; with them, only the code
+        inside each ${ } is scanned. Returns the end index (everything up to it is already in out)."""
+        j = i + 1
+        while j < n and code[j] != '`':
+            if code[j] == '\\': j += 2; continue
+            if code[j] == '$' and j + 1 < n and code[j + 1] == '{': break
+            j += 1
+        if j >= n or code[j] == '`':
+            m = lit_re.match(code, i)
+            if m and m.end() == j + 1:
+                out.append(fn(m)); return j + 1
+            out.append(code[i:j + 1]); return j + 1
+        # has ${ }: copy text, scan each expression
+        j = i + 1; last = i
+        while j < n:
+            ch = code[j]
+            if ch == '\\': j += 2; continue
+            if ch == '`':
+                out.append(code[last:j + 1]); return j + 1
+            if ch == '$' and j + 1 < n and code[j + 1] == '{':
+                out.append(code[last:j + 2]); j = last = expr(j + 2, True); continue
+            j += 1
+        out.append(code[last:]); return n
+
+    expr(0, False)
+    return ''.join(out)
+
+
 def js(code, lang):
     code = _raw(code, lang)
-    return paths(_LIT.sub(lambda m: _js_lit(m, lang), code), lang)
+    return paths(js_sub(code, _LIT, lambda m: _js_lit(m, lang)), lang)
 
 
 def ld(text, lang):
