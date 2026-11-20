@@ -63,7 +63,9 @@ window.addEventListener('w2s:speakstart', e => { if (e.detail && e.detail.audio)
     rep("  function stop() { emit('speakend'); token++; clear(); try { if (synth) synth.cancel(); } catch (e) {} if (tts) { try { tts.stop().catch(() => {}); } catch (e) {} } }",
         r"""  /* recorded clips: window.W2S_AUDIO = {base, clips: {key: {f, w: [word start in ms], d: duration ms}}}; key = accent|gender|text */
   const AUD = window.W2S_AUDIO || null; let el = null; const pre = {};
-  const clipKey = text => { const acc = state.accent, g = window.W2S_BUDDY_GENDER || 'f'; return [acc + '|' + g + '|' + text, acc + '|' + text]; };
+  /* Speech Mode speaks as the Buddy (its own voice first, e.g. us|kairo, then its gender); every other room uses the
+     learner's Female/Male voice choice (state.voiceG). */
+  const clipKey = text => { const acc = state.accent; return voiceSlots().map(v => acc + '|' + v + '|' + text).concat([acc + '|' + text]); };
   function clipOf(text) { if (!AUD || !AUD.clips) return null; for (const k of clipKey(String(text).trim())) if (AUD.clips[k]) return AUD.clips[k]; return null; }
   function preload(text) { const c = clipOf(text); if (!c || pre[c.f]) return; const a = new Audio(); a.preload = 'auto'; a.src = AUD.base + c.f; pre[c.f] = a; }
   function playClip(c, text, rate, opts, id, end, fallback) {
@@ -323,6 +325,24 @@ function renderResume() {
 }
 
 /* ---------- boot ---------- */""")
+    # ---------- Female or Male voice in every practice room (Speech Mode follows the Buddy) ----------
+    rep("const Voice = (() => {", r"""function inSpeak() { try { return currentView === 'speak'; } catch (e) { return false; } }
+function voiceG() { return inSpeak() ? (window.W2S_BUDDY_GENDER || 'f') : (state.voiceG === 'm' ? 'm' : 'f'); }
+function voiceSlots() { const g = voiceG(); return inSpeak() && window.W2S_BUDDY ? [window.W2S_BUDDY, g] : [g]; }
+const VOICE_G = [['f', 'Female voice'], ['m', 'Male voice']];
+function renderVoiceG() {
+  document.querySelectorAll('[data-voicegender]').forEach(box => { box.setAttribute('role', 'group'); box.setAttribute('aria-label', 'Choose the voice');
+    box.innerHTML = VOICE_G.map(([id, name]) => `<button type="button" class="chip" data-vg="${id}" aria-pressed="${(state.voiceG === 'm' ? 'm' : 'f') === id}">${esc(name)}</button>`).join(''); });
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-vg]'); if (!b) return;
+  state.voiceG = b.dataset.vg === 'm' ? 'm' : 'f'; save(); Voice.stop(); renderVoiceG(); renderVoiceNotes(); });
+const Voice = (() => {""")
+    rep("const want = window.W2S_BUDDY_GENDER, same", "const want = voiceG(), same")
+    rep('    <div class="panel stack" id="gameBody"></div>',
+        '    <div class="panel stack" id="gameBody"></div>\n    <div class="chips vg-row" data-voicegender style="margin-top:12px"></div>')
+    rep('<div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>',
+        '<div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><div class="chips" data-voicegender style="margin-top:10px"></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>')
+    rep('  <div class="course"><div class="mods"', '  <div class="chips vg-row" data-voicegender style="margin-bottom:14px"></div>\n  <div class="course"><div class="mods"')
     rep("renderStats(); renderAccents(); renderMissions(); renderSprint(); save();",
-        "renderStats(); renderAccents(); renderMissions(); renderSprint(); renderResume(); save();")
+        "renderStats(); renderAccents(); renderVoiceG(); renderMissions(); renderSprint(); renderResume(); save();")
     return s

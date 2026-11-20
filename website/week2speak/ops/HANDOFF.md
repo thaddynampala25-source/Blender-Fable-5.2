@@ -84,11 +84,25 @@ T7 replaced by a real review of Days 1 and 2; T4 drafts wanted.
 
 Done on the branch, **built and tested, not deployed** (deploy needs the owner's yes):
 - `account.js` `ANON.speak` 5. Day 1-2 content fixes (see `ops/lesson_review_day1_day2.md`).
-- 198 recorded clips for every fixed Day 1-2 line (US, female Matilda and male Chris), `w2s-site/audio/`, shipped as
-  `/media/voice/` + `window.W2S_AUDIO` in config.js. Tools: `audio_lines.py`, `audio_build.py`. 12,284 of 40,000
-  monthly ElevenLabs credits used. Days 3-7 would cost about the same again per two days.
+- Recorded clips for every fixed Day 1-2 line, `w2s-site/audio/`, shipped as `/media/voice/` + `window.W2S_AUDIO`.
+  **Superseded the same day**: Matilda and Chris were the agent's pick, not the owner's. See the voices update below.
 - `ops/weekly_metrics.py` (T6). Visits fail until the token has Zone Analytics Read (T3).
 - T4 drafts: `ops/brand.md`, `audience.md`, `product.md`, `teaching.md`, `experiments.md`.
 
 Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git lfs install --local && git lfs pull`
 **before `npm run build`**, or the built site ships 130-byte .glb files and the Buddies never load.
+
+## Update, 20 Nov 2026: the owner's voices, Female/Male choice, Mei's details (deployed)
+
+- Voices (owner's picks, ElevenLabs library, ids in `w2s-site/audio_build.py` `VOICES`):
+  US woman Brittney (Social Media Voice), US man Joe (Confident Idiot), US May Genevieve, US Kairo Young Jamal;
+  British woman and May Charlotte (Warm, Clear British RP), British man and Kairo Marcus (Black British London);
+  Australian woman and May Jane (Warm & Professional), Australian man and Kairo Paul (metropolitan Australian;
+  there is also "Paul - Australian Professional Presenter" if the owner meant that one).
+- Clip keys are `accent|voice|text`; voice is `f`/`m` (the learner's Female/Male choice, shown in Games, Imita and
+  the course) or the Buddy id in Speech Mode (`may`, `kairo`), falling back to the Buddy's gender. 87 lines x 8 voices.
+- Clips are cut by word timings from a local speech-to-text model (`audio_words.py`, faster-whisper, nothing
+  uploaded) and each clip was transcribed back and compared with its line. Nobody has listened by ear yet.
+- Credits: 25,451 for the eight takes; about 2,200 of 40,000 left this month. Days 3-7 for eight voices would cost
+  about 60,000 credits: a bigger plan or several months.
+- `wrangler.jsonc`: TUTOR_EMAILS wamulow@gmail.com, TUTOR_WHATSAPP, CAL_LINK set. Mei becomes tutor at her next login.

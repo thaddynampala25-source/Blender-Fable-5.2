@@ -9,6 +9,9 @@ the Buddies' spoken greetings) is deliberately absent and stays English in both 
 CAT = [
     # ---------- shared names ----------
     ("American", "Americano"),
+    ("Female voice", "Voz de mujer"),
+    ("Male voice", "Voz de hombre"),
+    ("Choose the voice", "Elige la voz"),
     ("British", "Británico"),
     ("Australian", "Australiano"),
     ("Speech Mode", "Modo Habla"),
