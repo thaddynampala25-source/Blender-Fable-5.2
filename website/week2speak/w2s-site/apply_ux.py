@@ -105,7 +105,8 @@ window.addEventListener('w2s:speakstart', e => { if (e.detail && e.detail.audio)
     rep("""      if (code === 'not_granted' || code === 'unavailable') { root.classList.remove('has-mic'); toast('The microphone is off for this page. You can keep typing.'); }
       if (c && c.onEnd) c.onEnd('', code || 'error');""",
         """      track('mic_fail', {reason: code || 'error'});
-      if (code === 'not_granted' || code === 'no_mic') root.classList.remove('has-mic');
+      window.__micFails = (window.__micFails || 0) + 1;
+      if (code === 'not_granted' || code === 'no_mic' || code === 'unavailable' || (code === 'network' && window.__micFails >= 2)) root.classList.remove('has-mic');
       if (!(c && c.quiet)) toast(micWhy(code));
       if (c && c.onEnd) c.onEnd('', code || 'error');""")
     rep("    Voice.stop(); text = ''; cur = h; setBtn(true);", "    Voice.stop(); text = ''; cur = h; setBtn(true); track('mic_start');")
@@ -242,7 +243,7 @@ window.addEventListener('w2s:speakstart', e => { if (e.detail && e.detail.audio)
         "of the words were recognised by the microphone. That checks the words, not your accent. Underlined words were not recognised: listen to those again. +15 XP")
     rep("$('#shPlay').addEventListener('click', shPlay);", r"""$('#shPlay').addEventListener('click', shPlay);
 $('#shResult').addEventListener('click', e => { const b = e.target.closest('[data-shnext]'); if (!b) return; const m = b.dataset.shnext;
-  if (m === 'clip') { const ids = Object.keys(CLIPS).filter(k => k !== 'mine'), i = ids.indexOf(SH.clip); SH.clip = ids[(i + 1) % ids.length]; SH.reps = 0; SH.mode = 'listen'; renderShadow(); }
+  if (m === 'clip') { const ids = Object.keys(CLIPS).filter(k => k !== 'mine' && textRecorded(CLIPS[k].text)), i = ids.indexOf(SH.clip); SH.clip = ids[(i + 1) % ids.length]; SH.reps = 0; SH.mode = 'listen'; renderShadow(); }
   else { SH.mode = m; renderShadow(); shPlay(); } track('next', {mode: 'shadow:' + m}); });
 const shNext = m => '<div class="row sh-next"><button type="button" class="key primary" data-shnext="' + m + '">' + (m === 'shadow' ? ic('play') + 'Now speak along' : m === 'solo' ? ic('mic') + 'Now try it solo' : 'Next clip' + ic('arrow')) + '</button></div>';""")
     rep("""onEnd: () => shDone('<div class="fb info">Heard it. <span>Play it again, or move to Shadow and speak along.</span></div>', 0)});""",
@@ -379,10 +380,15 @@ function nameMissions() {
 }
 const S = {id:'cafe', step:0,""")
     rep("window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); renderVoiceNotes();",
-        "window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); nameMissions(); renderVoiceNotes();")
+        "window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); nameMissions(); renderMissions(); renderAccents(); renderVoiceNotes();")
     # ---------- Voice notes are internal: learners never see which device voice is used ----------
     rep("function renderVoiceNotes() { let n = ''; try { n = Voice.note(); } catch (e) { return; } $$('[data-voicenote]').forEach(e => e.textContent = n); }",
         "function renderVoiceNotes() { $$('[data-voicenote]').forEach(e => { e.textContent = ''; e.hidden = true; }); }")
+    # ---------- Games: the action row gets its own class, so only it moves above the reserved feedback space ----------
+    rep("  html += fbHtml();\n  html += '<div class=\"row\">';", "  html += fbHtml();\n  html += '<div class=\"row g-act\">';")
+    # Games: without a picked day, start on the Sprint day but never past the last recorded one (links that name a day still work)
+    rep("  if (day != null) G.picked = true; else day = G.picked ? G.day : sprintDay();",
+        "  if (day != null) G.picked = true; else { day = G.picked ? G.day : sprintDay(); if (!G.picked) while (day > 0 && !dayRecorded(day)) day--; }")
     # ---------- Scenes: only those with recorded voices are listed (others would force a device voice) ----------
     rep("function renderMissions() {\n  $('#missions').innerHTML = Object.keys(MISSIONS).map(",
         """function sceneRecorded(id) {
@@ -391,7 +397,7 @@ const S = {id:'cafe', step:0,""")
   return ['us', 'gb', 'au'].some(a => m.steps.every(x => c[a + '|' + g + '|' + String(x.t).trim()]));
 }
 function renderMissions() {
-  $('#missions').innerHTML = Object.keys(MISSIONS).filter(id => sceneRecorded(id) || id === S.id).map(""")
+  $('#missions').innerHTML = Object.keys(MISSIONS).filter(id => sceneRecorded(id) || id === S.id || (MISSIONS[id].ai && cap.sample)).map(""")
     # ---------- Clips, game days and lessons: only recorded ones are listed (owner, 21 Nov) ----------
     rep("$('#clips').innerHTML = Object.keys(CLIPS).map(",
         "$('#clips').innerHTML = Object.keys(CLIPS).filter(id => id === 'mine' || id === SH.clip || textRecorded(CLIPS[id].text)).map(")

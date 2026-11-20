@@ -21,7 +21,7 @@ the 7 days to --end and the 7 days before:
   5 Activated accounts     new accounts with a game round, scene reply or Imita clip on their sign-up day or the next
                            (usage is stored per day, so "within 24 hours" is read as "same or next day")
   6 Places held and paid   bookings made (pending) and paid in the window, with revenue per currency
-  7 Sprint completion      paid students whose Day 7 talk task (k7_5) is ticked, out of all paid students
+  7 Sprint completion      paid students with the Day 7 talk rehearsed (k7_5) or given to Mei (k7_6), out of all paid
   8 Failed payments, errors  bookings left unpaid for 2+ days; Stripe unpaid or expired checkouts (STRIPE_READ_KEY);
                            Worker requests that errored (Cloudflare Workers analytics)
 """
@@ -113,7 +113,7 @@ def window(start, end, clicks=None):
         return {'held': held, 'paid': sum(r['n'] for r in paid), 'revenue': {(r['currency'] or '?'): r['total'] / 100 for r in paid}, 'refunded_or_cancelled_to_date': refunds}
     get('6 Places held and paid', places)
     get('7 Sprint completion', lambda: one(
-        "SELECT COUNT(*) AS paid, COALESCE(SUM(CASE WHEN json_extract(p.data, '$.app.sprint.k7_5') THEN 1 ELSE 0 END), 0) AS finished "
+        "SELECT COUNT(*) AS paid, COALESCE(SUM(CASE WHEN json_extract(p.data, '$.app.sprint.k7_5') OR json_extract(p.data, '$.app.sprint.k7_6') THEN 1 ELSE 0 END), 0) AS finished "
         "FROM enrollments e LEFT JOIN progress p ON p.user_id = e.user_id WHERE e.status = 'paid'"))
     def failures():
         out = {'unpaid_bookings_2d': one(f"SELECT COUNT(*) AS n FROM enrollments WHERE status = 'pending' AND created_at < {b - 2 * 86400} AND created_at >= {a - 2 * 86400}")['n']}

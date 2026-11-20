@@ -259,7 +259,9 @@ if os.path.exists(OUT):   # empty it but keep the folder, so a running `wrangler
 else: os.makedirs(OUT)
 shutil.copytree('email', OUT + '/email'); os.makedirs(OUT + '/assets/fonts'); os.makedirs(OUT + '/assets/vendor'); os.makedirs(OUT + '/media')
 NMOD = '../w2s-show/node_modules'
-shutil.copy(NMOD + '/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-standard-normal.woff2', OUT + '/assets/fonts/bricolage.woff2')
+# headings only use weight 800: fonts/bricolage-800.woff2 is the variable font pinned to wght 800 (fontTools instancer,
+# opsz and wdth axes kept), 72 KB instead of 129 KB. Rebuild it the same way if the font package changes.
+shutil.copy('fonts/bricolage-800.woff2', OUT + '/assets/fonts/bricolage.woff2')
 shutil.copy(NMOD + '/@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2', OUT + '/assets/fonts/figtree.woff2')
 shutil.copy(NMOD + '/gsap/dist/gsap.min.js', OUT + '/assets/vendor/gsap-3.12.5.min.js')
 shutil.copy(NMOD + '/gsap/dist/ScrollTrigger.min.js', OUT + '/assets/vendor/ScrollTrigger-3.12.5.min.js')
@@ -286,7 +288,7 @@ for _n in [b_['file'] for b_ in _BR.ACTIVE]:
         shutil.copy(_pic, OUT + f'/assets/buddies/{_n}.webp')
     else:
         print(f'WARNING: no picture for {_n} (run buddy-gen/poster.cjs once the site is served)')
-FONTFACE = '@font-face{font-family:"Bricolage Grotesque";src:url("/assets/fonts/bricolage.woff2") format("woff2");font-weight:200 800;font-stretch:75% 100%;font-display:swap}\n@font-face{font-family:"Figtree";src:url("/assets/fonts/figtree.woff2") format("woff2");font-weight:300 900;font-display:swap}\n'
+FONTFACE = '@font-face{font-family:"Bricolage Grotesque";src:url("/assets/fonts/bricolage.woff2") format("woff2");font-weight:800;font-stretch:75% 100%;font-display:swap}\n@font-face{font-family:"Figtree";src:url("/assets/fonts/figtree.woff2") format("woff2");font-weight:300 900;font-display:swap}\n'
 open(OUT + '/assets/site.css', 'w', encoding='utf-8').write(FONTFACE + css + open('extra.css').read() + BB.CSS + open('features.css').read())
 LANG_ASSETS = ('app', 'home', 'buddies')
 _bud = open(OUT + '/assets/buddies.js', encoding='utf-8').read(); os.remove(OUT + '/assets/buddies.js')

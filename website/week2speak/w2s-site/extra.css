@@ -131,7 +131,7 @@ footer .logo{color:#fff}
   .prose td:first-child{font-weight:800}
 }
 /* Games: buttons sit right under the tiles; the reserved feedback space goes below them */
-#gameBody > .row{order:5}
+#gameBody > .g-act{order:5}
 #gameBody > .fb{order:6}
 /* phones: one swipeable row of game tabs; the faded edge shows there are more */
 @media (max-width:600px){#gameTabs.seg{-webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);mask-image:linear-gradient(90deg,#000 80%,transparent);scroll-snap-type:x proximity;padding-right:36px}
