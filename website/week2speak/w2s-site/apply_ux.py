@@ -365,6 +365,18 @@ const Voice = (() => {""")
     rep("  const norm = v => String(v.lang || '').replace('_', '-').toLowerCase();",
         "  const norm = v => String(v.lang || '').replace('_', '-').toLowerCase();\n" +
         "  const NOVELTY = /^(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|junior|organ|ralph|superstar|trinoids|whisper|wobble|zarvox|fred|kathy|eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley)\\b/i;")
+    # ---------- Scenes: the Buddy on screen says their own name (the scripts were written with "Sam") ----------
+    rep("const S = {id:'cafe', step:0,", """const MISSION_SRC = JSON.parse(JSON.stringify(MISSIONS));
+function nameMissions() {
+  const n = ((typeof buddyOf === 'function' && buddyOf(state.buddy)) || {}).name || 'Sam';
+  for (const k in MISSION_SRC) Object.assign(MISSIONS[k], JSON.parse(JSON.stringify(MISSION_SRC[k]).replace(/\\bSam\\b/g, n)));
+}
+const S = {id:'cafe', step:0,""")
+    rep("window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); renderVoiceNotes();",
+        "window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); nameMissions(); renderVoiceNotes();")
+    # ---------- Voice notes are internal: learners never see which device voice is used ----------
+    rep("function renderVoiceNotes() { let n = ''; try { n = Voice.note(); } catch (e) { return; } $$('[data-voicenote]').forEach(e => e.textContent = n); }",
+        "function renderVoiceNotes() { $$('[data-voicenote]').forEach(e => { e.textContent = ''; e.hidden = true; }); }")
     # ---------- Accents: offer only what can really be heard ----------
     # An accent is offered for what is on screen when every line has a recording in it, or the device has its own
     # voice for it (right gender). Otherwise the chip is hidden and lines play in an accent that works, so an
@@ -391,12 +403,10 @@ function renderAccents() {
   let T = [], ok = ACCENTS, eff = state.accent;
   try { T = viewTexts(); ok = ACCENTS.filter(a => Voice.accentOK(a.id, T)); eff = Voice.accentFor(T); } catch (e) { ok = ACCENTS; }
   if (!ok.length) ok = ACCENTS;
-  const hidden = ok.length < ACCENTS.length;
-  $$('[data-accents]').forEach(box => { box.innerHTML = ok.map(a => `<button type="button" class="chip" data-accent="${a.id}" aria-pressed="${a.id === eff}">${flag(a.id)}${a.name}</button>`).join('') +
-    (hidden ? '<p class="small muted acc-hidden" style="margin:8px 0 0;width:100%">' + 'Some accents are hidden here: this part has no recording, and this device has no voice for them.' + '</p>' : ''); });""")
+  $$('[data-accents]').forEach(box => { box.innerHTML = ok.map(a => `<button type="button" class="chip" data-accent="${a.id}" aria-pressed="${a.id === eff}">${flag(a.id)}${a.name}</button>`).join(''); });""")
     rep("function renderShadow() {", "function renderShadow() { setTimeout(renderAccents, 0);")
     rep("function startMission(id) {", "function startMission(id) { setTimeout(renderAccents, 0);")
     rep("  const changed = name !== currentView; currentView = name;", "  const changed = name !== currentView; currentView = name; setTimeout(renderAccents, 0);")
     rep("renderStats(); renderAccents(); renderMissions(); renderSprint(); save();",
-        "renderStats(); renderAccents(); renderVoiceG(); renderMissions(); renderSprint(); renderResume(); save();")
+        "nameMissions(); renderStats(); renderAccents(); renderVoiceG(); renderMissions(); renderSprint(); renderResume(); save();")
     return s

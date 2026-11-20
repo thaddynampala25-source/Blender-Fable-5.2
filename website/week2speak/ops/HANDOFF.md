@@ -127,3 +127,8 @@ Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git
   (checked through the Stripe connector: right prices, redirect to /gracias/; live webhook endpoint exists for
   checkout.session.completed and async_payment_succeeded; charges and payouts enabled). No live purchase yet:
   the first real purchase (owner buys and refunds) confirms the live webhook secret in Cloudflare.
+- Deployed 555d67dc: learners never see internal voice notes ("British voice: Google UK English Male", "Some accents
+  are hidden..."); such details are for the owner only. Scenes use the Buddy's own name instead of the scripted "Sam"
+  (nameMissions in apply_ux.py). Still to record (ElevenLabs needed re-sign-in): "Hi! I'm Kairo. What's your name?"
+  and "Hi Kairo, I'm Ana. Nice to meet you." in us-kairo, gb-m, au-m; the May versions in us-may, gb-f, au-f.
+  Until then those two lines use a device voice of the Buddy's gender.

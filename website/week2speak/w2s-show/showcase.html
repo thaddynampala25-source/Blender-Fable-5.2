@@ -829,7 +829,7 @@ const BUDDIES = (window.W2S_BUDDIES && window.W2S_BUDDIES.length) ? window.W2S_B
 const buddyOf = id => BUDDIES.find(b => b.id === id);
 if (!buddyOf(state.buddy)) state.buddy = BUDDIES[0].id;
 window.W2S_BUDDY = state.buddy; window.W2S_BUDDY_GENDER = buddyOf(state.buddy).gender;
-window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); renderVoiceNotes();
+window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); nameMissions(); renderVoiceNotes();
   setTimeout(() => { if (currentView === 'speak' && $('#speakAloud').checked) Voice.speak(b.greet, {rate: 1}); }, 700); });
 /* Speech Mode screen: Start talking, Play again and the replay button */
 window.addEventListener('w2s:start', () => { window.W2S_HOLD = 0; startMission(S.id); });
@@ -1052,7 +1052,7 @@ const Voice = (() => {
   }
   return {accentOK, accentFor, speak, pace, stop, preload, hasClip: t => !!clipOf(t), kind: () => route().kind, note: () => route().note, setTts: t => { tts = t; renderVoiceNotes(); }};
 })();
-function renderVoiceNotes() { let n = ''; try { n = Voice.note(); } catch (e) { return; } $$('[data-voicenote]').forEach(e => e.textContent = n); }
+function renderVoiceNotes() { $$('[data-voicenote]').forEach(e => { e.textContent = ''; e.hidden = true; }); }
 
 /* ---------- microphone: speech to text when this view offers it ---------- */
 const Mic = (() => {
@@ -1115,9 +1115,7 @@ function renderAccents() {
   let T = [], ok = ACCENTS, eff = state.accent;
   try { T = viewTexts(); ok = ACCENTS.filter(a => Voice.accentOK(a.id, T)); eff = Voice.accentFor(T); } catch (e) { ok = ACCENTS; }
   if (!ok.length) ok = ACCENTS;
-  const hidden = ok.length < ACCENTS.length;
-  $$('[data-accents]').forEach(box => { box.innerHTML = ok.map(a => `<button type="button" class="chip" data-accent="${a.id}" aria-pressed="${a.id === eff}">${flag(a.id)}${a.name}</button>`).join('') +
-    (hidden ? '<p class="small muted acc-hidden" style="margin:8px 0 0;width:100%">' + 'Some accents are hidden here: this part has no recording, and this device has no voice for them.' + '</p>' : ''); });
+  $$('[data-accents]').forEach(box => { box.innerHTML = ok.map(a => `<button type="button" class="chip" data-accent="${a.id}" aria-pressed="${a.id === eff}">${flag(a.id)}${a.name}</button>`).join(''); });
   renderVoiceNotes();
 }
 document.addEventListener('click', e => {
@@ -1155,6 +1153,11 @@ const MISSIONS = {
     {t:'Hi! What would you like to talk about today?', h:{starter:"I'd like to talk about…", words:['my day','my family','my job','music','food'], model:"I'd like to talk about my day."}}]}
 };
 const cap = {sample:null, db:null, user:null};
+const MISSION_SRC = JSON.parse(JSON.stringify(MISSIONS));
+function nameMissions() {
+  const n = ((typeof buddyOf === 'function' && buddyOf(state.buddy)) || {}).name || 'Sam';
+  for (const k in MISSION_SRC) Object.assign(MISSIONS[k], JSON.parse(JSON.stringify(MISSION_SRC[k]).replace(/\bSam\b/g, n)));
+}
 const S = {id:'cafe', step:0, turns:[], hintLevel:0, hint:null, busy:false, ended:false, sent:0, fixes:0, helps:0};
 const chat = $('#chat');
 function bubble(cls, html) { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; chat.appendChild(d); chat.scrollTop = chat.scrollHeight; return d; }
@@ -1765,7 +1768,7 @@ function renderResume() {
 }
 
 /* ---------- boot ---------- */
-renderStats(); renderAccents(); renderVoiceG(); renderMissions(); renderSprint(); renderResume(); save();
+nameMissions(); renderStats(); renderAccents(); renderVoiceG(); renderMissions(); renderSprint(); renderResume(); save();
 show();
 })();
 </script>
