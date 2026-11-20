@@ -30,10 +30,9 @@ approved by the owner yet unless it says "deployed".
 - **Baseline data** (live D1, aggregate read-only, 20 Nov): 1 account, 0 enrolments, 0 waitlist, 0 usage rows.
 - **Not working yet**: Stripe Payment Links are in test mode; `STRIPE_WEBHOOK_SECRET` is not set; `TUTOR_EMAILS`,
   `TUTOR_WHATSAPP`, `CAL_LINK` are empty in `wrangler.jsonc` vars. A buyer could not get the Sprint or book a call.
-- **Blocked**: 3 commits on the branch are not pushed: the environment's network policy blocks `lfs.github.com`.
-  The owner must add it under the environment's Allowed domains. Do not force a push without the LFS objects.
-  Check `git status -sb` first; if the container was reset, those commits are gone and must be rebuilt from this
-  file and the live site.
+- **Pushed**: all work is on GitHub (`lfs.github.com` is now reachable; T2 is done). If a later push fails on
+  `lfs.github.com` again, the owner adds it under the environment's Allowed domains; never force a push without the
+  LFS objects.
 - **Cloudflare token** lacks Zone Analytics Read, so daily visitor counts cannot be read yet.
 
 ## What to do next (the doc's first ten tasks, in order)
@@ -42,7 +41,7 @@ approved by the owner yet unless it says "deployed".
    it into Cloudflare themselves, never in chat or the repo), and Mei's login email, WhatsApp number and Cal.com
    link (not secret; go into `wrangler.jsonc` vars). Then test with a Stripe test card on `/unete/`: `/gracias/`
    confirms, the tutor desk shows the enrolment as paid, the booking link opens. Deploy only with the owner's yes.
-2. T2 owner allows `lfs.github.com`; then push.
+2. T2 done: pushing works (20 Nov).
 3. T3 owner adds Zone Analytics Read to the token; verify with a 7-day visits query.
 4. T4 draft `ops/brand.md`, `audience.md`, `product.md`, `teaching.md`, `experiments.md` (each under 400 words,
    every claim marked evidence or assumption; owner and Mei sign off).
