@@ -190,7 +190,7 @@ function authForm(mode, after) {
   draw(mode); return box;
 }
 function askAccount(title, body, after, opts = {}) {
-  const el = modal(`<div class="fx-gate"><img src="${MAYPIC}" alt="" width="72" height="72"><h2 id="fxMT">${title}</h2><p>${body}</p></div>`, opts);
+  const el = modal(`<div class="fx-gate"><h2 id="fxMT">${title}</h2><p>${body}</p></div>`, opts);
   el.querySelector('.fx-sheet').appendChild(authForm('signup', after));
   if (opts.soft) { const later = document.createElement('button'); later.type = 'button'; later.className = 'fx-link fx-later'; later.textContent = STR.later; later.dataset.close = ''; el.querySelector('.fx-sheet').appendChild(later); }
 }
@@ -226,7 +226,7 @@ async function count(kind) {
 function blocked(kind) {
   if (unlimited() || leftOf(kind) > 0) return false;
   if (!user()) askAccount(STR.anonTitle, STR.anonBody, () => toast(STR.left(leftOf(kind), STR.kinds[kind])));
-  else modal(`<div class="fx-gate"><img src="${MAYPIC}" alt="" width="72" height="72"><h2 id="fxMT">${STR.freeTitle}</h2><p>${STR.freeBody}</p><div class="fx-gate-a"><a class="key hl big" href="${P.join}">${STR.seeSprint}</a><button class="key" type="button" data-close>${STR.tomorrow}</button></div></div>`);
+  else modal(`<div class="fx-gate"><h2 id="fxMT">${STR.freeTitle}</h2><p>${STR.freeBody}</p><div class="fx-gate-a"><a class="key hl big" href="${P.join}">${STR.seeSprint}</a><button class="key" type="button" data-close>${STR.tomorrow}</button></div></div>`);
   return true;
 }
 function stop(e) { e.preventDefault(); e.stopImmediatePropagation(); }
@@ -247,7 +247,7 @@ document.addEventListener('submit', e => { if (e.target.id === 'composer' && PAG
 document.addEventListener('w2s:activity', e => { const k = String(e.detail && e.detail.key || '').split(':')[0]; if (k === 'game' || k === 'shadow') count(k); });
 function lessonLock() {
   if (!user()) askAccount(STR.lessonTitle, STR.lessonAnon);
-  else modal(`<div class="fx-gate"><img src="${MAYPIC}" alt="" width="72" height="72"><h2 id="fxMT">${STR.lessonTitle}</h2><p>${STR.lessonFree}</p><div class="fx-gate-a"><a class="key hl big" href="${P.join}">${STR.seeSprint}</a><button class="key" type="button" data-close>${STR.close}</button></div></div>`);
+  else modal(`<div class="fx-gate"><h2 id="fxMT">${STR.lessonTitle}</h2><p>${STR.lessonFree}</p><div class="fx-gate-a"><a class="key hl big" href="${P.join}">${STR.seeSprint}</a><button class="key" type="button" data-close>${STR.close}</button></div></div>`);
 }
 // a gentle nudge after about a minute of practice without an account
 function nudge() {
@@ -388,7 +388,7 @@ async function pageTutor() {
     $('#tsHi').textContent = fill(STR.hiName, {name: user().name.split(' ')[0]}); links();
     const ideas = STR.ideas.slice(); const n = new Date().getDate() % ideas.length; $('#msgIdeas').innerHTML = ideas.slice(n).concat(ideas.slice(0, n)).slice(0, 3).map(x => `<li>${esc(x)}</li>`).join('');
     const notes = ME.notes || [];
-    $('#notes').innerHTML = notes.length ? notes.map(nt => `<figure class="fx-note"><img src="${MAYPIC}" alt="" width="40" height="40"><blockquote>${esc(nt.body)}</blockquote><figcaption>Mei · ${new Date(nt.created_at * 1000).toLocaleDateString(LANG === 'es' ? 'es-ES' : 'en-GB', {day: 'numeric', month: 'short'})}</figcaption></figure>`).join('') : `<p class="muted">${STR.notesEmpty}</p>`;
+    $('#notes').innerHTML = notes.length ? notes.map(nt => `<figure class="fx-note"><span class="fx-note-av" aria-hidden="true">M</span><blockquote>${esc(nt.body)}</blockquote><figcaption>Mei · ${new Date(nt.created_at * 1000).toLocaleDateString(LANG === 'es' ? 'es-ES' : 'en-GB', {day: 'numeric', month: 'short'})}</figcaption></figure>`).join('') : `<p class="muted">${STR.notesEmpty}</p>`;
   }
   if (pl === 'tutor') desk();
 }

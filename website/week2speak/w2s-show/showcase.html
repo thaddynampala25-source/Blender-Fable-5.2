@@ -1166,8 +1166,13 @@ const S = {id:'cafe', step:0, turns:[], hintLevel:0, hint:null, busy:false, ende
 const chat = $('#chat');
 function bubble(cls, html) { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; chat.appendChild(d); chat.scrollTop = chat.scrollHeight; return d; }
 function renderTally() { $('#sSent').textContent = S.sent; $('#sFix').textContent = S.fixes; $('#sHelp').textContent = S.helps; }
+function sceneRecorded(id) {
+  const m = MISSIONS[id], c = (window.W2S_AUDIO || {}).clips; if (!m || m.ai || !c || !m.steps) return false;
+  const g = window.W2S_BUDDY_GENDER || 'f';
+  return ['us', 'gb', 'au'].some(a => m.steps.every(x => c[a + '|' + g + '|' + String(x.t).trim()]));
+}
 function renderMissions() {
-  $('#missions').innerHTML = Object.keys(MISSIONS).map(id => `<button type="button" class="chip${MISSIONS[id].ai ? ' ai-only' : ''}" data-mission="${id}" aria-pressed="${id === S.id}">${esc(MISSIONS[id].name)}</button>`).join('');
+  $('#missions').innerHTML = Object.keys(MISSIONS).filter(id => sceneRecorded(id) || id === S.id).map(id => `<button type="button" class="chip${MISSIONS[id].ai ? ' ai-only' : ''}" data-mission="${id}" aria-pressed="${id === S.id}">${esc(MISSIONS[id].name)}</button>`).join('');
 }
 function sayTutor(text) {
   S.turns.push({role:'tutor', text}); bubble('msg t', esc(text));

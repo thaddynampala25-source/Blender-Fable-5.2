@@ -113,7 +113,7 @@ GUIDES = {
  'speak': f'''<h2>How Speech Mode works</h2>
 <p>Speech Mode is a speaking practice room. The tutor says a line from a real situation, you answer in a full English sentence, and the conversation moves on. Each answer earns XP, and mistakes that are common for Spanish speakers get a short fix.</p>
 <p><strong>Language Buddies.</strong> Ruby, from London, and Max, from New York, are two 3D characters who say the tutor's lines, with mouths that move as they speak. Their line shows under them with each word lit up as it is said. Switch between them with one button, drag to spin them, and tap them to see how they react.</p>
-<ol><li><strong>Pick a scene:</strong> Meet someone new, Café order, Airport check-in, Chat about yesterday, Coffee chat: opinions or Job interview.</li><li><strong>Answer out loud</strong> with the microphone, or type if your browser has no speech recognition.</li><li><strong>Tap Help me</strong> if you freeze. The first tap gives you a sentence starter, the second a bank of useful words, the third a full sentence to say.</li></ol>
+<ol><li><strong>Pick a scene:</strong> Meet someone new, Café order or Airport check-in. More scenes are on the way.</li><li><strong>Answer out loud</strong> with the microphone, or type if your browser has no speech recognition.</li><li><strong>Tap Help me</strong> if you freeze. The first tap gives you a sentence starter, the second a bank of useful words, the third a full sentence to say.</li></ol>
 <p>Want a list of the mistakes it watches for? Read <a href="/common-mistakes/">{N} English mistakes Spanish speakers make</a>.</p>
 {faq_html(FAQ["speak"])}''',
  'games': f'''<h2>Five games that end with you speaking</h2>

@@ -139,3 +139,13 @@ footer .logo{color:#fff}
 /* Home: the Word Order toy fills its card height instead of leaving a blank bottom */
 .toys .toy{display:flex;flex-direction:column}
 .toys .toy > .tray{flex:1 1 auto}
+
+/* Sprint hero: the Day 1 preview sits beside the headline (no Buddy next to Mei) */
+.fx-hero-card{background:var(--white,#fff);border-radius:28px;padding:clamp(18px,3vw,28px);box-shadow:0 14px 40px rgba(16,22,66,.1);display:grid;gap:14px;margin:0}
+.fx-hero-card h2{margin:0;font-size:1.2rem}
+.fx-hero-card .fx-brief{margin:0}
+.fx-hero-card .fx-phr{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.fx-hero-card .muted{margin:0}
+.fx-note-av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--hl,#FFD93B);color:var(--ink,#0B103A);font-weight:800}
+.fx-hero-card.fx-taste{margin-top:0}
+.fx-hero-card .fx-brief{box-shadow:none;max-width:none}

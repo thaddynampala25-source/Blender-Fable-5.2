@@ -146,3 +146,7 @@ Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git
   If the speech-to-text drops a run of single words at the end of a take, transcribe that tail on its own and merge.
 - Layout: Shadowing options under the card; reading columns, game block and Join FAQ centred; Course lesson list
   sticky; Tutor points in a row; phone game tabs scroll with a faded edge; English course page apostrophes fixed.
+- Deployed 15e6ea1b: Speech Mode lists only scenes whose lines are all recorded (sceneRecorded in apply_ux.py);
+  Job interview, Chat about yesterday and Coffee chat come back by themselves once recorded. May is never shown
+  next to Mei: no May on the Sprint hero (the Day 1 preview is there instead), the limit and sign-up pop-ups, or
+  Mei's messages (an "M" badge). May appears only as the Buddy: Speech Mode, the Sprint daily "May says".

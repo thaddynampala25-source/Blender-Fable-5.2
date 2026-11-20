@@ -125,13 +125,12 @@ def sprint(lang, legacy):
       <div><h1 class="fx-h1">{t('Siete días para decir tus primeras frases en inglés.', 'Seven days to say your first sentences in English.')}</h1>
       <p class="fx-lead">{t('Un plan cerrado, veinte minutos al día y Mei a tu lado. Sin teoría eterna: cada día dices algo nuevo en voz alta.', 'A set plan, twenty minutes a day and Mei by your side. No endless theory: every day you say something new out loud.')}</p>
       <div class="row"><a class="key hl big" href="{A['join']}">{t('Ver plazas y precio', 'See places and price')}</a><a class="key big" href="{A['tutor']}">{t('Conoce a Mei', 'Meet Mei')}</a></div></div>
-      <figure class="fx-may"><img src="{picture('may')}" alt="{t('May, tu Buddy', 'May, your Buddy')}" width="540" height="670"><figcaption>{t('«Hoy hablas de ti.»', '"Today you talk about yourself."')}</figcaption></figure>
+      <section class="fx-hero-card fx-taste" aria-labelledby="tasteH"><h2 id="tasteH">{t('Así empieza el Día 1', 'This is how Day 1 starts')}</h2>
+        <blockquote class="fx-brief"><p>{d1['brief'][0 if lang == 'es' else 1]}</p></blockquote>
+        <div class="fx-phr">{''.join(f'<div><b lang="en">{p[0]}</b><span>{p[1]}</span></div>' for p in SC.S[0][:4])}</div>
+        <p class="muted small">{t('Y después: tareas que se marcan solas, el error típico del día, un reto real y tu reflexión. Así, siete días.', 'Then: tasks that tick themselves, the typical mistake of the day, a real challenge and your reflection. Seven days like that.')}</p>
+      </section>
     </div>
-    <section class="fx-taste" aria-labelledby="tasteH"><h2 id="tasteH">{t('Así empieza el Día 1', 'This is how Day 1 starts')}</h2>
-      <blockquote class="fx-brief"><img src="{picture('may')}" alt="" width="48" height="48"><p>{d1['brief'][0 if lang == 'es' else 1]}</p></blockquote>
-      <div class="fx-phr">{''.join(f'<div><b lang="en">{p[0]}</b><span>{p[1]}</span></div>' for p in SC.S[0][:4])}</div>
-      <p class="muted small">{t('Y después: tareas que se marcan solas, el error típico del día, un reto real y tu reflexión. Así, siete días.', 'Then: tasks that tick themselves, the typical mistake of the day, a real challenge and your reflection. Seven days like that.')}</p>
-    </section>
     <section class="fx-week" aria-labelledby="weekH2"><h2 id="weekH2">{t('La semana', 'The week')}</h2><ol>{days}</ol>
       <a class="key hl big" href="{A['join']}">{t('Quiero mi plaza', 'I want my place')}</a></section>
   </div>

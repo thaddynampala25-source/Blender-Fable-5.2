@@ -383,6 +383,15 @@ const S = {id:'cafe', step:0,""")
     # ---------- Voice notes are internal: learners never see which device voice is used ----------
     rep("function renderVoiceNotes() { let n = ''; try { n = Voice.note(); } catch (e) { return; } $$('[data-voicenote]').forEach(e => e.textContent = n); }",
         "function renderVoiceNotes() { $$('[data-voicenote]').forEach(e => { e.textContent = ''; e.hidden = true; }); }")
+    # ---------- Scenes: only those with recorded voices are listed (others would force a device voice) ----------
+    rep("function renderMissions() {\n  $('#missions').innerHTML = Object.keys(MISSIONS).map(",
+        """function sceneRecorded(id) {
+  const m = MISSIONS[id], c = (window.W2S_AUDIO || {}).clips; if (!m || m.ai || !c || !m.steps) return false;
+  const g = window.W2S_BUDDY_GENDER || 'f';
+  return ['us', 'gb', 'au'].some(a => m.steps.every(x => c[a + '|' + g + '|' + String(x.t).trim()]));
+}
+function renderMissions() {
+  $('#missions').innerHTML = Object.keys(MISSIONS).filter(id => sceneRecorded(id) || id === S.id).map(""")
     # ---------- Accents: offer only what can really be heard ----------
     # An accent is offered for what is on screen when every line has a recording in it, or the device has its own
     # voice for it (right gender). Otherwise the chip is hidden and lines play in an accent that works, so an
