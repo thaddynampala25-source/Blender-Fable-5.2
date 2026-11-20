@@ -92,7 +92,7 @@ Done on the branch, **built and tested, not deployed** (deploy needs the owner's
 Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git lfs install --local && git lfs pull`
 **before `npm run build`**, or the built site ships 130-byte .glb files and the Buddies never load.
 
-## Update, 20 Nov 2026: the owner's voices, Female/Male choice, Mei's details (deployed)
+## Update, 20 Nov 2026: the owner's voices, Female/Male choice, Mei's details (deployed, version dd7a26a8)
 
 - Voices (owner's picks, ElevenLabs library, ids in `w2s-site/audio_build.py` `VOICES`):
   US woman Brittney (Social Media Voice), US man Joe (Confident Idiot), US May Genevieve, US Kairo Young Jamal;
@@ -106,3 +106,9 @@ Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git
 - Credits: 25,451 for the eight takes; about 2,200 of 40,000 left this month. Days 3-7 for eight voices would cost
   about 60,000 credits: a bigger plan or several months.
 - `wrangler.jsonc`: TUTOR_EMAILS wamulow@gmail.com, TUTOR_WHATSAPP, CAL_LINK set. Mei becomes tutor at her next login.
+- Mei's existing account was set to tutor directly in live D1 (one row) before the deploy.
+- Clips that a machine check could not confirm (single words; lengths look right): Marcus "eat", "estate";
+  Young Jamal "at", "eat", "estate", "esquire". Ask Mei to listen to these first, then the Sound Lab words.
+- 3D Buddy models are Git LFS files: before any build in a fresh checkout run `git lfs pull`, or the deploy ships
+  132-byte placeholders. (Checked before this deploy: the live may-v1 GLB is 3.36 MB.)
+- Live check after deploy: voice buttons on /juegos/ and /en/games/, a us-kairo clip serves, old f-/m- clips 404.

@@ -677,6 +677,7 @@ td.t{white-space:nowrap;color:var(--ink-2)}
     <div class="chips" id="gameDays" role="group" aria-label="Sprint day"></div>
     <p class="small muted" id="gameDayNote"></p>
     <div class="panel stack" id="gameBody"></div>
+    <div class="chips vg-row" data-voicegender style="margin-top:12px"></div>
   </div>
 </div></section>
 
@@ -687,7 +688,7 @@ td.t{white-space:nowrap;color:var(--ink-2)}
     <div class="stack side">
       <div class="panel"><h2>Clip</h2><div class="chips" id="clips"></div></div>
       <div class="panel" id="minePanel" hidden><h2>My script</h2><p class="small muted" style="margin-bottom:10px">Type the sentences from your lesson, or your 2-minute talk. They stay on this device.</p><textarea class="field" id="mineText" rows="6" maxlength="900" aria-label="My script" placeholder="Hi, I'm Ana. I'm from Lima, in Peru."></textarea><div class="row" style="margin-top:10px"><button class="key primary" id="mineSave" type="button">Save and shadow it</button><span class="small muted" id="mineMsg" role="status"></span></div></div>
-      <div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>
+      <div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><div class="chips" data-voicegender style="margin-top:10px"></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>
       <div class="panel"><h2>Speed</h2><div class="seg" id="speeds" role="group" aria-label="Speed"><button type="button" data-rate="0.75">Slow</button><button type="button" data-rate="0.9">Steady</button><button type="button" data-rate="1">Natural</button></div></div>
     </div>
     <div class="panel stage">
@@ -739,6 +740,7 @@ td.t{white-space:nowrap;color:var(--ink-2)}
 <!-- COURSE -->
 <section data-view="course" class="light" hidden><div class="wrap view">
   <div class="vh"><h1 data-split>The course</h1><p>Seven lessons, one a day. Each has the phrases to learn, a mistake that comes from Spanish, and practice in the rooms.</p></div>
+  <div class="chips vg-row" data-voicegender style="margin-bottom:14px"></div>
   <div class="course"><div class="mods" id="mods" role="group" aria-label="Lessons"></div><div class="stack" id="lesson"></div></div>
 </div></section>
 
@@ -940,6 +942,16 @@ function markActivity(key) {
 }
 
 /* ---------- voice: device voices for accents, Claude voice as fallback ---------- */
+function inSpeak() { try { return currentView === 'speak'; } catch (e) { return false; } }
+function voiceG() { return inSpeak() ? (window.W2S_BUDDY_GENDER || 'f') : (state.voiceG === 'm' ? 'm' : 'f'); }
+function voiceSlots() { const g = voiceG(); return inSpeak() && window.W2S_BUDDY ? [window.W2S_BUDDY, g] : [g]; }
+const VOICE_G = [['f', 'Female voice'], ['m', 'Male voice']];
+function renderVoiceG() {
+  document.querySelectorAll('[data-voicegender]').forEach(box => { box.setAttribute('role', 'group'); box.setAttribute('aria-label', 'Choose the voice');
+    box.innerHTML = VOICE_G.map(([id, name]) => `<button type="button" class="chip" data-vg="${id}" aria-pressed="${(state.voiceG === 'm' ? 'm' : 'f') === id}">${esc(name)}</button>`).join(''); });
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-vg]'); if (!b) return;
+  state.voiceG = b.dataset.vg === 'm' ? 'm' : 'f'; save(); Voice.stop(); renderVoiceG(); renderVoiceNotes(); });
 const Voice = (() => {
   const synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
   let voices = [], broken = false, fails = 0, tts = null, token = 0, timers = [];
@@ -952,7 +964,7 @@ const Voice = (() => {
     if (!m.length) return null;
     const best = l => l.find(v => /natural|premium|enhanced|google/i.test(v.name)) || l[0];
     const FEM = /female|samantha|victoria|allison|ava|susan|zira|jenny|aria|hazel|libby|sonia|kate|serena|martha|karen|catherine|matilda|natasha|tessa|moira|nicky|zoe|flo|sandy|shelley/i, MAL = /(^|[^e])male|\bdaniel|alex\b|fred|tom\b|aaron|evan|nathan|david|mark\b|guy\b|ryan|george|oliver|arthur|thomas|lee\b|gordon|william|james|eddy|reed|rocko/i;
-    const want = window.W2S_BUDDY_GENDER, same = want ? m.filter(v => want === 'm' ? (MAL.test(v.name) && !/female/i.test(v.name)) : FEM.test(v.name)) : [];
+    const want = voiceG(), same = want ? m.filter(v => want === 'm' ? (MAL.test(v.name) && !/female/i.test(v.name)) : FEM.test(v.name)) : [];
     return same.length ? best(same) : best(m);
   }
   function route() {
@@ -977,7 +989,9 @@ const Voice = (() => {
   function offsets(text) { const out = []; const re = /\S+/g; let m; while ((m = re.exec(text))) out.push(m.index); return out; }
   /* recorded clips: window.W2S_AUDIO = {base, clips: {key: {f, w: [word start in ms], d: duration ms}}}; key = accent|gender|text */
   const AUD = window.W2S_AUDIO || null; let el = null; const pre = {};
-  const clipKey = text => { const acc = state.accent, g = window.W2S_BUDDY_GENDER || 'f'; return [acc + '|' + g + '|' + text, acc + '|' + text]; };
+  /* Speech Mode speaks as the Buddy (its own voice first, e.g. us|kairo, then its gender); every other room uses the
+     learner's Female/Male voice choice (state.voiceG). */
+  const clipKey = text => { const acc = state.accent; return voiceSlots().map(v => acc + '|' + v + '|' + text).concat([acc + '|' + text]); };
   function clipOf(text) { if (!AUD || !AUD.clips) return null; for (const k of clipKey(String(text).trim())) if (AUD.clips[k]) return AUD.clips[k]; return null; }
   function preload(text) { const c = clipOf(text); if (!c || pre[c.f]) return; const a = new Audio(); a.preload = 'auto'; a.src = AUD.base + c.f; pre[c.f] = a; }
   function playClip(c, text, rate, opts, id, end, fallback) {
@@ -1725,7 +1739,7 @@ function renderResume() {
 }
 
 /* ---------- boot ---------- */
-renderStats(); renderAccents(); renderMissions(); renderSprint(); renderResume(); save();
+renderStats(); renderAccents(); renderVoiceG(); renderMissions(); renderSprint(); renderResume(); save();
 show();
 })();
 </script>
