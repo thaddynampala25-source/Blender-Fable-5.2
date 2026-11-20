@@ -965,14 +965,23 @@ const Voice = (() => {
     const best = l => l.find(v => /natural|premium|enhanced|google/i.test(v.name)) || l[0];
     const FEM = /female|samantha|victoria|allison|ava|susan|zira|jenny|aria|hazel|libby|sonia|kate|serena|martha|karen|catherine|matilda|natasha|tessa|moira|nicky|zoe|flo|sandy|shelley/i, MAL = /(^|[^e])male|\bdaniel|alex\b|fred|tom\b|aaron|evan|nathan|david|mark\b|guy\b|ryan|george|oliver|arthur|thomas|lee\b|gordon|william|james|eddy|reed|rocko/i;
     const want = voiceG(), same = want ? m.filter(v => want === 'm' ? (MAL.test(v.name) && !/female/i.test(v.name)) : FEM.test(v.name)) : [];
-    return same.length ? best(same) : best(m);
+    return same.length ? best(same) : null;
+  }
+  function anyVoice(acc) {
+    if (broken || !voices.length) return null;
+    const FEM = /female|zira|jenny|aria|ava|emma|michelle|sonia|libby|hazel|susan|natasha|clara|samantha|karen|catherine|kate|serena|moira|tessa|google us english/i;
+    const MAL = /(^|[^e])male|david|mark\b|guy\b|ryan|george|james|william|daniel|thomas|oliver|christopher|eric|roger|steffan/i;
+    const g = voiceG(), same = voices.filter(v => g === 'm' ? (MAL.test(v.name) && !/female/i.test(v.name)) : FEM.test(v.name));
+    const pool = same.length ? same : voices, near = acc.id === 'us' ? /en-us/ : /en-gb|en-au|en-ie|en-nz/;
+    const top = l => l.find(v => /natural|online|google/i.test(v.name)) || l[0];
+    return top(pool.filter(v => near.test(norm(v)))) || top(pool);
   }
   function route() {
     const acc = ACCENTS.find(a => a.id === state.accent) || ACCENTS[0];
     const v = pick(acc.lang);
     if (v) return {kind:'device', v, note: acc.name + ' voice: ' + v.name + '.'};
     if (tts) return {kind:'claude', note:'Your device has no ' + acc.name + ' voice, so the standard voice is used.'};
-    const any = !broken && voices[0];
+    const any = anyVoice(acc);
     if (any) return {kind:'device', v:any, note:'Your device has no ' + acc.name + ' voice. Using ' + any.name + '.'};
     return {kind:'none', note:'No voice is available on this view. The words still light up at speaking pace.'};
   }

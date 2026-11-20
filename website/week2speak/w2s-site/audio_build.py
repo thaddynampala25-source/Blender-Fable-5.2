@@ -96,6 +96,8 @@ def build():
     for d, day in enumerate(C.SOUND):
         for w, alt, _ in day: texts[cid(w)] = w; texts[cid(alt)] = alt
     for x in A.lines(list(range(len(C.S)))): texts[x['id']] = x['text']
+    import buddy_roster
+    for b in buddy_roster.ROSTER: texts[cid(b['greet'])] = b['greet']     # Speech Mode greetings (one take each)
     clips = {}
     for acc, slots in VOICES.items():
         for g in slots:

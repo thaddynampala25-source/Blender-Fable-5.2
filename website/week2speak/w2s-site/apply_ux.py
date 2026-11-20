@@ -338,6 +338,21 @@ document.addEventListener('click', e => { const b = e.target.closest('[data-vg]'
   state.voiceG = b.dataset.vg === 'm' ? 'm' : 'f'; save(); Voice.stop(); renderVoiceG(); renderVoiceNotes(); });
 const Voice = (() => {""")
     rep("const want = window.W2S_BUDDY_GENDER, same", "const want = voiceG(), same")
+    # Device voice of the right gender: a woman's line never falls back to a man's voice (Windows lists
+    # "Microsoft David" first and has no Australian voice), even if that means another English accent.
+    rep("    return same.length ? best(same) : best(m);\n  }",
+        """    return same.length ? best(same) : null;
+  }
+  function anyVoice(acc) {
+    if (broken || !voices.length) return null;
+    const FEM = /female|zira|jenny|aria|ava|emma|michelle|sonia|libby|hazel|susan|natasha|clara|samantha|karen|catherine|kate|serena|moira|tessa|google us english/i;
+    const MAL = /(^|[^e])male|david|mark\\b|guy\\b|ryan|george|james|william|daniel|thomas|oliver|christopher|eric|roger|steffan/i;
+    const g = voiceG(), same = voices.filter(v => g === 'm' ? (MAL.test(v.name) && !/female/i.test(v.name)) : FEM.test(v.name));
+    const pool = same.length ? same : voices, near = acc.id === 'us' ? /en-us/ : /en-gb|en-au|en-ie|en-nz/;
+    const top = l => l.find(v => /natural|online|google/i.test(v.name)) || l[0];
+    return top(pool.filter(v => near.test(norm(v)))) || top(pool);
+  }""")
+    rep("    const any = !broken && voices[0];", "    const any = anyVoice(acc);")
     rep('    <div class="panel stack" id="gameBody"></div>',
         '    <div class="panel stack" id="gameBody"></div>\n    <div class="chips vg-row" data-voicegender style="margin-top:12px"></div>')
     rep('<div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>',

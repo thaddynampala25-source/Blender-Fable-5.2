@@ -72,6 +72,10 @@
 "d": 9796,
 "f": "au-f-d5cfa5958d.mp3"
 },
+"au|f|Hi! I'm May. Let's talk.": {
+"d": 2612,
+"f": "au-f-791e4adbf4.mp3"
+},
 "au|f|Hi! I'm Sam. What's your name?": {
 "d": 2821,
 "f": "au-f-ad8468669a.mp3"
@@ -455,6 +459,10 @@
 "au|m|Here you are. Thank you.": {
 "d": 1541,
 "f": "au-m-6a0a1396b0.mp3"
+},
+"au|m|Hey! I'm Kairo. Let's talk.": {
+"d": 2560,
+"f": "au-m-8a00166ac1.mp3"
 },
 "au|m|Hi Sam, I'm Ana. Nice to meet you.": {
 "d": 2795,
@@ -864,6 +872,10 @@
 "d": 9247,
 "f": "gb-f-d5cfa5958d.mp3"
 },
+"gb|f|Hi! I'm May. Let's talk.": {
+"d": 2325,
+"f": "gb-f-791e4adbf4.mp3"
+},
 "gb|f|Hi! I'm Sam. What's your name?": {
 "d": 2586,
 "f": "gb-f-ad8468669a.mp3"
@@ -1247,6 +1259,10 @@
 "gb|m|Here you are. Thank you.": {
 "d": 1384,
 "f": "gb-m-6a0a1396b0.mp3"
+},
+"gb|m|Hey! I'm Kairo. Let's talk.": {
+"d": 2377,
+"f": "gb-m-8a00166ac1.mp3"
 },
 "gb|m|Hi Sam, I'm Ana. Nice to meet you.": {
 "d": 2403,
@@ -2040,6 +2056,10 @@
 "d": 2168,
 "f": "us-kairo-6a0a1396b0.mp3"
 },
+"us|kairo|Hey! I'm Kairo. Let's talk.": {
+"d": 2403,
+"f": "us-kairo-8a00166ac1.mp3"
+},
 "us|kairo|Hi Sam, I'm Ana. Nice to meet you.": {
 "d": 3553,
 "f": "us-kairo-f86b4b36d7.mp3"
@@ -2447,6 +2467,10 @@
 "us|may|Hi! I'd like a coffee with milk, please. Can I have a sandwich too? To take away, please. How much is it? Here you are. Thank you!": {
 "d": 9587,
 "f": "us-may-d5cfa5958d.mp3"
+},
+"us|may|Hi! I'm May. Let's talk.": {
+"d": 2482,
+"f": "us-may-791e4adbf4.mp3"
 },
 "us|may|Hi! I'm Sam. What's your name?": {
 "d": 2482,

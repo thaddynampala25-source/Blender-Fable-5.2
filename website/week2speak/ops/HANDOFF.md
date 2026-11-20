@@ -112,3 +112,7 @@ Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git
 - 3D Buddy models are Git LFS files: before any build in a fresh checkout run `git lfs pull`, or the deploy ships
   132-byte placeholders. (Checked before this deploy: the live may-v1 GLB is 3.36 MB.)
 - Live check after deploy: voice buttons on /juegos/ and /en/games/, a us-kairo clip serves, old f-/m- clips 404.
+- Follow-up (deployed, version f98a4d7e): on Windows there is no Australian voice, so unrecorded lines fell back to
+  "Microsoft David" (robotic man) even for May or the female choice. The device fallback now keeps the speaker's
+  gender (e.g. Google UK English Female). Buddy greetings recorded in all six Buddy voices (160 credits);
+  about 2,050 credits left this month.
