@@ -4,18 +4,18 @@ Run apply_sprint.py to write it into the app source and data.json."""
 # Each day: 8 sentences [English, Spanish, *other accepted English answers]. Word Order uses the English; Flash Translate goes Spanish to English.
 S = [
  [["Hi, I'm Ana.", "Hola, soy Ana."],
-  ["I'm from Colombia.", "Soy de Colombia."],
-  ["I'm a teacher.", "Soy profesora."],
+  ["I'm from Lima, in Peru.", "Soy de Lima, en Perú.", "I'm from Peru.", "I'm from Lima."],
+  ["I'm a nurse.", "Soy enfermera."],
   ["I work in a hospital.", "Trabajo en un hospital."],
   ["I'm thirty years old.", "Tengo treinta años.", "I'm thirty.", "I'm 30.", "I'm 30 years old."],
   ["I like music and football.", "Me gustan la música y el fútbol."],
   ["I'm learning English because I want to travel.", "Estoy aprendiendo inglés porque quiero viajar."],
-  ["Nice to meet you.", "Encantado de conocerte."]],
+  ["Nice to meet you.", "Mucho gusto.", "Pleased to meet you."]],
  [["I'd like a coffee, please.", "Quisiera un café, por favor.", "I would like a coffee, please."],
   ["Can I have a sandwich, please?", "¿Me da un sándwich, por favor?", "Could I have a sandwich, please?"],
   ["How much is it?", "¿Cuánto cuesta?", "How much does it cost?", "How much is this?"],
   ["I'm hungry.", "Tengo hambre."],
-  ["I'm thirsty.", "Tengo sed."],
+  ["Can I pay by card, please?", "¿Puedo pagar con tarjeta, por favor?", "Can I pay by card?", "Could I pay by card, please?"],
   ["A small one, please.", "Uno pequeño, por favor."],
   ["To take away, please.", "Para llevar, por favor.", "To go, please."],
   ["Here you are. Thank you.", "Aquí tiene. Gracias."]],
@@ -187,7 +187,7 @@ DAYS = [
 
 CLIPS = {
  "mine": ("My script", ""),
- "intro": ("Introducing yourself", "Hi, I'm Ana. I'm from Lima, in Peru. I'm a nurse. I'm learning English because I want to travel. I like music and football."),
+ "intro": ("Introducing yourself", "Hi, I'm Ana. I'm from Lima, in Peru. I'm a nurse, and I work in a hospital. I'm learning English because I want to travel. I like music and football."),
  "coffee": ("Ordering coffee", "Hi! I'd like a coffee with milk, please. Can I have a sandwich too? To take away, please. How much is it? Here you are. Thank you!"),
  "airport": ("At the airport", "Excuse me, where is gate twelve? What time is the flight? Could I have a window seat, please? Is it far? Thank you for your help."),
  "yesterday": ("Yesterday", "Yesterday I worked in the morning. Then I went to the gym, and I had dinner with my family. Last night I watched a film. It was fun."),
@@ -199,8 +199,8 @@ MINE_DEFAULT = CLIPS["intro"][1]
 
 # Course: five key phrases a day [English, Spanish], plus the mistake that comes from Spanish.
 COURSE = [
- dict(phr=[S[0][0], ["I'm from Lima, in Peru.", "Soy de Lima, en Perú."], ["I'm a nurse.", "Soy enfermera."], S[0][6], S[0][5]], bad="I have thirty years.", good="I'm thirty.", rule="age"),
- dict(phr=[S[1][0], S[1][1], S[1][2], S[1][3], S[1][7]], bad="I have hungry.", good="I'm hungry.", rule="state"),
+ dict(phr=[S[0][0], S[0][1], S[0][2], S[0][6], S[0][5]], bad="I have thirty years.", good="I'm thirty.", rule="age"),
+ dict(phr=[S[1][0], S[1][1], S[1][2], S[1][3], S[1][7]], bad="I have hunger.", good="I'm hungry.", rule="state"),
  dict(phr=[S[2][0], S[2][1], S[2][2], S[2][3], S[2][4]], bad="Is very far.", good="It's very far.", rule="subject"),
  dict(phr=[S[3][0], S[3][1], S[3][2], S[3][3], S[3][4]], bad="The last week I worked.", good="Last week I worked.", rule="article"),
  dict(phr=[S[4][0], S[4][4], S[4][1], S[4][2], S[4][3]], bad="I am agree with you.", good="I agree with you.", rule="agree"),

@@ -279,7 +279,7 @@ const shNext = m => '<div class="row sh-next"><button type="button" class="key p
 
     # the home Word Order: Day 1 sentences, a Next button instead of a timer, and one step on into the full round
     rep("const GS = ['Where is the bus station?', 'Can you help me, please?', 'I am twenty-five years old.', 'What time does the shop open?'];",
-        "const GS = [\"Hi, I'm Ana.\", \"I'm from Colombia.\", \"I'm thirty years old.\", 'Nice to meet you.'];")
+        "const GS = [\"Hi, I'm Ana.\", \"I'm from Lima, in Peru.\", \"I'm thirty years old.\", 'Nice to meet you.'];")
     rep("  GM.busy = false; gTray.classList.remove('ok'); gTray.innerHTML = ''; gMsg.textContent = ''; gMsg.className = 'gmsg'; gDotsDraw();",
         "  GM.busy = false; gTray.classList.remove('ok'); gTray.innerHTML = ''; gMsg.textContent = ''; gMsg.className = 'gmsg'; gDotsDraw(); gAct.innerHTML = '';")
     rep("""  if (GM.i >= GS.length) { gPool.innerHTML = '<button type="button" class="key cobalt" id="gAgain">Play again</button>'; gMsg.textContent = 'Four sentences built. Now say each one out loud.'; gMsg.className = 'gmsg ok'; return; }""",

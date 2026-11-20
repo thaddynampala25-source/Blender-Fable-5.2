@@ -295,8 +295,15 @@ for lang in I.LANGS:
         _c = I.js(_code, lang)
         if _nm == 'app': _c = _c.replace('"home": "/"', '"home": "' + I.SLUG[lang]['home'] + '"')
         open(OUT + f'/assets/{_nm}.{lang}.js', 'w', encoding='utf-8').write(_c)
+# Recorded voices (audio/manifest.json, made by audio_build.py): copied to /media/voice/ and announced to the
+# Voice layer as window.W2S_AUDIO. Lines without a clip use the device voice.
+_AUDIO_JS = ''
+if os.path.exists('audio/manifest.json'):
+    shutil.copytree('audio/clips', OUT + '/media/voice')
+    _am = json.load(open('audio/manifest.json'))
+    _AUDIO_JS = 'window.W2S_AUDIO = ' + json.dumps({'base': '/media/voice/', 'clips': _am['clips']}, ensure_ascii=False, separators=(',', ':')) + ';\n'
 cfg = {'formKey': CFG.get('formKey', ''), 'whatsapp': CFG.get('whatsapp', '')}
-open(OUT + '/assets/config.js', 'w').write('/* Week2Speak site settings. formKey: Web3Forms access key for the Join form. whatsapp: number with country code, digits only. */\nwindow.W2S_CONFIG = ' + json.dumps(cfg) + ';\n' + _BR.js())
+open(OUT + '/assets/config.js', 'w').write('/* Week2Speak site settings. formKey: Web3Forms access key for the Join form. whatsapp: number with country code, digits only. */\nwindow.W2S_CONFIG = ' + json.dumps(cfg) + ';\n' + _BR.js() + _AUDIO_JS)
 LSW = {'es': ('EN', 'en', 'Read this page in English'), 'en': ('ES', 'es', 'Leer esta página en español')}
 def page_html(name, lang):
     title, desc = F.TITLES[name][lang] if name in F.TITLES else PAGES[name]

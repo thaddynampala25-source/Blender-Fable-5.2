@@ -9,7 +9,7 @@ e = H.escape
 
 EXAMPLES = {
  'age': ("I have 25 years.", "I'm 25 years old."),
- 'state': ("I have hungry.", "I'm hungry."),
+ 'state': ("I have hunger.", "I'm hungry."),
  'agree': ("I am agree with you.", "I agree with you."),
  'people': ("People is very friendly here.", "People are very friendly here."),
  'subject': ("Is raining today.", "It's raining today."),

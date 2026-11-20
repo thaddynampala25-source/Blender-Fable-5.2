@@ -1,0 +1,797 @@
+{
+"clips": {
+"us|f|A coffee with milk, please.": {
+"d": 1593,
+"f": "f-1d36089cd0.mp3"
+},
+"us|f|A medium one, please.": {
+"d": 1384,
+"f": "f-349a77d781.mp3"
+},
+"us|f|A small one, please.": {
+"d": 1306,
+"f": "f-bdccc33781.mp3"
+},
+"us|f|And what do you do?": {
+"d": 1202,
+"f": "f-0381484abf.mp3"
+},
+"us|f|Anything to eat with that?": {
+"d": 1228,
+"f": "f-1838825e14.mp3"
+},
+"us|f|Anything to eat?": {
+"d": 993,
+"f": "f-ba2b9b94ee.mp3"
+},
+"us|f|Are you hungry?": {
+"d": 836,
+"f": "f-0a7f5358f4.mp3"
+},
+"us|f|Because I want to travel.": {
+"d": 1515,
+"f": "f-5be78409c8.mp3"
+},
+"us|f|Can I have a sandwich, please?": {
+"d": 1620,
+"f": "f-2019e1b873.mp3"
+},
+"us|f|Can I have the bill, please?": {
+"d": 1489,
+"f": "f-f04323cc8a.mp3"
+},
+"us|f|Can I pay by card, please?": {
+"d": 1620,
+"f": "f-e4c7f6b3b1.mp3"
+},
+"us|f|Cool! How old are you, if you don't mind?": {
+"d": 2664,
+"f": "f-21b861a40a.mp3"
+},
+"us|f|Great reason. And what do you like?": {
+"d": 2482,
+"f": "f-3a5aea49d3.mp3"
+},
+"us|f|Here you are.": {
+"d": 731,
+"f": "f-f51fb7f4ea.mp3"
+},
+"us|f|Here you are. Thank you.": {
+"d": 1593,
+"f": "f-6a0a1396b0.mp3"
+},
+"us|f|Hi Sam, I'm Ana. Nice to meet you.": {
+"d": 2821,
+"f": "f-f86b4b36d7.mp3"
+},
+"us|f|Hi there! Welcome. What can I get for you?": {
+"d": 2900,
+"f": "f-fa11d83409.mp3"
+},
+"us|f|Hi! I'd like a coffee with milk, please. Can I have a sandwich too? To take away, please. How much is it? Here you are. Thank you!": {
+"d": 9404,
+"f": "f-d5cfa5958d.mp3"
+},
+"us|f|Hi! I'm Sam. What's your name?": {
+"d": 2586,
+"f": "f-ad8468669a.mp3"
+},
+"us|f|Hi! What would you like?": {
+"d": 1620,
+"f": "f-caaa90d276.mp3"
+},
+"us|f|Hi, I'm Ana.": {
+"d": 1489,
+"f": "f-916d57c003.mp3"
+},
+"us|f|Hi, I'm Ana. I'm from Lima, in Peru. I'm a nurse, and I work in a hospital. I'm learning English because I want to travel. I like music and football.": {
+"d": 11494,
+"f": "f-3a068ba29e.mp3"
+},
+"us|f|How much is it?": {
+"d": 940,
+"f": "f-c098beb15f.mp3"
+},
+"us|f|How old are you?": {
+"d": 993,
+"f": "f-c0dcba11d4.mp3"
+},
+"us|f|I am hungry.": {
+"d": 1254,
+"f": "f-37ac6464ad.mp3"
+},
+"us|f|I am thirty years old.": {
+"d": 1541,
+"f": "f-cd80564943.mp3"
+},
+"us|f|I like music and football.": {
+"d": 1985,
+"f": "f-cdfcab5d98.mp3"
+},
+"us|f|I like music.": {
+"d": 1071,
+"f": "f-428e01459d.mp3"
+},
+"us|f|I work in a hospital.": {
+"d": 1306,
+"f": "f-cb70361e48.mp3"
+},
+"us|f|I'd like a coffee with milk, please.": {
+"d": 1985,
+"f": "f-46b2121e6d.mp3"
+},
+"us|f|I'd like a coffee, please.": {
+"d": 1593,
+"f": "f-7b66dcc44d.mp3"
+},
+"us|f|I'll pay by card. Here you are.": {
+"d": 2064,
+"f": "f-fb6d5bb851.mp3"
+},
+"us|f|I'm Ana.": {
+"d": 784,
+"f": "f-503e5938ab.mp3"
+},
+"us|f|I'm a nurse.": {
+"d": 914,
+"f": "f-a0d5b7ccdb.mp3"
+},
+"us|f|I'm a teacher.": {
+"d": 888,
+"f": "f-c00089bebb.mp3"
+},
+"us|f|I'm an engineer.": {
+"d": 1228,
+"f": "f-3a46df4e00.mp3"
+},
+"us|f|I'm from Lima, in Peru.": {
+"d": 1776,
+"f": "f-cadc210da8.mp3"
+},
+"us|f|I'm from Mexico.": {
+"d": 1123,
+"f": "f-2e86f7ac02.mp3"
+},
+"us|f|I'm hungry.": {
+"d": 1071,
+"f": "f-5972982fd3.mp3"
+},
+"us|f|I'm learning English because I want to travel.": {
+"d": 2456,
+"f": "f-a62879e46f.mp3"
+},
+"us|f|I'm thirsty.": {
+"d": 1097,
+"f": "f-243f247b84.mp3"
+},
+"us|f|I'm thirty years old.": {
+"d": 1358,
+"f": "f-3426fcbca9.mp3"
+},
+"us|f|I'm thirty.": {
+"d": 862,
+"f": "f-430f304ef2.mp3"
+},
+"us|f|Is that for here or to take away?": {
+"d": 2142,
+"f": "f-559de72d33.mp3"
+},
+"us|f|It's to take away, please.": {
+"d": 1567,
+"f": "f-738c3d933b.mp3"
+},
+"us|f|Me too! And look: you just had a whole conversation in English.": {
+"d": 4467,
+"f": "f-cc41bc1263.mp3"
+},
+"us|f|Nice to meet you too! Where are you from?": {
+"d": 2638,
+"f": "f-2503013eea.mp3"
+},
+"us|f|Nice to meet you.": {
+"d": 967,
+"f": "f-64753c6fe0.mp3"
+},
+"us|f|Perfect. Here you go, enjoy! Have a nice day.": {
+"d": 3657,
+"f": "f-69f9492049.mp3"
+},
+"us|f|She likes coffee.": {
+"d": 1228,
+"f": "f-cffbb12ba3.mp3"
+},
+"us|f|Small or large?": {
+"d": 1411,
+"f": "f-b6e66515f0.mp3"
+},
+"us|f|Sure. Small, medium or large?": {
+"d": 2821,
+"f": "f-ec5e7b3cd4.mp3"
+},
+"us|f|That's four pounds fifty. Card or cash?": {
+"d": 3004,
+"f": "f-23cb83b982.mp3"
+},
+"us|f|That's four pounds, please.": {
+"d": 1646,
+"f": "f-6e2253c98f.mp3"
+},
+"us|f|To eat here or to take away?": {
+"d": 2038,
+"f": "f-4f4f2aa572.mp3"
+},
+"us|f|To take away, please.": {
+"d": 1306,
+"f": "f-df76560ea6.mp3"
+},
+"us|f|What do you do?": {
+"d": 993,
+"f": "f-ace1084b55.mp3"
+},
+"us|f|What do you like?": {
+"d": 888,
+"f": "f-646580f8aa.mp3"
+},
+"us|f|What's your name?": {
+"d": 888,
+"f": "f-c88dda5d6c.mp3"
+},
+"us|f|Where are you from?": {
+"d": 967,
+"f": "f-7bc5e7f6b5.mp3"
+},
+"us|f|Why are you learning English?": {
+"d": 1567,
+"f": "f-10cd369fd1.mp3"
+},
+"us|f|Yes, I'm hungry.": {
+"d": 1567,
+"f": "f-b7c996d1eb.mp3"
+},
+"us|f|Yes, can I have a croissant, please?": {
+"d": 2168,
+"f": "f-381e6b70b8.mp3"
+},
+"us|f|air": {
+"d": 627,
+"f": "f-d1d9b9355f.mp3"
+},
+"us|f|and": {
+"d": 679,
+"f": "f-cffa50a32c.mp3"
+},
+"us|f|and. hand.": {
+"d": 1698,
+"f": "f-63f88c245a.mp3"
+},
+"us|f|at": {
+"d": 601,
+"f": "f-27e90dfa57.mp3"
+},
+"us|f|ear": {
+"d": 601,
+"f": "f-ddbc618820.mp3"
+},
+"us|f|ear. hear.": {
+"d": 1620,
+"f": "f-f98a24e9e3.mp3"
+},
+"us|f|eat": {
+"d": 549,
+"f": "f-d89455758e.mp3"
+},
+"us|f|especial": {
+"d": 888,
+"f": "f-569b1c7e21.mp3"
+},
+"us|f|espy": {
+"d": 705,
+"f": "f-656a855fd4.mp3"
+},
+"us|f|esquire": {
+"d": 1149,
+"f": "f-8ad9a53bdd.mp3"
+},
+"us|f|estate": {
+"d": 784,
+"f": "f-2528fc8471.mp3"
+},
+"us|f|esteem": {
+"d": 862,
+"f": "f-17b47e5ac6.mp3"
+},
+"us|f|estrange": {
+"d": 993,
+"f": "f-2fe04e3186.mp3"
+},
+"us|f|hair": {
+"d": 653,
+"f": "f-bc70b0511b.mp3"
+},
+"us|f|hair. air.": {
+"d": 1593,
+"f": "f-6d628a1859.mp3"
+},
+"us|f|hand": {
+"d": 705,
+"f": "f-9621a244a4.mp3"
+},
+"us|f|hat": {
+"d": 627,
+"f": "f-10e5866050.mp3"
+},
+"us|f|hat. at.": {
+"d": 1541,
+"f": "f-62b5ff56b5.mp3"
+},
+"us|f|hear": {
+"d": 679,
+"f": "f-ca607cf696.mp3"
+},
+"us|f|heat": {
+"d": 601,
+"f": "f-853911dc66.mp3"
+},
+"us|f|heat. eat.": {
+"d": 1463,
+"f": "f-db82a54a14.mp3"
+},
+"us|f|hold": {
+"d": 705,
+"f": "f-43c88f6f2c.mp3"
+},
+"us|f|hold. old.": {
+"d": 1672,
+"f": "f-d2957154c1.mp3"
+},
+"us|f|old": {
+"d": 653,
+"f": "f-c00dbbc9da.mp3"
+},
+"us|f|special": {
+"d": 862,
+"f": "f-ba36b97a41.mp3"
+},
+"us|f|special. especial.": {
+"d": 2038,
+"f": "f-2adaaaefe3.mp3"
+},
+"us|f|spy": {
+"d": 836,
+"f": "f-3e6a717447.mp3"
+},
+"us|f|spy. espy.": {
+"d": 1829,
+"f": "f-61fc3df20c.mp3"
+},
+"us|f|squire": {
+"d": 836,
+"f": "f-79ab904634.mp3"
+},
+"us|f|squire. esquire.": {
+"d": 2273,
+"f": "f-2c1925ad50.mp3"
+},
+"us|f|state": {
+"d": 758,
+"f": "f-aa4a5f8125.mp3"
+},
+"us|f|state. estate.": {
+"d": 1855,
+"f": "f-6dc2e5628c.mp3"
+},
+"us|f|steam": {
+"d": 836,
+"f": "f-bf2903b55e.mp3"
+},
+"us|f|steam. esteem.": {
+"d": 1985,
+"f": "f-a7286af149.mp3"
+},
+"us|f|strange": {
+"d": 1019,
+"f": "f-1468ebe41e.mp3"
+},
+"us|f|strange. estrange.": {
+"d": 2325,
+"f": "f-0f38b18771.mp3"
+},
+"us|m|A coffee with milk, please.": {
+"d": 1541,
+"f": "m-1d36089cd0.mp3"
+},
+"us|m|A medium one, please.": {
+"d": 1254,
+"f": "m-349a77d781.mp3"
+},
+"us|m|A small one, please.": {
+"d": 1176,
+"f": "m-bdccc33781.mp3"
+},
+"us|m|And what do you do?": {
+"d": 1149,
+"f": "m-0381484abf.mp3"
+},
+"us|m|Anything to eat with that?": {
+"d": 1097,
+"f": "m-1838825e14.mp3"
+},
+"us|m|Anything to eat?": {
+"d": 862,
+"f": "m-ba2b9b94ee.mp3"
+},
+"us|m|Are you hungry?": {
+"d": 784,
+"f": "m-0a7f5358f4.mp3"
+},
+"us|m|Because I want to travel.": {
+"d": 1384,
+"f": "m-5be78409c8.mp3"
+},
+"us|m|Can I have a sandwich, please?": {
+"d": 1489,
+"f": "m-2019e1b873.mp3"
+},
+"us|m|Can I have the bill, please?": {
+"d": 1332,
+"f": "m-f04323cc8a.mp3"
+},
+"us|m|Can I pay by card, please?": {
+"d": 1463,
+"f": "m-e4c7f6b3b1.mp3"
+},
+"us|m|Cool! How old are you, if you don't mind?": {
+"d": 2560,
+"f": "m-21b861a40a.mp3"
+},
+"us|m|Great reason. And what do you like?": {
+"d": 2351,
+"f": "m-3a5aea49d3.mp3"
+},
+"us|m|Here you are.": {
+"d": 653,
+"f": "m-f51fb7f4ea.mp3"
+},
+"us|m|Here you are. Thank you.": {
+"d": 1358,
+"f": "m-6a0a1396b0.mp3"
+},
+"us|m|Hi Sam, I'm Ana. Nice to meet you.": {
+"d": 2456,
+"f": "m-f86b4b36d7.mp3"
+},
+"us|m|Hi there! Welcome. What can I get for you?": {
+"d": 2482,
+"f": "m-fa11d83409.mp3"
+},
+"us|m|Hi! I'd like a coffee with milk, please. Can I have a sandwich too? To take away, please. How much is it? Here you are. Thank you!": {
+"d": 8542,
+"f": "m-d5cfa5958d.mp3"
+},
+"us|m|Hi! I'm Sam. What's your name?": {
+"d": 2403,
+"f": "m-ad8468669a.mp3"
+},
+"us|m|Hi! What would you like?": {
+"d": 1411,
+"f": "m-caaa90d276.mp3"
+},
+"us|m|Hi, I'm Ana.": {
+"d": 1280,
+"f": "m-916d57c003.mp3"
+},
+"us|m|Hi, I'm Ana. I'm from Lima, in Peru. I'm a nurse, and I work in a hospital. I'm learning English because I want to travel. I like music and football.": {
+"d": 10162,
+"f": "m-3a068ba29e.mp3"
+},
+"us|m|How much is it?": {
+"d": 784,
+"f": "m-c098beb15f.mp3"
+},
+"us|m|How old are you?": {
+"d": 810,
+"f": "m-c0dcba11d4.mp3"
+},
+"us|m|I am hungry.": {
+"d": 1228,
+"f": "m-37ac6464ad.mp3"
+},
+"us|m|I am thirty years old.": {
+"d": 1411,
+"f": "m-cd80564943.mp3"
+},
+"us|m|I like music and football.": {
+"d": 1646,
+"f": "m-cdfcab5d98.mp3"
+},
+"us|m|I like music.": {
+"d": 888,
+"f": "m-428e01459d.mp3"
+},
+"us|m|I work in a hospital.": {
+"d": 1071,
+"f": "m-cb70361e48.mp3"
+},
+"us|m|I'd like a coffee with milk, please.": {
+"d": 1802,
+"f": "m-46b2121e6d.mp3"
+},
+"us|m|I'd like a coffee, please.": {
+"d": 1358,
+"f": "m-7b66dcc44d.mp3"
+},
+"us|m|I'll pay by card. Here you are.": {
+"d": 1855,
+"f": "m-fb6d5bb851.mp3"
+},
+"us|m|I'm Ana.": {
+"d": 627,
+"f": "m-503e5938ab.mp3"
+},
+"us|m|I'm a nurse.": {
+"d": 862,
+"f": "m-a0d5b7ccdb.mp3"
+},
+"us|m|I'm a teacher.": {
+"d": 731,
+"f": "m-c00089bebb.mp3"
+},
+"us|m|I'm an engineer.": {
+"d": 914,
+"f": "m-3a46df4e00.mp3"
+},
+"us|m|I'm from Lima, in Peru.": {
+"d": 1698,
+"f": "m-cadc210da8.mp3"
+},
+"us|m|I'm from Mexico.": {
+"d": 993,
+"f": "m-2e86f7ac02.mp3"
+},
+"us|m|I'm hungry.": {
+"d": 1019,
+"f": "m-5972982fd3.mp3"
+},
+"us|m|I'm learning English because I want to travel.": {
+"d": 2194,
+"f": "m-a62879e46f.mp3"
+},
+"us|m|I'm thirsty.": {
+"d": 1045,
+"f": "m-243f247b84.mp3"
+},
+"us|m|I'm thirty years old.": {
+"d": 1149,
+"f": "m-3426fcbca9.mp3"
+},
+"us|m|I'm thirty.": {
+"d": 731,
+"f": "m-430f304ef2.mp3"
+},
+"us|m|Is that for here or to take away?": {
+"d": 2011,
+"f": "m-559de72d33.mp3"
+},
+"us|m|It's to take away, please.": {
+"d": 1515,
+"f": "m-738c3d933b.mp3"
+},
+"us|m|Me too! And look: you just had a whole conversation in English.": {
+"d": 4075,
+"f": "m-cc41bc1263.mp3"
+},
+"us|m|Nice to meet you too! Where are you from?": {
+"d": 2403,
+"f": "m-2503013eea.mp3"
+},
+"us|m|Nice to meet you.": {
+"d": 810,
+"f": "m-64753c6fe0.mp3"
+},
+"us|m|Perfect. Here you go, enjoy! Have a nice day.": {
+"d": 3527,
+"f": "m-69f9492049.mp3"
+},
+"us|m|She likes coffee.": {
+"d": 1045,
+"f": "m-cffbb12ba3.mp3"
+},
+"us|m|Small or large?": {
+"d": 1332,
+"f": "m-b6e66515f0.mp3"
+},
+"us|m|Sure. Small, medium or large?": {
+"d": 2612,
+"f": "m-ec5e7b3cd4.mp3"
+},
+"us|m|That's four pounds fifty. Card or cash?": {
+"d": 2847,
+"f": "m-23cb83b982.mp3"
+},
+"us|m|That's four pounds, please.": {
+"d": 1515,
+"f": "m-6e2253c98f.mp3"
+},
+"us|m|To eat here or to take away?": {
+"d": 1855,
+"f": "m-4f4f2aa572.mp3"
+},
+"us|m|To take away, please.": {
+"d": 1280,
+"f": "m-df76560ea6.mp3"
+},
+"us|m|What do you do?": {
+"d": 731,
+"f": "m-ace1084b55.mp3"
+},
+"us|m|What do you like?": {
+"d": 810,
+"f": "m-646580f8aa.mp3"
+},
+"us|m|What's your name?": {
+"d": 758,
+"f": "m-c88dda5d6c.mp3"
+},
+"us|m|Where are you from?": {
+"d": 862,
+"f": "m-7bc5e7f6b5.mp3"
+},
+"us|m|Why are you learning English?": {
+"d": 1358,
+"f": "m-10cd369fd1.mp3"
+},
+"us|m|Yes, I'm hungry.": {
+"d": 1332,
+"f": "m-b7c996d1eb.mp3"
+},
+"us|m|Yes, can I have a croissant, please?": {
+"d": 1959,
+"f": "m-381e6b70b8.mp3"
+},
+"us|m|air": {
+"d": 575,
+"f": "m-d1d9b9355f.mp3"
+},
+"us|m|and": {
+"d": 601,
+"f": "m-cffa50a32c.mp3"
+},
+"us|m|and. hand.": {
+"d": 1541,
+"f": "m-63f88c245a.mp3"
+},
+"us|m|at": {
+"d": 549,
+"f": "m-27e90dfa57.mp3"
+},
+"us|m|ear": {
+"d": 522,
+"f": "m-ddbc618820.mp3"
+},
+"us|m|ear. hear.": {
+"d": 1463,
+"f": "m-f98a24e9e3.mp3"
+},
+"us|m|eat": {
+"d": 522,
+"f": "m-d89455758e.mp3"
+},
+"us|m|especial": {
+"d": 888,
+"f": "m-569b1c7e21.mp3"
+},
+"us|m|espy": {
+"d": 601,
+"f": "m-656a855fd4.mp3"
+},
+"us|m|esquire": {
+"d": 784,
+"f": "m-8ad9a53bdd.mp3"
+},
+"us|m|estate": {
+"d": 758,
+"f": "m-2528fc8471.mp3"
+},
+"us|m|esteem": {
+"d": 836,
+"f": "m-17b47e5ac6.mp3"
+},
+"us|m|estrange": {
+"d": 1019,
+"f": "m-2fe04e3186.mp3"
+},
+"us|m|hair": {
+"d": 601,
+"f": "m-bc70b0511b.mp3"
+},
+"us|m|hair. air.": {
+"d": 1463,
+"f": "m-6d628a1859.mp3"
+},
+"us|m|hand": {
+"d": 627,
+"f": "m-9621a244a4.mp3"
+},
+"us|m|hat": {
+"d": 575,
+"f": "m-10e5866050.mp3"
+},
+"us|m|hat. at.": {
+"d": 1437,
+"f": "m-62b5ff56b5.mp3"
+},
+"us|m|hear": {
+"d": 601,
+"f": "m-ca607cf696.mp3"
+},
+"us|m|heat": {
+"d": 575,
+"f": "m-853911dc66.mp3"
+},
+"us|m|heat. eat.": {
+"d": 1411,
+"f": "m-db82a54a14.mp3"
+},
+"us|m|hold": {
+"d": 549,
+"f": "m-43c88f6f2c.mp3"
+},
+"us|m|hold. old.": {
+"d": 1411,
+"f": "m-d2957154c1.mp3"
+},
+"us|m|old": {
+"d": 549,
+"f": "m-c00dbbc9da.mp3"
+},
+"us|m|special": {
+"d": 784,
+"f": "m-ba36b97a41.mp3"
+},
+"us|m|special. especial.": {
+"d": 1959,
+"f": "m-2adaaaefe3.mp3"
+},
+"us|m|spy": {
+"d": 784,
+"f": "m-3e6a717447.mp3"
+},
+"us|m|spy. espy.": {
+"d": 1698,
+"f": "m-61fc3df20c.mp3"
+},
+"us|m|squire": {
+"d": 784,
+"f": "m-79ab904634.mp3"
+},
+"us|m|squire. esquire.": {
+"d": 1855,
+"f": "m-2c1925ad50.mp3"
+},
+"us|m|state": {
+"d": 705,
+"f": "m-aa4a5f8125.mp3"
+},
+"us|m|state. estate.": {
+"d": 1776,
+"f": "m-6dc2e5628c.mp3"
+},
+"us|m|steam": {
+"d": 758,
+"f": "m-bf2903b55e.mp3"
+},
+"us|m|steam. esteem.": {
+"d": 1907,
+"f": "m-a7286af149.mp3"
+},
+"us|m|strange": {
+"d": 993,
+"f": "m-1468ebe41e.mp3"
+},
+"us|m|strange. estrange.": {
+"d": 2325,
+"f": "m-0f38b18771.mp3"
+}
+},
+"note": "Made by audio_build.py. Keys: accent|gender|text, exactly as the page speaks it."
+}

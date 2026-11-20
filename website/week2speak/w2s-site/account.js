@@ -210,7 +210,7 @@ function paintNav() {
 }
 
 /* ---------- free use: count, and stop at the limit ---------- */
-const ANON = {speak: 3, game: 1, shadow: 2, lesson: 1};
+const ANON = {speak: 5, game: 1, shadow: 2, lesson: 1};
 function usedToday(kind) {
   if (!user()) return (store.get('w2s.anon', {})[kind] || 0);
   return (ME.usage && ME.usage[kind]) || 0;

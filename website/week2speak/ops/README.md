@@ -13,5 +13,8 @@ Baseline facts at audit time (live D1, read-only aggregate query, 20 Nov 2026): 
 Recommended first task: **T1, make one test purchase work end to end** (owner sets the webhook secret and Mei's
 three contact details; an agent then tests with a Stripe test card).
 
-Planned files in this folder (task T4, not written yet): `brand.md`, `audience.md`, `product.md`, `teaching.md`,
+Drafts for task T4 (20 Nov, not approved yet): `brand.md`, `audience.md`, `product.md`, `teaching.md`,
 `experiments.md`. `decisions.md` is below.
+
+Also here: `weekly_metrics.py` (T6, read-only weekly numbers; `python3 ops/weekly_metrics.py --md`) and
+`lesson_review_day1_day2.md` (the Day 1-2 quality review that replaced the T7 checklist).

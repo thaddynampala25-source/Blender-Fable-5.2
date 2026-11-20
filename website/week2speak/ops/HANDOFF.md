@@ -76,3 +76,19 @@ output and cost before any generation), anonymous first-party practice counts (n
 - `anthropic-skills:saas-animation` (storyboard first, approval before render): animated Buddy content.
 - `dataviz`: when the weekly numbers become a chart.
 - `anthropic-skills:find-skills`: Tool Scout comparisons before installing anything.
+
+## Update, 20 Nov 2026 (later the same day)
+
+Owner decisions: anonymous Modo Habla limit is **5** (T8 done); recorded voices **approved** (ElevenLabs connected);
+T7 replaced by a real review of Days 1 and 2; T4 drafts wanted.
+
+Done on the branch, **built and tested, not deployed** (deploy needs the owner's yes):
+- `account.js` `ANON.speak` 5. Day 1-2 content fixes (see `ops/lesson_review_day1_day2.md`).
+- 198 recorded clips for every fixed Day 1-2 line (US, female Matilda and male Chris), `w2s-site/audio/`, shipped as
+  `/media/voice/` + `window.W2S_AUDIO` in config.js. Tools: `audio_lines.py`, `audio_build.py`. 12,284 of 40,000
+  monthly ElevenLabs credits used. Days 3-7 would cost about the same again per two days.
+- `ops/weekly_metrics.py` (T6). Visits fail until the token has Zone Analytics Read (T3).
+- T4 drafts: `ops/brand.md`, `audience.md`, `product.md`, `teaching.md`, `experiments.md`.
+
+Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git lfs install --local && git lfs pull`
+**before `npm run build`**, or the built site ships 130-byte .glb files and the Buddies never load.
