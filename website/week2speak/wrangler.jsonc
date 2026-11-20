@@ -17,9 +17,9 @@
   ],
   "vars": {
     "PLACES_TOTAL": "5",
-    "TUTOR_EMAILS": "",
-    "TUTOR_WHATSAPP": "",
-    "CAL_LINK": "",
+    "TUTOR_EMAILS": "wamulow@gmail.com",
+    "TUTOR_WHATSAPP": "447956095685",
+    "CAL_LINK": "https://cal.com/meipb/30min",
     // Stripe Payment Links per price tier (TEST mode; swap for the live links before launch)
     "PAY_LINKS": "{\"gbp\": \"https://buy.stripe.com/test_00wdR8ekga6bgQ92eSebu00\", \"eur\": \"https://buy.stripe.com/test_5kQ00i8ZW3HN0Rb4n0ebu01\", \"eur_es\": \"https://buy.stripe.com/test_5kQfZg7VSbaf6bv7zcebu02\", \"usd\": \"https://buy.stripe.com/test_cNi7sKfok4LRbvP9Hkebu03\", \"usd_latam\": \"https://buy.stripe.com/test_7sYfZg3FCa6b8jD5r4ebu04\", \"mxn\": \"https://buy.stripe.com/test_7sY28qcc8emr43nf1Eebu05\", \"cop\": \"https://buy.stripe.com/test_9B66oGb84fqv43n6v8ebu06\"}",
     "SHOW_ANCHOR": "0"
