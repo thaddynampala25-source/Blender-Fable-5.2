@@ -211,6 +211,11 @@ CAT = [
      'Type an English sentence just as you would say it. Mistakes that come from Spanish pop up as you type.'),
     ('Your English sentence', 'Tu frase en inglés'),
     ('Tap the words in order to build the sentence.', 'Toca las palabras en orden para formar la frase.'),
+    # practice loop (apply_ux.py): the home sample
+    ('Introduce yourself in English', 'Preséntate en inglés'),
+    ('Free, no account. Tap the words in order, then say them out loud.', 'Gratis y sin cuenta. Toca las palabras en orden y luego dilas en voz alta.'),
+    ('Four real Day 1 sentences. Tap the words in order, hear the sentence, say it out loud.', 'Cuatro frases reales del Día 1. Toca las palabras en orden, escucha la frase y dila en voz alta.'),
+    ('Tap the words in order to build the sentence. Tap a word in the sentence to take it back.', 'Toca las palabras en orden para formar la frase. Toca una palabra de la frase para quitarla.'),
     ('Your sentence', 'Tu frase'),
     ('Words', 'Palabras'),
     ('Open Speech Mode', 'Abrir Modo Habla'),

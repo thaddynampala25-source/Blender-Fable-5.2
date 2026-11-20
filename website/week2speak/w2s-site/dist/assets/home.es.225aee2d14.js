@@ -106,7 +106,7 @@ const fPlay = $('#fPlay'), fSeek = $('#fSeek'), fTime = $('#fTime'), fCap = $('#
 const CAPS = {
   speak: 'Modo Habla. Respondes en voz alta, un error que viene del español recibe una corrección de una línea y, si te bloqueas, Ayúdame te da cómo empezar.',
   order: 'Ordena la frase. Arma la frase con fichas y luego dila. Cada frase correcta sube el combo.',
-  shadow: 'Imita. Escucha, habla a la vez y luego hazlo solo. La puntuación cuenta cuántas palabras se oyeron con claridad.',
+  shadow: 'Imita. Escucha, habla a la vez y luego hazlo solo. La puntuación cuenta cuántas palabras reconoció el micrófono.',
   rec: 'Grabación de pantalla de la app de prueba, hecha en un navegador. Sin sonido.'
 };
 const F = {active: 'speak', playing: false, inView: false, tls: {}, drag: false, fresh: false};
@@ -225,13 +225,15 @@ $('#cChips').addEventListener('click', e => { const b = e.target.closest('[data-
 catchIt();
 
 /* ---------- playground 2: word order ---------- */
-const GS = ['Where is the bus station?', 'Can you help me, please?', 'I am twenty-five years old.', 'What time does the shop open?'];
+const GS = ["Hi, I'm Ana.", "I'm from Colombia.", "I'm thirty years old.", 'Nice to meet you.'];
 const gTray = $('#gTray'), gPool = $('#gPool'), gMsg = $('#gMsg'), gDots = $('#gDots'); const GM = {i: 0, toks: [], busy: false};
 const shuffle = a => { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
 function gDotsDraw() { gDots.innerHTML = GS.map((_, k) => `<i class="${k < GM.i ? 'd' : k === GM.i ? 'c' : ''}"></i>`).join(''); }
 function gLoad() {
-  GM.busy = false; gTray.classList.remove('ok'); gTray.innerHTML = ''; gMsg.textContent = ''; gMsg.className = 'gmsg'; gDotsDraw();
-  if (GM.i >= GS.length) { gPool.innerHTML = '<button type="button" class="key cobalt" id="gAgain">Jugar otra vez</button>'; gMsg.textContent = '¡Cuatro frases armadas! Ahora di cada una en voz alta.'; gMsg.className = 'gmsg ok'; return; }
+  GM.busy = false; gTray.classList.remove('ok'); gTray.innerHTML = ''; gMsg.textContent = ''; gMsg.className = 'gmsg'; gDotsDraw(); gAct.innerHTML = '';
+  if (GM.i >= GS.length) { gPool.innerHTML = ''; gMsg.textContent = 'Ya puedes presentarte con cuatro frases. El Día 1 tiene ocho más.'; gMsg.className = 'gmsg ok done';
+    gAct.innerHTML = '<a class="key hl big" href="' + W.path('games') + '" data-go=\'{"game":"order","day":0}\'>' + 'Juega la ronda del Día 1' + '</a><a class="key" href="' + W.path('speak') + '" data-go=\'{"mission":"cafe"}\'>' + 'Pide un café con un Buddy' + '</a><button type="button" class="key ghost" id="gAgain">Jugar otra vez</button>';
+    W.track && W.track('round_complete', {mode: 'home:order'}); W.burst(gMsg); return; }
   GM.toks = GS[GM.i].replace(/[.,?!]/g, '').split(' ');
   let p; do { p = shuffle(GM.toks.map((_, k) => k)); } while (p.every((v, k) => v === k));
   gPool.innerHTML = p.map(k => `<button type="button" class="tile" data-k="${k}">${esc(GM.toks[k])}</button>`).join('');
@@ -243,19 +245,26 @@ function flipTo(tile, parent) {
 }
 function gClick(e) {
   if (e.target.id === 'gAgain') { GM.i = 0; gLoad(); return; }
-  const t = e.target.closest('.tile'); if (!t || GM.busy) return;
+  const t = e.target.closest('.tile'); if (!t || GM.busy) return; if (W.track && !GM.started) { GM.started = true; W.track('practice_start', {mode: 'home:order'}); }
   flipTo(t, t.parentElement === gPool ? gTray : gPool); gMsg.textContent = ''; gMsg.className = 'gmsg';
   if (gPool.children.length) return;
   const built = $$('.tile', gTray).map(x => x.textContent).join(' ').toLowerCase();
   if (built === GM.toks.join(' ').toLowerCase()) {
-    GM.busy = true; gTray.classList.add('ok'); gMsg.textContent = GS[GM.i] + ' Dila en voz alta.'; gMsg.className = 'gmsg ok'; W.burst(gTray); W.Voice.speak(GS[GM.i], {rate: .95}); W.addXP(10); W.logLine('Inicio: Ordena la frase', GS[GM.i]);
-    if (live) gs.fromTo(gTray.children, {y: 0}, {y: -10, duration: .18, ease: 'power2.out', yoyo: true, repeat: 1, stagger: .04});
-    setTimeout(() => { GM.i++; gLoad(); }, 1900);
+    GM.busy = true; gTray.classList.add('ok'); gMsg.innerHTML = '<b lang="en">' + esc(GS[GM.i]) + '</b> ' + esc('Ahora dila en voz alta.'); gMsg.className = 'gmsg ok'; W.Voice.speak(GS[GM.i], {rate: .95}); W.addXP(10); W.logLine('Inicio: Ordena la frase', GS[GM.i]);
+    W.track && W.track('feedback', {mode: 'home:order', result: 'right'});
+    if (live) gs.fromTo(gTray.children, {y: 0}, {y: -6, duration: .12, ease: 'power2.out', yoyo: true, repeat: 1});
+    gAct.innerHTML = '<button type="button" class="key" id="gHear">' + W.ic('speaker') + 'Escúchalo' + '</button><button type="button" class="key primary" id="gNext">' + (GM.i + 1 < GS.length ? 'Siguiente frase' : 'Ver cómo te fue') + W.ic('arrow') + '</button>';
+    const nx = document.getElementById('gNext'); if (nx) nx.focus({preventScroll: true});
   } else {
-    gMsg.textContent = 'Todavía no. Empieza por "' + GM.toks.slice(0, 2).join(' ') + '". Toca una palabra para quitarla.'; gMsg.className = 'gmsg no';
+    gMsg.textContent = 'Todavía no. Empieza por "' + GM.toks.slice(0, 2).join(' ') + '". Toca una palabra para quitarla.'; gMsg.className = 'gmsg no'; W.track && W.track('feedback', {mode: 'home:order', result: 'retry'});
     if (live) gs.fromTo(gTray, {x: -8}, {x: 0, duration: .5, ease: 'elastic.out(1.2,.25)'});
   }
 }
+const gAct = $('#gAct');
+gAct.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'gHear') W.Voice.speak(GS[GM.i], {rate: .9});
+  else if (b.id === 'gNext') { W.Voice.stop(); GM.i++; gLoad(); W.track && W.track('next', {mode: 'home:order'}); const f = gPool.querySelector('.tile'); if (f) f.focus({preventScroll: true}); }
+  else if (b.id === 'gAgain') { GM.i = 0; gLoad(); } });
 gTray.addEventListener('click', gClick); gPool.addEventListener('click', gClick); gLoad();
 
 /* ---------- the week, sideways ---------- */

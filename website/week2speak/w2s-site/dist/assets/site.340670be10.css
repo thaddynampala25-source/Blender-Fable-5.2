@@ -1136,7 +1136,7 @@ body[data-page="speak"] .fx-use{top:auto;bottom:calc(84px + env(safe-area-inset-
   body[data-page="speak"] .nav .tabs{display:none}
   body[data-page="speak"] .menu-open .tabs{display:grid;position:absolute;left:0;right:0;top:100%;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:6px;padding:12px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));background:var(--night);border-top:1px solid var(--night-2);box-shadow:0 18px 30px rgba(11,16,58,.35);max-height:calc(100svh - 100%);overflow-y:auto;overscroll-behavior:contain}
   body[data-page="speak"] .nav.menu-open .tabs a[href]{min-height:48px;justify-content:flex-start;padding:10px 14px;font-size:1rem;background:var(--night-2)}
-  body[data-page="speak"] .nav-in{height:auto;min-height:48px;padding-block:4px;flex-wrap:wrap}
+  body[data-page="speak"] .nav-in{height:auto;min-height:48px;padding-block:0;flex-wrap:wrap}
 }
 .nav .tabs a[href][aria-current="page"],.nav.menu-open .tabs a[href][aria-current="page"],body[data-page="speak"] .nav.menu-open .tabs a[href][aria-current="page"]{background:var(--hl);color:var(--ink)}
 .nav.menu-open .tabs a[href]:hover,body[data-page="speak"] .nav.menu-open .tabs a[href]:hover{background:var(--hl);color:var(--ink)}
@@ -1159,3 +1159,75 @@ body[data-page="speak"] .fx-use{top:auto;bottom:calc(84px + env(safe-area-inset-
 @media (min-width:720px) and (max-width:899px){body[data-page="speak"] .nav .tabs .nav-xtra{display:none}}
 @media (max-width:419px){.nav-menu .t{display:none}.nav-menu{padding:0 9px}.nav-join{padding:9px 12px;font-size:.86rem}}
 @media (max-width:340px){.nav .logo{font-size:1.05rem}.nav-in,body[data-page="speak"] .nav-in{column-gap:6px}.nav-join{padding:8px 10px;font-size:.8rem}.nav-menu{padding:0 8px}}
+
+/* ===== Practice loop (apply_ux.py): shared tokens, feedback, tiles, recap, home sample, resume ===== */
+:root{--t-press:100ms;--t-move:190ms;--ease-out:cubic-bezier(.2,.8,.2,1);--fb-min:96px;--say-size:clamp(1.35rem,4.6vw,1.9rem)}
+/* press: an immediate state change, hit area unchanged */
+.key,.tile,.chip,.seg button{transition:transform var(--t-press) var(--ease-out),box-shadow var(--t-press) var(--ease-out),background .15s}
+.key:active:not(:disabled),.chip:active,.seg button:active{transform:translateY(1px) scale(.98)}
+.tile:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+:where(button,a,input,textarea,[tabindex]):focus-visible{outline:3px solid var(--focus,#101642);outline-offset:2px}
+/* feedback: same place every time, space reserved so controls do not jump */
+#gameBody .fb{min-height:var(--fb-min);align-content:start}
+#gameBody .fb-empty{visibility:hidden}
+.fb .fb-t{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:800}
+.fb .fb-t .ic{width:1.2em;height:1.2em;flex:none}
+.fb .xp-chip,.recap .xp-chip{margin-left:auto;font:700 .78rem/1 var(--f-body);padding:4px 8px;border-radius:99px;background:rgba(255,255,255,.75);color:var(--ink-2)}
+.fb .fb-say{margin:2px 0 0;font:800 var(--say-size)/1.15 var(--f-display);font-stretch:84%;letter-spacing:-.015em;color:var(--ink)}
+.fb .fb-b{font-weight:500;color:var(--ink)}
+.fb.warn{background:var(--note-bg);color:var(--note)}
+.fb.nudge{animation:fbNudge .22s var(--ease-out)}
+@keyframes fbNudge{0%{transform:translateX(-5px)}60%{transform:translateX(3px)}100%{transform:none}}
+/* tray keeps its shape: room for two rows of tiles before anything is placed */
+#gameBody .tray{min-height:118px;align-content:flex-start}
+#gameBody .pool{min-height:60px}
+#gameBody .tile.gone{visibility:hidden}
+/* round recap */
+.recap{display:grid;gap:14px}
+.recap-h{font-size:clamp(1.6rem,5vw,2rem)}
+.recap-h:focus{outline:none}
+.recap-score{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0;color:var(--ink-2);font-weight:600}
+.recap-score .score{font:800 2rem/1 var(--f-display);color:var(--ink)}
+.recap-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.recap-list li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--surface-2);font-weight:700}
+.recap-list li .ic{width:1.1em;height:1.1em;flex:none}
+.recap-list li.ok .ic{color:var(--ok)}
+.recap-list li.miss{background:var(--bad-bg)}
+.recap-list li.miss .ic{color:var(--bad)}
+/* Imita: next mode */
+.sh-next{margin-top:12px}
+/* home: the first action, the note under it, Continue */
+.hero-cta{margin-top:4px}
+.hero-note{margin:12px 0 0;font-size:.95rem;opacity:.85}
+.resume{display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:12px 16px;border-radius:16px;background:var(--white);color:var(--ink);text-decoration:none;box-shadow:0 6px 18px rgba(11,16,58,.18);max-width:30rem}
+.resume[hidden]{display:none}
+.resume-k{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--brand)}
+.resume b{flex:1;min-width:0;font:800 1.1rem/1.2 var(--f-display)}
+.resume .ic{width:1.3em;height:1.3em;flex:none}
+#try .g-act{margin-top:10px;gap:10px}
+#try .g-act:empty{display:none}
+#try .gmsg b{font:800 1.3rem/1.2 var(--f-display);color:var(--ink);display:block;margin-bottom:2px}
+#try .tray{min-height:118px}
+/* the usage note sits under the page heading, in the flow, clear of every control */
+.vh .fx-use{position:static;margin-top:10px;box-shadow:none;border:1px solid var(--line)}
+/* Juegos on a phone: the first question on the first screen */
+@media (max-width:699px){
+  body[data-page="games"] .vh p{display:none}
+  body[data-page="games"] .vh h1{font-size:clamp(1.7rem,8vw,2.2rem)}
+  body[data-page="games"] .game{gap:10px}
+  body[data-page="games"] .vh{padding-top:14px;padding-bottom:6px}
+  #gameTabs{display:flex;flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;gap:6px;padding:4px;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+  #gameTabs::-webkit-scrollbar{display:none}
+  #gameTabs button{flex:none;scroll-snap-align:start;min-height:44px;padding:6px 14px;font-size:.92rem;white-space:nowrap}
+  #gameTabs button:last-child{margin-right:28px}
+  #gameDays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+  #gameDays .chip{min-height:44px;padding:4px 0;font-size:.8rem;justify-content:center;text-align:center}
+  #gameBody .tray{min-height:100px}
+  #gameBody{padding-top:14px}
+}
+/* reduced motion: every state change kept, travel and shakes removed */
+@media (prefers-reduced-motion:reduce){
+  .fb.nudge{animation:none}
+  .key,.tile,.chip,.seg button{transition:none}
+  .key:active:not(:disabled),.chip:active,.seg button:active,.tile:active:not(:disabled){transform:none}
+}

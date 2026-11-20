@@ -29,7 +29,7 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.536ad9b0f9.css" onerror="if(!this.dataset.retry){this.dataset.retry=1;this.href=this.href.split('?')[0]+'?retry='+Date.now()}">
+<link rel="stylesheet" href="/assets/site.340670be10.css" onerror="if(!this.dataset.retry){this.dataset.retry=1;this.href=this.href.split('?')[0]+'?retry='+Date.now()}">
 <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "EducationalOrganization", "@id": "https://week2speak.com/#org", "name": "Week2Speak", "url": "https://week2speak.com/", "logo": "https://week2speak.com/apple-touch-icon.png", "description": "English speaking practice and tutoring for Spanish speakers.", "email": "hello@week2speak.com", "founder": {"@type": "Person", "name": "Mei Gabriela Parrablanco"}}, {"@type": "WebSite", "@id": "https://week2speak.com/#site", "url": "https://week2speak.com/en/", "name": "Week2Speak", "inLanguage": "en", "publisher": {"@id": "https://week2speak.com/#org"}}, {"@type": "VideoObject", "name": "Week2Speak practice app walkthrough", "description": "A 53-second screen recording of the Week2Speak practice rooms: a first sentence, Word Order, Speech Mode with a Spanish-speaker fix, and shadowing.", "thumbnailUrl": "https://week2speak.com/media/poster.jpg", "contentUrl": "https://week2speak.com/media/demo.mp4", "uploadDate": "2026-11-11", "duration": "PT53S", "inLanguage": "en"}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is Week2Speak?", "acceptedAnswer": {"@type": "Answer", "text": "Week2Speak is a programme for speaking English, designed for Spanish speakers. It combines a 7-Day Sprint with Mei, a tutor who speaks Spanish, short lessons and rooms for practising out loud: Speech Mode, sentence games and shadowing."}}, {"@type": "Question", "name": "Can you really speak English in 7 days?", "acceptedAnswer": {"@type": "Answer", "text": "You will not be fluent in 7 days. The Sprint aims for something smaller and real: by Day 7 you can introduce yourself, order, ask questions and give a 2-minute talk in English without a script. Your Day 1 and Day 7 recordings show the change."}}, {"@type": "Question", "name": "Who is Week2Speak for?", "acceptedAnswer": {"@type": "Answer", "text": "Adults whose first language is Spanish who are starting from zero, or who understand some English but freeze when they speak. You do not need to know grammar: you start by saying sentences."}}, {"@type": "Question", "name": "How much does it cost?", "acceptedAnswer": {"@type": "Answer", "text": "An account is free: you get Speech Mode, the games, shadowing and lessons 1 and 2 of the course, with a daily limit. The 7-Day Sprint is a single payment: in the UK it costs £49, and in other countries you see the price in your currency before you pay."}}, {"@type": "Question", "name": "Do I need to download an app?", "acceptedAnswer": {"@type": "Answer", "text": "No. Everything runs in the browser on your phone or computer. The microphone works in Chrome, Edge and Safari; in other browsers you can type your answers instead."}}, {"@type": "Question", "name": "Which English accents can I learn?", "acceptedAnswer": {"@type": "Answer", "text": "American, British and Australian. The voices come from your own device, so the accents you hear depend on the voices your phone or computer has installed."}}]}]}</script>
 </head>
 <body data-page="home" data-lang="en">
@@ -52,10 +52,12 @@
     <div>
       <h1 id="heroLine" aria-label="Speak English in 7 days."><span class="w" aria-hidden="true">Speak</span> <span class="w" aria-hidden="true">English</span><br><span class="w" aria-hidden="true">in</span> <span class="w" aria-hidden="true">7</span> <span class="w" aria-hidden="true">days.</span></h1>
       <p class="lede">Real sentences, out loud, from the first day. Made for Spanish speakers by a tutor who knows where you trip up going from Spanish to English.</p>
-      <div class="row">
-        <a class="key hl big" data-magnet href="/en/7-day-sprint/">Start the 7-Day Sprint</a>
-        <a class="key ghost big" data-magnet href="#films" data-jump="films">Watch a session</a>
+      <a class="resume" id="resume" hidden></a>
+      <div class="row hero-cta">
+        <a class="key hl big" data-magnet href="#try" data-jump="try">Introduce yourself in English</a>
+        <a class="key ghost big" href="/en/7-day-sprint/">Start the 7-Day Sprint</a>
       </div>
+      <p class="hero-note">Free, no account. Tap the words in order, then say them out loud.</p>
     </div>
     <div class="flips" id="flips" aria-label="Typical Spanish-speaker mistakes, and how to say it right">
       <button class="flip" type="button"><span class="es" lang="es">Tengo 25 años</span><span class="bad">I have 25 years</span><span class="good"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>I'm 25 years old</span></button>
@@ -66,6 +68,30 @@
   </div>
   <div class="marquee" aria-hidden="true"><div class="marquee-track" id="mq"></div></div>
 </section>
+
+<section class="try light" id="try"><div class="wrap">
+  <h2 data-split>Introduce yourself in English</h2>
+  <p class="sub">Four real Day 1 sentences. Tap the words in order, hear the sentence, say it out loud.</p>
+  <div class="toys">
+    <div class="toy">
+      <div class="g-top"><h3>Word Order</h3><div class="dots" id="gDots" aria-hidden="true"></div></div>
+      <p>Tap the words in order to build the sentence. Tap a word in the sentence to take it back.</p>
+      <div class="tray" id="gTray" aria-label="Your sentence"></div>
+      <div class="pool" id="gPool" aria-label="Words"></div>
+      <p class="gmsg" id="gMsg" role="status"></p>
+      <div class="row g-act" id="gAct"></div>
+    </div>
+    <div class="toy">
+      <h3>Catch the mistakes from Spanish</h3>
+      <p>Type an English sentence just as you would say it. Mistakes that come from Spanish pop up as you type.</p>
+      <input class="field" id="cIn" type="text" value="I have 25 years and I am agree with you" aria-label="Your English sentence" autocomplete="off">
+      <div class="chips" id="cChips"></div>
+      <p class="caught" id="cOut" aria-live="polite"></p>
+      <div class="fixes" id="cFix"></div>
+    </div>
+  </div>
+  <div class="row" style="margin-top:30px"><a class="key cobalt" href="/en/speech-mode/">Open Speech Mode</a><a class="key" href="/en/games/">Play all five games</a><a class="key" href="/en/shadowing/">Open the shadowing studio</a><a class="key" href="/en/course/">See the course</a></div>
+</div></section>
 
 <section class="unlearn light" id="unlearn"><div class="wrap un-in">
   <div>
@@ -146,28 +172,7 @@
   </div>
 </div></section>
 
-<section class="try light" id="try"><div class="wrap">
-  <h2 data-split>Try it right here</h2>
-  <p class="sub">Two pieces of the practice rooms, working right here.</p>
-  <div class="toys">
-    <div class="toy">
-      <h3>Catch the mistakes from Spanish</h3>
-      <p>Type an English sentence just as you would say it. Mistakes that come from Spanish pop up as you type.</p>
-      <input class="field" id="cIn" type="text" value="I have 25 years and I am agree with you" aria-label="Your English sentence" autocomplete="off">
-      <div class="chips" id="cChips"></div>
-      <p class="caught" id="cOut" aria-live="polite"></p>
-      <div class="fixes" id="cFix"></div>
-    </div>
-    <div class="toy">
-      <div class="g-top"><h3>Word Order</h3><div class="dots" id="gDots" aria-hidden="true"></div></div>
-      <p>Tap the words in order to build the sentence.</p>
-      <div class="tray" id="gTray" aria-label="Your sentence"></div>
-      <div class="pool" id="gPool" aria-label="Words"></div>
-      <p class="gmsg" id="gMsg" role="status"></p>
-    </div>
-  </div>
-  <div class="row" style="margin-top:30px"><a class="key cobalt" href="/en/speech-mode/">Open Speech Mode</a><a class="key" href="/en/games/">Play all five games</a><a class="key" href="/en/shadowing/">Open the shadowing studio</a><a class="key" href="/en/course/">See the course</a></div>
-</div></section>
+
 
 <section class="week light" id="week">
   <div class="wrap wk-head"><h2 data-split>Seven days, twenty minutes a day</h2><a class="key cobalt" href="/en/7-day-sprint/">Start Day 1</a></div>
@@ -217,8 +222,8 @@
 <script src="/assets/config.838fe76f58.js" onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
 <script src="/assets/vendor/gsap-3.12.5.min.js" defer></script>
 <script src="/assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
-<script src="/assets/app.en.18273f7689.js" defer onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
-<script src="/assets/home.en.e91c644a26.js" defer onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
-<script src="/assets/account.950c27e2cf.js" defer></script>
+<script src="/assets/app.en.a114c859df.js" defer onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
+<script src="/assets/home.en.e06a65d397.js" defer onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
+<script src="/assets/account.ef191e6999.js" defer></script>
 </body>
 </html>

@@ -25,7 +25,7 @@ const STR = {
   softTitle: '¿Guardamos tu progreso?', softBody: 'Crea tu cuenta gratis en 20 segundos y no pierdas lo que has practicado.', later: 'Ahora no',
   freeTitle: 'Has llegado al límite de hoy', freeBody: 'Mañana tienes más práctica gratis. O empieza tu Sprint: práctica sin límites y Mei a tu lado toda la semana.', seeSprint: 'Ver el Sprint', tomorrow: 'Vale, hasta mañana',
   lessonTitle: 'Esta lección es del Sprint', lessonAnon: 'Crea tu cuenta gratis para abrir la lección 2. El curso completo viene con el Sprint.', lessonFree: 'Las lecciones 3 a 7 vienen con el Sprint, junto con las llamadas y el WhatsApp de Mei.',
-  kinds: {speak: 'Respuestas en Modo Habla', game: 'Partidas de juegos', shadow: 'Repeticiones de shadowing', lesson: 'Lecciones del curso'},
+  kinds: {speak: 'Respuestas en Modo Habla', game: 'Partidas de juegos', shadow: 'Repeticiones de Imita', lesson: 'Lecciones del curso'},
   myDesk: 'Mi panel', consent: 'Marca la casilla para confirmar cuándo empieza tu Sprint.', left: (n, what) => `${what}: ${n === 1 ? 'te queda 1' : 'te quedan ' + n} hoy`, unlimited: 'Sin límites', close: 'Cerrar',
   places: n => n === 1 ? 'Queda 1 plaza' : n > 1 ? `Quedan ${n} plazas` : 'Plazas agotadas',
   of: (n, t) => `de ${t} en esta fase de prueba`,
@@ -36,7 +36,7 @@ const STR = {
   day: 'Día', today: 'Hoy', done: 'Hecho', dayN: n => n === 0 ? 'Día 0' : `Día ${n}`, yourWeek: 'Tu semana', hiName: 'Hola, {name}',
   startsOn: 'Tu Sprint empieza el {date}.', started: 'Vas por el día {n}.', finished: '¡Sprint completado!',
   brief: 'May te cuenta', whyToday: 'Por qué importa', phrases: 'Las frases de hoy', freeze: 'Si te quedas en blanco', mistake: 'El error típico', challenge: 'El reto de hoy', reflect: 'Antes de cerrar el día',
-  listen: 'Escuchar', go: {game: 'Jugar', scene: 'Hablar con el Buddy', clip: 'Hacer shadowing'}, practise: 'Practica en las salas',
+  listen: 'Escuchar', go: {game: 'Jugar', scene: 'Hablar con el Buddy', clip: 'Imitar el clip'}, practise: 'Practica en las salas',
   markDone: 'He terminado el día', dayDone: '¡Día completado!', reopen: 'Volver a abrir',
   step: {book: 'Reservar', whatsapp: 'Escribir', record: 'Grabar', reasons: 'Escribir', calendar: 'Añadir'},
   reasonsPh: 'Quiero hablar inglés porque…', saved: 'Guardado', openRes: 'Abrir', seePage: 'Ver la página',
@@ -256,7 +256,7 @@ function nudge() {
 }
 function usageBadge() {
   const kind = {speak: 'speak', games: 'game', shadow: 'shadow'}[PAGE]; if (!kind || unlimited()) return;
-  let b = $('#fxUse'); if (!b) { b = document.createElement('a'); b.id = 'fxUse'; b.className = 'fx-use'; b.href = user() ? P.join : P.account; document.body.appendChild(b); }
+  let b = $('#fxUse'); if (!b) { b = document.createElement('a'); b.id = 'fxUse'; b.className = 'fx-use'; b.href = user() ? P.join : P.account; const vh = PAGE !== 'speak' && document.querySelector('[data-view] .vh'); (vh || document.body).appendChild(b); }
   const n = leftOf(kind); b.innerHTML = `${ic('spark')}<span>${STR.left(n, STR.kinds[kind])}</span>`; b.classList.toggle('low', n <= 1);
 }
 setInterval(() => { if (ME) usageBadge(); }, 2500);

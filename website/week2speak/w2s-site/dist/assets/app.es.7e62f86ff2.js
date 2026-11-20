@@ -15,7 +15,7 @@ const IC = {
   check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', bolt:'<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
   flame:'<path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-6 1-9z"/>',
   bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',
-  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>', refresh:'<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>'
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>', refresh:'<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>', x:'<path d="M6 6l12 12M18 6L6 18"/>', alert:'<path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/>'
 };
 const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
 const jack = '<rect width="28" height="20" fill="#012169"/><path d="M0 0l28 20M28 0L0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l28 20M28 0L0 20" stroke="#C8102E" stroke-width="1.6"/><path d="M14 0v20M0 10h28" stroke="#fff" stroke-width="6"/><path d="M14 0v20M0 10h28" stroke="#C8102E" stroke-width="3.4"/>';
@@ -54,6 +54,17 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } c
 const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
 const yesterday = () => { const d = new Date(Date.now() - 864e5); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
 if (state.day.date !== today()) state.day = {date: today(), game:0, speak:0, shadow:0};
+
+/* ---------- learning-behaviour events: counted on this device only, never sent anywhere ---------- */
+const T0 = Date.now(), FIRST = {};
+function track(name, props) {
+  const d = Object.assign({name, ms: Date.now() - T0, page: document.body.dataset.page || ''}, props || {});
+  if (!FIRST[name]) { FIRST[name] = d.ms; d.first = true; }
+  window.W2S_FIRST = FIRST; emit('metric', d);
+  try { const k = 'w2s.metrics', m = JSON.parse(localStorage.getItem(k) || '{}'), day = today(); m[day] = m[day] || {}; m[day][name] = (m[day][name] || 0) + 1;
+    Object.keys(m).sort().slice(0, -14).forEach(x => delete m[x]); localStorage.setItem(k, JSON.stringify(m)); } catch (e) {}
+}
+window.addEventListener('w2s:speakstart', e => { if (e.detail && e.detail.audio) track('audio_start'); });
 
 /* ---------- feedback: toast, xp, confetti ---------- */
 let toastT;
@@ -182,7 +193,23 @@ const Voice = (() => {
     if (onEnd) timers.push(setTimeout(() => { if (id === token) onEnd(); }, at + 150));
   }
   function offsets(text) { const out = []; const re = /\S+/g; let m; while ((m = re.exec(text))) out.push(m.index); return out; }
-  function stop() { emit('speakend'); token++; clear(); try { if (synth) synth.cancel(); } catch (e) {} if (tts) { try { tts.stop().catch(() => {}); } catch (e) {} } }
+  /* recorded clips: window.W2S_AUDIO = {base, clips: {key: {f, w: [word start in ms], d: duration ms}}}; key = accent|gender|text */
+  const AUD = window.W2S_AUDIO || null; let el = null; const pre = {};
+  const clipKey = text => { const acc = state.accent, g = window.W2S_BUDDY_GENDER || 'f'; return [acc + '|' + g + '|' + text, acc + '|' + text]; };
+  function clipOf(text) { if (!AUD || !AUD.clips) return null; for (const k of clipKey(String(text).trim())) if (AUD.clips[k]) return AUD.clips[k]; return null; }
+  function preload(text) { const c = clipOf(text); if (!c || pre[c.f]) return; const a = new Audio(); a.preload = 'auto'; a.src = AUD.base + c.f; pre[c.f] = a; }
+  function playClip(c, text, rate, opts, id, end, fallback) {
+    if (!el) { el = new Audio(); el.preload = 'auto'; }
+    const a = el; a.onended = a.onerror = a.ontimeupdate = null; a.src = AUD.base + c.f; a.playbackRate = Math.max(.5, Math.min(2, rate));
+    try { a.preservesPitch = true; a.webkitPreservesPitch = true; } catch (e) {}
+    let started = false, last = -1, raf = 0;
+    const tick = () => { if (id !== token) return; const ms = a.currentTime * 1000; let i = 0; while (c.w && i + 1 < c.w.length && c.w[i + 1] <= ms) i++; if (c.w && i !== last) { last = i; if (opts.onWord) opts.onWord(i); } if (!a.paused) raf = requestAnimationFrame(tick); };
+    a.onplaying = () => { if (id !== token) return; if (!started) { started = true; emit('speakstart', {audio: true, clip: true}); emit('timing', {exact: !!c.w}); if (!c.w) plan(text, rate, opts.onWord, null, id); } tick(); };
+    a.onended = () => { cancelAnimationFrame(raf); end(); };
+    a.onerror = () => { cancelAnimationFrame(raf); if (id !== token) return; track('audio_fail', {via: 'clip'}); if (!started) fallback(); else end(); };
+    const p = a.play(); if (p && p.catch) p.catch(err => { if (id !== token) return; track('audio_fail', {via: 'clip', blocked: err && err.name === 'NotAllowedError'}); fallback(); });
+  }
+  function stop() { emit('speakend'); token++; clear(); if (el) { try { el.pause(); } catch (e) {} } try { if (synth) synth.cancel(); } catch (e) {} if (tts) { try { tts.stop().catch(() => {}); } catch (e) {} } }
   function pace(text, opts) { stop(); const id = token; plan(text, opts.rate || 1, opts.onWord, opts.onEnd, id); }
   function speak(text, opts = {}) {
     stop();
@@ -192,6 +219,11 @@ const Voice = (() => {
     const id = token, rate = opts.rate || 1, r = route();
     const end = () => { if (id !== token) return; clear(); if (opts.onWord) opts.onWord(-1); if (opts.onEnd) opts.onEnd(); };
     const viaClaude = () => { emit('speakstart', {audio: true}); plan(text, rate, opts.onWord, null, id); tts.speak(text, {rate: Math.min(1.5, Math.max(.7, rate)), language:'en'}).then(end, end); };
+    const clip = clipOf(text);
+    if (clip) { playClip(clip, text, rate, opts, id, end, () => device(true)); return; }
+    device(false);
+    function device(afterClip) {
+    if (afterClip) clear();
     if (r.kind === 'device') {
       let started = false, exact = false; const offs = offsets(text);
       const u = new SpeechSynthesisUtterance(text);
@@ -199,13 +231,14 @@ const Voice = (() => {
       u.onstart = () => { if (id !== token) return; started = true; fails = 0; emit('speakstart', {audio: true}); plan(text, rate, i => { if (!exact && opts.onWord) opts.onWord(i); }, null, id); };
       u.onboundary = e => { if (id !== token || (e.name && e.name !== 'word')) return; if (!exact) emit('timing', {exact: true}); exact = true; let i = 0; while (i + 1 < offs.length && offs[i + 1] <= e.charIndex) i++; if (opts.onWord) opts.onWord(i); };
       u.onend = end;
-      u.onerror = () => { if (id !== token) return; if (!started) { broken = ++fails >= 2; renderVoiceNotes(); if (tts) return viaClaude(); clear(); plan(text, rate, opts.onWord, end, id); return; } end(); };
+      u.onerror = () => { if (id !== token) return; if (!started) { track('audio_fail', {via: 'device'}); broken = ++fails >= 2; renderVoiceNotes(); if (tts) return viaClaude(); clear(); plan(text, rate, opts.onWord, end, id); return; } end(); };
       timers.push(setTimeout(() => { if (id !== token) return; try { synth.speak(u); } catch (e) { u.onerror(); } }, 60));
       timers.push(setTimeout(() => { if (id === token && !started) { try { synth.cancel(); } catch (e) {} u.onend = null; u.onerror = null; broken = ++fails >= 2; renderVoiceNotes(); if (tts) viaClaude(); else { clear(); plan(text, rate, opts.onWord, end, id); } } }, 2500));
     } else if (r.kind === 'claude') viaClaude();
-    else { emit('speakstart', {audio: false}); plan(text, rate, opts.onWord, end, id); }
+    else { track('audio_fail', {via: 'none'}); emit('speakstart', {audio: false}); plan(text, rate, opts.onWord, end, id); }
+    }
   }
-  return {speak, pace, stop, note: () => route().note, setTts: t => { tts = t; renderVoiceNotes(); }};
+  return {speak, pace, stop, preload, hasClip: t => !!clipOf(t), kind: () => route().kind, note: () => route().note, setTts: t => { tts = t; renderVoiceNotes(); }};
 })();
 function renderVoiceNotes() { let n = ''; try { n = Voice.note(); } catch (e) { return; } $$('[data-voicenote]').forEach(e => e.textContent = n); }
 
@@ -224,16 +257,26 @@ const Mic = (() => {
   function start(h) {
     if (!d) return;
     if (cur) { stop(); return; }
-    Voice.stop(); text = ''; cur = h; setBtn(true);
+    Voice.stop(); text = ''; cur = h; setBtn(true); track('mic_start');
     d.start({language:'en-US'}).catch(err => {
       const code = err && err.code; const c = cur; cur = null; setBtn(false);
-      if (code === 'not_granted' || code === 'unavailable') { root.classList.remove('has-mic'); toast('El micrófono está desactivado en esta página. Puedes seguir escribiendo.'); }
+      track('mic_fail', {reason: code || 'error'});
+      if (code === 'not_granted' || code === 'no_mic') root.classList.remove('has-mic');
+      if (!(c && c.quiet)) toast(micWhy(code));
       if (c && c.onEnd) c.onEnd('', code || 'error');
     });
   }
   function stop() { if (d && cur) { try { d.stop().catch(() => {}); } catch (e) {} } }
-  return {attach, start, stop, active: () => !!cur, ready: () => !!d && root.classList.contains('has-mic')};
+  function cancel() { if (!cur) return; cur = null; setBtn(false); if (d) { try { d.stop().catch(() => {}); } catch (e) {} } }
+  return {attach, start, stop, cancel, active: () => !!cur, ready: () => !!d && root.classList.contains('has-mic')};
 })();
+
+function micWhy(r) {
+  if (r === 'silence' || r === 'stopped' || !r) return 'No te oí. Acércate un poco al micrófono y vuelve a intentarlo. No cuenta como error.';
+  if (r === 'not_granted') return 'El micrófono está bloqueado en esta web, así que escribe tu respuesta. Para hablar, permite el micrófono en los ajustes del navegador.';
+  if (r === 'no_mic') return 'No encontramos ningún micrófono. Escribe tu respuesta.';
+  return 'El reconocimiento de voz no funcionó esta vez. No cuenta como error. Inténtalo otra vez o escribe tu respuesta.';
+}
 
 /* ---------- text helpers ---------- */
 const normalize = s => String(s).toLowerCase().replace(/[’`]/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/\bi am\b/g, "i'm").replace(/\bit is\b/g, "it's").replace(/\bdo not\b/g, "don't").replace(/\bwhere is\b/g, "where's").replace(/\bi would\b/g, "i'd").replace(/'/g, '').replace(/\s+/g, ' ').trim();
@@ -304,7 +347,7 @@ function sayTutor(text) {
 }
 function startMission(id) {
   if (MISSIONS[id].ai && !cap.sample) id = 'cafe';
-  Voice.stop(); Mic.stop();
+  Voice.stop(); Mic.cancel(); track('practice_start', {mode: 'speak:' + id});
   Object.assign(S, {id, step:0, turns:[], hintLevel:0, hint:null, busy:false, ended:false, sent:0, fixes:0, helps:0});
   chat.innerHTML = ''; $('#missionTitle').textContent = MISSIONS[id].name;
   $('#speakInput').disabled = false; $('#speakSend').disabled = false;
@@ -326,7 +369,7 @@ function endMission() {
   S.ended = true; $('#speakInput').disabled = true; $('#speakSend').disabled = true; renderHint();
   const bonus = S.helps === 0 ? 30 : 20;
   bubble('msg sys', `Escena completada: <b>${S.sent}</b> frases, <b>${S.fixes}</b> correcciones, <b>${S.helps}</b> pistas. +${bonus} XP.`);
-  addXP(bonus); markActivity('speak:' + S.id); burstFrom(chat); emit('done', {bonus});
+  addXP(bonus); markActivity('speak:' + S.id); burstFrom(chat); emit('done', {bonus}); track('round_complete', {mode: 'speak:' + S.id});
 }
 function scriptedNext() {
   const steps = MISSIONS[S.id].steps;
@@ -376,11 +419,11 @@ function sendLine(raw) {
   $('#speakInput').value = '';
   if (cap.sample) aiNext(); else scriptedNext();
 }
-$('#composer').addEventListener('submit', e => { e.preventDefault(); sendLine($('#speakInput').value); });
+$('#composer').addEventListener('submit', e => { e.preventDefault(); if ($('#speakInput').value.trim()) track('attempt', {mode: 'speak', input: 'typed'}); sendLine($('#speakInput').value); });
 $('#speakMic').innerHTML = ic('mic');
 $('#speakMic').addEventListener('click', e => {
   const input = $('#speakInput');
-  Mic.start({button: e.currentTarget, onText: t => { input.value = t; }, onEnd: (said, reason) => { if (said) { emit('micresult'); sendLine(said); } else emit('micempty', {reason: reason || ''}); }});
+  Mic.start({button: e.currentTarget, onText: t => { input.value = t; }, onEnd: (said, reason) => { if (said) { emit('micresult'); track('attempt', {mode: 'speak', input: 'mic'}); sendLine(said); } else { track('mic_empty', {reason: reason || ''}); emit('micempty', {reason: reason || ''}); } }});
 });
 $('#helpBtn').addEventListener('click', () => { if (S.hintLevel < 3) { emit('help'); S.hintLevel++; S.helps++; renderTally(); renderHint(); } });
 $('#restartBtn').innerHTML = ic('refresh') + 'Reiniciar escena';
@@ -403,20 +446,22 @@ const GAMES = {
 GAMES.quick = {name:'Respuestas rápidas', packs: [[{"q": "What's your name?", "st": ["i'm", "i am", "my name is"], "m": "I'm Ana.", "es": "¿Cómo te llamas?", "full": false, "rate": 0}, {"q": "Where are you from?", "st": ["i'm from", "i am from"], "m": "I'm from Lima, in Peru.", "es": "¿De dónde eres?", "full": false, "rate": 0}, {"q": "What do you do?", "st": ["i'm a", "i am a", "i'm an", "i am an", "i work", "i'm retired", "i'm looking"], "m": "I'm a nurse.", "es": "¿A qué te dedicas?", "full": false, "rate": 0}, {"q": "How old are you?", "st": ["i'm", "i am"], "m": "I'm thirty.", "es": "¿Cuántos años tienes?", "full": false, "rate": 0}, {"q": "Why are you learning English?", "st": ["because i want to", "i want to", "i'm learning english because", "i am learning english because"], "m": "Because I want to travel.", "es": "¿Por qué estás aprendiendo inglés?", "full": false, "rate": 0}, {"q": "What do you like?", "st": ["i like"], "m": "I like music and football.", "es": "¿Qué te gusta?", "full": false, "rate": 0}], [{"q": "Hi! What would you like?", "st": ["i'd like", "i would like", "can i have", "could i have"], "m": "I'd like a coffee, please.", "es": "¿Qué desea?", "full": false, "rate": 0}, {"q": "Anything to eat?", "st": ["can i have", "could i have", "i'd like", "i would like", "no, thank"], "m": "Can I have a sandwich, please?", "es": "¿Algo de comer?", "full": false, "rate": 0}, {"q": "Small or large?", "st": ["a small", "small", "a large", "large"], "m": "A small one, please.", "es": "¿Pequeño o grande?", "full": false, "rate": 0}, {"q": "To eat here or to take away?", "st": ["to take away", "take away", "to go", "to eat here", "eat here", "here"], "m": "To take away, please.", "es": "¿Para tomar aquí o para llevar?", "full": false, "rate": 0}, {"q": "Are you hungry?", "st": ["yes, i'm", "yes i'm", "i'm hungry", "yes, i am", "yes i am", "no, i'm not", "no i'm not", "i'm not"], "m": "Yes, I'm hungry.", "es": "¿Tienes hambre?", "full": false, "rate": 0}, {"q": "That's four pounds, please.", "st": ["here you are", "here you go"], "m": "Here you are. Thank you.", "es": "Son cuatro libras, por favor.", "full": false, "rate": 0}], [{"q": "Ask me where the bathroom is.", "st": ["Where is the bathroom?", "Where's the bathroom?", "Where is the toilet?"], "m": "Where is the bathroom?", "es": "Pregúntame dónde está el baño.", "full": true, "rate": 0}, {"q": "Ask me what time the flight is.", "st": ["What time is the flight?"], "m": "What time is the flight?", "es": "Pregúntame a qué hora es el vuelo.", "full": true, "rate": 0}, {"q": "Ask me for a window seat.", "st": ["Could I have a window seat, please?", "Can I have a window seat, please?", "Could I have a window seat?", "Can I have a window seat?"], "m": "Could I have a window seat, please?", "es": "Pídeme un asiento de ventana.", "full": true, "rate": 0}, {"q": "Ask me if it is far.", "st": ["Is it far?"], "m": "Is it far?", "es": "Pregúntame si está lejos.", "full": true, "rate": 0}, {"q": "Ask me how to get to the station.", "st": ["How do I get to the station?"], "m": "How do I get to the station?", "es": "Pregúntame cómo llegar a la estación.", "full": true, "rate": 0}, {"q": "Ask me for help.", "st": ["Can you help me, please?", "Could you help me, please?", "Can you help me?", "Could you help me?"], "m": "Can you help me, please?", "es": "Pídeme ayuda.", "full": true, "rate": 0}], [{"q": "What did you do yesterday?", "st": ["yesterday i", "i worked", "i went", "i had", "i watched", "i visited", "i stayed", "i studied", "i played", "i cooked"], "m": "Yesterday I worked.", "es": "¿Qué hiciste ayer?", "full": false, "rate": 0}, {"q": "Where did you go?", "st": ["i went", "i didn't go"], "m": "I went to the gym.", "es": "¿Adónde fuiste?", "full": false, "rate": 0}, {"q": "What did you have for dinner?", "st": ["i had"], "m": "I had dinner with my family.", "es": "¿Qué cenaste?", "full": false, "rate": 0}, {"q": "Did you go out?", "st": ["yes, i went", "yes i went", "yes, i did", "yes i did", "no, i didn't", "no i didn't", "i didn't go out", "i went"], "m": "No, I didn't go out.", "es": "¿Saliste?", "full": false, "rate": 0}, {"q": "What did you watch last week?", "st": ["last week i watched", "i watched", "i didn't watch"], "m": "Last week I watched a film.", "es": "¿Qué viste la semana pasada?", "full": false, "rate": 0}, {"q": "How was it?", "st": ["it was"], "m": "It was fun.", "es": "¿Qué tal estuvo?", "full": false, "rate": 0}], [{"q": "The city or the beach?", "st": ["i think", "the beach is better", "the city is better", "i like", "i prefer"], "m": "I think the beach is better.", "es": "¿La ciudad o la playa?", "full": false, "rate": 0}, {"q": "Why?", "st": ["because"], "m": "Because it's relaxing.", "es": "¿Por qué?", "full": false, "rate": 0}, {"q": "I think English is easy. Do you agree?", "st": ["i agree", "i don't agree", "i do not agree", "i disagree", "it depends", "yes, i agree", "no, i don't agree"], "m": "I don't agree.", "es": "Creo que el inglés es fácil. ¿Estás de acuerdo?", "full": false, "rate": 0}, {"q": "Coffee or tea?", "st": ["i like", "i think", "i prefer", "coffee", "tea"], "m": "I like coffee because it's strong.", "es": "¿Café o té?", "full": false, "rate": 0}, {"q": "Is working from home a good idea?", "st": ["i think", "it depends", "yes, i think", "no, i think"], "m": "I think it depends on the job.", "es": "¿Trabajar desde casa es buena idea?", "full": false, "rate": 0}, {"q": "What are people like in your city?", "st": ["people are", "i think people are", "they are", "they're"], "m": "People are very friendly here.", "es": "¿Cómo es la gente en tu ciudad?", "full": false, "rate": 0}], [{"q": "So what do you usually get up to at the weekend?", "st": ["sorry, could you say that again", "sorry could you say that again", "could you say that again", "sorry, can you say that again", "can you say that again", "could you repeat that", "sorry, could you repeat", "again, please", "again please", "slowly, please", "slowly please"], "m": "Sorry, could you say that again?", "es": "Demasiado rápido. Pídeme que lo repita.", "full": false, "rate": 1.35}, {"q": "Ask me what this word means.", "st": ["What does this word mean?", "What does that word mean?"], "m": "What does this word mean?", "es": "Pregúntame qué significa esta palabra.", "full": true, "rate": 0}, {"q": "Ask me how to say this in English.", "st": ["How do you say this in English?", "How do you say that in English?"], "m": "How do you say this in English?", "es": "Pregúntame cómo se dice esto en inglés.", "full": true, "rate": 0}, {"q": "Tell me you don't understand.", "st": ["i don't understand", "sorry, i don't understand", "sorry i don't understand", "i do not understand"], "m": "I don't understand.", "es": "Dime que no entiendes.", "full": false, "rate": 0}, {"q": "I like music. Now send the question back to me.", "st": ["what about you", "and you"], "m": "What about you?", "es": "Devuélveme la pregunta.", "full": false, "rate": 0}, {"q": "You need time to think. What do you say?", "st": ["let me think"], "m": "Let me think for a second.", "es": "Necesitas tiempo para pensar. ¿Qué dices?", "full": false, "rate": 0}], [{"q": "How do you start your talk?", "st": ["today i'm going to talk", "today i am going to talk"], "m": "Today I'm going to talk about me.", "es": "¿Cómo empiezas tu charla?", "full": false, "rate": 0}, {"q": "What do you like doing?", "st": ["i like", "first, i like", "first i like"], "m": "First, I like playing football.", "es": "¿Qué te gusta hacer?", "full": false, "rate": 0}, {"q": "What did you do last week?", "st": ["last week i"], "m": "Last week I learned a lot.", "es": "¿Qué hiciste la semana pasada?", "full": false, "rate": 0}, {"q": "What are you going to do next year?", "st": ["next year i'm going to", "next year i am going to", "i'm going to", "i am going to"], "m": "Next year I'm going to travel.", "es": "¿Qué vas a hacer el próximo año?", "full": false, "rate": 0}, {"q": "Can you talk for two minutes?", "st": ["yes, i can", "yes i can", "i can"], "m": "Yes, I can talk for two minutes.", "es": "¿Puedes hablar durante dos minutos?", "full": false, "rate": 0}, {"q": "How do you finish your talk?", "st": ["thank you for listening", "to finish"], "m": "Thank you for listening.", "es": "¿Cómo terminas tu charla?", "full": false, "rate": 0}]]};
 const SOUND_NAMES = ["sp- y st-", "la h inglesa", "la i corta y la ee larga", "la terminación -ed", "th", "v y b", "los seis sonidos"];
 const gItems = () => { const g = GAMES[G.kind]; return g.packs[G.day] || g.packs[0]; };
-const G = {kind:'order', day:0, picked:false, i:0, marks:[], combo:0, tries:0, solved:false, tray:[], pool:[], toks:[], first:0};
+const G = {kind:'order', day:0, picked:false, i:0, marks:[], combo:0, tries:0, solved:false, tray:[], pool:[], toks:[], first:0, tok:0, queue:null, qi:0, paid:false};
 const gameBody = $('#gameBody');
 function startGame(kind, day) {
-  Voice.stop(); Mic.stop();
+  Voice.stop(); Mic.cancel();
   if (!GAMES[kind]) kind = 'order';
   if (day != null) G.picked = true; else day = G.picked ? G.day : sprintDay();
-  Object.assign(G, {kind, day: Math.max(0, Math.min(6, +day || 0)), i:0, marks:[], combo:0, first:0});
+  Object.assign(G, {kind, day: Math.max(0, Math.min(6, +day || 0)), i:0, marks:[], combo:0, first:0, queue:null, qi:0, paid:false});
+  track('practice_start', {mode: 'game:' + kind});
   $$('#gameTabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.game === kind));
+  { const on = document.querySelector('#gameTabs [aria-pressed=true]'), bar = document.getElementById('gameTabs'); if (on && bar && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = Math.max(0, on.offsetLeft - 8); }
   $('#gameDays').innerHTML = DAYS.map((d, i) => `<button type="button" class="chip" data-gday="${i}" aria-pressed="${i === G.day}">Día ${i + 1}</button>`).join('');
   $('#gameDayNote').textContent = kind === 'sound' ? 'Sonido del día: ' + SOUND_NAMES[G.day] + '.' : 'Día ' + (G.day + 1) + ': ' + DAYS[G.day].title + '. ' + DAYS[G.day].can;
   loadItem();
 }
 function loadItem() {
-  G.tries = 0; G.solved = false; G.fb = null; G.heard = ''; G.typed = '';
+  Mic.cancel(); G.tok++; G.tries = 0; G.solved = false; G.fb = null; G.heard = ''; G.typed = '';
   const it = gItems()[G.i];
   if (G.kind === 'order') {
     G.toks = it.s.replace(/[.,?!]/g, '').split(' ');
@@ -430,8 +475,10 @@ function loadItem() {
 }
 const progHtml = () => { const n = gItems().length; return '<div class="prog" aria-hidden="true">' + Array.from({length:n}, (_, k) => `<i class="${G.marks[k] === 1 ? 'd' : G.marks[k] === 0 ? 'm' : k === G.i ? 'c' : ''}"></i>`).join('') + '</div>'; };
 function fbHtml() {
-  if (!G.fb) return '<div class="fb info" style="visibility:hidden" aria-hidden="true">.</div>';
-  return `<div class="fb ${G.fb.kind}" role="status">${esc(G.fb.title)}${G.fb.body ? `<span>${G.fb.body}</span>` : ''}</div>`;
+  if (!G.fb) return '<div class="fb fb-empty" aria-hidden="true"></div>';
+  const f = G.fb, icon = f.kind === 'ok' ? ic('check') : f.kind === 'bad' ? ic('refresh') : f.kind === 'warn' ? ic('alert') : '';
+  return `<div class="fb ${f.kind}${f.nudge ? ' nudge' : ''}" role="status"><b class="fb-t">${icon}${esc(f.title)}${f.xp ? `<span class="xp-chip num">+${f.xp} XP</span>` : ''}</b>` +
+    (f.say ? `<p class="fb-say" lang="en">${esc(f.say)}</p>` : '') + (f.body ? `<span class="fb-b">${f.body}</span>` : '') + '</div>';
 }
 function renderGame() {
   const g = GAMES[G.kind], n = gItems().length, it = gItems()[G.i];
@@ -466,21 +513,34 @@ function renderGame() {
   if (G.solved && G.kind === 'sound') html += `<button type="button" class="key" data-hearboth="1">${ic('speaker')}Escuchar las dos</button><button type="button" class="key rec mic-only" data-sayword="1">${ic('mic')}Di "${esc(it.w)}"</button>`;
   if (G.solved) html += `${G.kind === 'sound' ? '' : `<button type="button" class="key" data-hearit="1">${ic('speaker')}Escúchalo</button>`}<button type="button" class="key primary" data-next="1">${G.i + 1 < n ? 'Siguiente frase' : 'Terminar la ronda'}${ic('arrow')}</button>`;
   html += '</div>';
+  const from = {};
+  if (G.kind === 'order' && !reduced) $$('.tray .tile, .pool .tile:not(.gone)', gameBody).forEach(t => { from[t.dataset.tile || t.dataset.untile] = t.getBoundingClientRect(); });
   gameBody.innerHTML = html;
+  if (G.kind === 'order' && !reduced && Object.keys(from).length) $$('.tray .tile, .pool .tile:not(.gone)', gameBody).forEach(t => {
+    const a = from[t.dataset.tile || t.dataset.untile]; if (!a) return; const b = t.getBoundingClientRect(); const dx = a.left - b.left, dy = a.top - b.top;
+    if (Math.abs(dx) + Math.abs(dy) < 2 || !t.animate) return;
+    t.animate([{transform: `translate(${dx}px,${dy}px)`}, {transform: 'none'}], {duration: 190, easing: 'cubic-bezier(.2,.8,.2,1)'});
+  });
 }
 function target() { const it = gItems()[G.i]; return G.kind === 'order' ? it.s : G.kind === 'gap' ? it.t.replace('___', it.a) : G.kind === 'sound' ? it.w : G.kind === 'quick' ? it.m : it.a[0]; }
 function solve(ok, title, body, bonus) {
+  if (G.solved) return;
   G.solved = true; G.marks[G.i] = ok && G.tries === 0 ? 1 : 0;
-  if (ok) { G.combo++; if (G.tries === 0) G.first++; const xp = 10 + Math.min(10, (G.combo - 1) * 2) + (bonus || 0); addXP(xp); G.fb = {kind:'ok', title: title + ' +' + xp + ' XP', body}; if (G.kind !== 'sound') logLine(GAMES[G.kind].name, G.kind === 'quick' && G.typed ? G.typed : target()); }
-  else { G.combo = 0; G.fb = {kind:'bad', title, body}; }
+  const say = target();
+  if (ok) { G.combo++; if (G.tries === 0 && !G.queue) G.first++; const xp = 10 + Math.min(10, (G.combo - 1) * 2) + (bonus || 0); addXP(xp); G.fb = {kind:'ok', title, body, xp, say}; if (G.kind !== 'sound') logLine(GAMES[G.kind].name, G.kind === 'quick' && G.typed ? G.typed : say); }
+  else { G.combo = 0; G.fb = {kind:'bad', title, body, say}; }
+  track('feedback', {mode: 'game:' + G.kind, result: ok ? 'right' : 'shown'});
   renderGame();
-  if (ok) burstFrom(gameBody.querySelector('.prompt') || gameBody.querySelector('.tray') || gameBody.querySelector('.pool') || gameBody);
-  Voice.speak(target(), {rate:.9});
+  if (ok) burstFrom(gameBody.querySelector('.fb-say') || gameBody.querySelector('.prompt') || gameBody.querySelector('.tray') || gameBody);
+  Voice.speak(say, {rate:.9});
+  const nx = gameBody.querySelector('[data-next]'); if (nx) nx.focus({preventScroll: true});
 }
 const plain = t => String(t).toLowerCase().replace(/[’`]/g, "'").replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim();
 function checkQuick(text, spoken) {
+  if (G.solved) return;
   const it = gItems()[G.i]; G.typed = text;
   if (!text.trim()) return;
+  track('attempt', {mode: 'game:quick', input: spoken ? 'mic' : 'typed'});
   const said = ' ' + plain(text);
   const ok = it.full ? Math.max(...it.st.map(a => similar(a, text))) >= .8 : it.st.some(a => said.includes(' ' + plain(a)));
   const errs = analyze(text);
@@ -490,16 +550,18 @@ function checkQuick(text, spoken) {
   if (G.tries >= 1) return solve(false, 'Una forma de responder:', '<b>' + esc(it.m) + '</b> Dilo en voz alta dos veces.');
   miss('Todavía no. Prueba otra vez.', fix || 'Empieza así: <b>' + esc(it.m.split(' ').slice(0, Math.max(1, Math.min(2, it.m.split(' ').length - 1))).join(' ')) + '…</b>');
 }
-function miss(title, body) { G.tries++; G.combo = 0; G.fb = {kind:'bad', title, body}; renderGame(); }
+function miss(title, body) { if (G.solved) return; G.tries++; G.combo = 0; G.fb = {kind:'bad', title, body, nudge: true}; track('feedback', {mode: 'game:' + G.kind, result: 'retry'}); renderGame(); }
 function checkFlash(text, spoken) {
+  if (G.solved) return;
   const it = gItems()[G.i]; G.typed = text;
   if (!text.trim()) return;
+  track('attempt', {mode: 'game:flash', input: spoken ? 'mic' : 'typed'});
   const best = Math.max(...it.a.map(a => similar(a, text)));
   if (best === 1) return solve(true, '¡Correcto!', 'Ahora dilo otra vez, en voz alta.', spoken ? 5 : 0);
   if (best >= .86) return solve(true, '¡Casi perfecto!', 'Lo más normal es decir: <b>' + esc(it.a[0]) + '</b>', spoken ? 5 : 0);
   const errs = analyze(text);
   const tip = errs.length ? esc(errs[0].tip) + ' ' + esc(errs[0].es) : 'Piensa en cómo lo diría alguien que habla inglés, no palabra por palabra.';
-  if (G.tries >= 1) return solve(false, 'Esta es la respuesta:', '<b>' + esc(it.a[0]) + '</b> Dilo en voz alta dos veces.');
+  if (G.tries >= 1) return solve(false, 'Esta es la respuesta:', 'Dila en voz alta dos veces.');
   miss('Todavía no. Prueba otra vez.', tip);
 }
 gameBody.addEventListener('click', e => {
@@ -508,62 +570,77 @@ gameBody.addEventListener('click', e => {
   if (b.dataset.tile != null) { G.tray.push(+b.dataset.tile); G.fb = null; renderGame(); }
   else if (b.dataset.untile != null) { G.tray = G.tray.filter(k => k !== +b.dataset.untile); G.fb = null; renderGame(); }
   else if (b.dataset.check) {
-    const built = G.tray.map(k => G.toks[k]).join(' ').toLowerCase();
-    if (built === G.toks.join(' ').toLowerCase()) solve(true, '¡Correcto!', 'Ahora dila en voz alta: <b>' + esc(it.s) + '</b>');
-    else if (G.tries >= 1) { G.tray = G.toks.map((_, k) => k); solve(false, 'Este es el orden:', '<b>' + esc(it.s) + '</b> Dilo en voz alta dos veces.'); }
+    const built = G.tray.map(k => G.toks[k]).join(' ').toLowerCase(); track('attempt', {mode: 'game:order', input: 'tap'});
+    if (built === G.toks.join(' ').toLowerCase()) solve(true, '¡Correcto!', 'Ahora dila en voz alta.');
+    else if (G.tries >= 1) { G.tray = G.toks.map((_, k) => k); solve(false, 'Este es el orden:', 'Dila en voz alta dos veces.'); }
     else miss('Todavía no.', 'Empieza por <b>' + esc(G.toks.slice(0, 2).join(' ')) + '</b>. Toca una palabra para quitarla.');
   }
-  else if (b.dataset.hearword) { G.played = true; renderGame(); Voice.speak(it.w, {rate:.85}); }
+  else if (b.dataset.hearword) { G.played = true; if (Voice.kind() === 'none' && !Voice.hasClip(it.w)) G.fb = {kind:'warn', title:'Este dispositivo no tiene voz en inglés, así que el Laboratorio de sonidos no puede reproducir la palabra. Prueba Ordena la frase o Completa la frase.'}; renderGame(); Voice.speak(it.w, {rate:.85}); }
   else if (b.dataset.hearq) { G.played = true; if ($('#flashInput')) G.typed = $('#flashInput').value || ''; renderGame(); Voice.speak(it.q, {rate: it.rate || .95}); }
   else if (b.dataset.showq) { G.shown = true; G.typed = $('#flashInput').value || ''; renderGame(); }
   else if (b.dataset.word != null) {
     G.choice = b.dataset.word;
+    track('attempt', {mode: 'game:sound', input: 'tap'});
     if (G.choice === it.w) solve(true, '¡Correcto! "' + it.w + '".', esc(it.n));
     else { G.tries++; solve(false, 'Era "' + it.w + '", no "' + it.alt + '".', esc(it.n)); }
   }
   else if (b.dataset.hearboth) Voice.speak(it.w + '. ' + it.alt + '.', {rate:.8});
   else if (b.dataset.sayword) {
-    G.fb = {kind:'info', title:'Te escucho. Di "' + it.w + '".'}; renderGame();
-    Mic.start({button: $('[data-sayword]', gameBody), onText: () => {}, onEnd: said => {
+    G.fb = {kind:'info', title:'Te escucho. Di "' + it.w + '".'}; renderGame(); const tok = G.tok;
+    Mic.start({quiet: true, button: $('[data-sayword]', gameBody), onText: () => {}, onEnd: (said, reason) => {
+      if (tok !== G.tok) return;
+      if (!said) { G.fb = {kind:'warn', title: micWhy(reason)}; renderGame(); return; }
       const heard = ' ' + String(said || '').toLowerCase().replace(/[^a-z' ]/g, ' ') + ' ';
-      if (!said) G.fb = {kind:'info', title:'No te entendí. Inténtalo otra vez.'};
-      else if (heard.includes(' ' + it.w + ' ')) { if (!G.spoke) { G.spoke = true; addXP(5); } G.fb = {kind:'ok', title:'Escuché "' + it.w + '". +5 XP', body: esc(it.n)}; }
+      if (heard.includes(' ' + it.w + ' ')) { if (!G.spoke) { G.spoke = true; addXP(5); } G.fb = {kind:'ok', title:'Escuché "' + it.w + '". +5 XP', body: esc(it.n)}; }
       else if (heard.includes(' ' + it.alt + ' ')) G.fb = {kind:'bad', title:'Escuché "' + it.alt + '".', body: esc(it.n)};
       else G.fb = {kind:'info', title:'Escuché "' + String(said).slice(0, 40) + '". Prueba una vez más.'};
       renderGame();
     }});
   }
   else if (b.dataset.opt != null) {
-    G.choice = b.dataset.opt;
+    G.choice = b.dataset.opt; track('attempt', {mode: 'game:gap', input: 'tap'});
     if (G.choice === it.a) solve(true, '¡Correcto!', esc(it.n));
     else { G.tries++; solve(false, 'La respuesta es "' + it.a + '".', esc(it.n)); }
   }
   else if (b.dataset.say) {
-    G.heard = ''; G.fb = {kind:'info', title:'Te escucho. Di la frase.'}; if (G.kind === 'flash' || G.kind === 'quick') G.typed = $('#flashInput').value || ''; renderGame();
-    Mic.start({button: $('[data-say]', gameBody), onText: t => { const inp = $('#flashInput'); if (inp) inp.value = t; }, onEnd: said => {
-      if (!said) { G.fb = {kind:'info', title:'No te entendí. Inténtalo otra vez.'}; renderGame(); return; }
+    G.heard = ''; G.fb = {kind:'info', title:'Te escucho. Di la frase.'}; if (G.kind === 'flash' || G.kind === 'quick') G.typed = $('#flashInput').value || ''; renderGame(); const tok = G.tok;
+    Mic.start({quiet: true, button: $('[data-say]', gameBody), onText: t => { if (tok !== G.tok) return; const inp = $('#flashInput'); if (inp) inp.value = t; }, onEnd: (said, reason) => {
+      if (tok !== G.tok || G.solved) return;
+      if (!said) { G.fb = {kind:'warn', title: micWhy(reason)}; renderGame(); const inp = document.getElementById('flashInput'); if (inp && (reason === 'not_granted' || reason === 'no_mic')) inp.focus(); return; }
       G.heard = said;
       if (G.kind === 'flash') return checkFlash(said, true);
       if (G.kind === 'quick') return checkQuick(said, true);
-      if (similar(it.s, said) >= .85) { G.tray = G.toks.map((_, k) => k); solve(true, '¡Lo dijiste!', '<b>' + esc(it.s) + '</b>', 5); }
+      track('attempt', {mode: 'game:order', input: 'mic'}); if (similar(it.s, said) >= .85) { G.tray = G.toks.map((_, k) => k); solve(true, 'El micrófono te entendió.', '', 5); }
       else miss('Casi.', 'Inténtalo otra vez o arma la frase con las fichas.');
     }});
   }
   else if (b.dataset.hearit) Voice.speak(target(), {rate:.9});
-  else if (b.dataset.next) { if (G.i + 1 < gItems().length) { G.i++; loadItem(); } else endRound(); }
+  else if (b.dataset.next) { track('next', {mode: 'game:' + G.kind});
+    if (G.queue) { G.qi++; if (G.qi < G.queue.length) { G.i = G.queue[G.qi]; loadItem(); } else endRound(); }
+    else if (G.i + 1 < gItems().length) { G.i++; loadItem(); } else endRound(); }
+  else if (b.dataset.retry) { const miss = gItems().map((_, k) => k).filter(k => G.marks[k] !== 1); if (miss.length) { G.queue = miss; G.qi = 0; G.i = miss[0]; G.combo = 0; loadItem(); } }
   else if (b.dataset.again) startGame(G.kind);
   else if (b.dataset.switch) startGame(b.dataset.switch);
 });
 gameBody.addEventListener('submit', e => { e.preventDefault(); if (G.kind === 'flash' && !G.solved) checkFlash($('#flashInput').value, false);
   if (G.kind === 'quick' && !G.solved) checkQuick($('#flashInput').value, false); });
+function targetOf(it) { return G.kind === 'order' ? it.s : G.kind === 'gap' ? it.t.replace('___', it.a) : G.kind === 'sound' ? it.w + ' / ' + it.alt : G.kind === 'quick' ? it.m : it.a[0]; }
 function endRound() {
-  const n = gItems().length, bonus = 20 + G.first * 2;
-  addXP(bonus); markActivity('game:' + G.kind + ':' + (G.day + 1));
-  const others = Object.keys(GAMES).filter(k => k !== G.kind);
-  gameBody.innerHTML = `<h2 style="font-size:1.8rem;margin:0">¡Ronda terminada!</h2><p class="score num">${G.first} de ${n}</p><p class="muted">a la primera. +${bonus} XP por terminar.</p>` + progHtml() +
-    `<div class="row"><button type="button" class="key primary" data-again="1">${ic('refresh')}Jugar otra vez</button>${others.map(k => `<button type="button" class="key" data-switch="${k}">${esc(GAMES[k].name)}</button>`).join('')}</div>`;
-  burstFrom(gameBody);
+  const items = gItems(), n = items.length, miss = items.map((_, k) => k).filter(k => G.marks[k] !== 1);
+  const review = !!G.queue; let bonusLine = '';
+  if (!G.paid) { G.paid = true; const bonus = 20 + G.first * 2; addXP(bonus); markActivity('game:' + G.kind + ':' + (G.day + 1)); bonusLine = '<span class="xp-chip num">+' + bonus + ' XP</span>'; }
+  track('round_complete', {mode: 'game:' + G.kind, first: G.first, n, review});
+  const keys = Object.keys(GAMES), nextKind = keys[(keys.indexOf(G.kind) + 1) % keys.length];
+  const list = '<ul class="recap-list">' + items.map((it, k) => '<li class="' + (G.marks[k] === 1 ? 'ok' : 'miss') + '">' + ic(G.marks[k] === 1 ? 'check' : 'refresh') + '<span lang="en">' + esc(targetOf(it)) + '</span></li>').join('') + '</ul>';
+  gameBody.innerHTML = '<div class="recap"><h2 class="recap-h">' + (review ? (miss.length ? 'Repaso terminado' : '¡Ahora todas bien!') : '¡Ronda terminada!') + '</h2>' +
+    '<p class="recap-score"><span class="score num">' + (n - miss.length) + '/' + n + '</span> ' + (review ? 'bien ahora' : 'bien a la primera') + ' ' + bonusLine + '</p>' + list +
+    '<div class="row">' + (miss.length ? '<button type="button" class="key primary" data-retry="1">' + ic('refresh') + 'Repite las que fallaste' + ' (' + miss.length + ')</button>' : '') +
+    '<button type="button" class="key' + (miss.length ? '' : ' primary') + '" data-switch="' + nextKind + '">' + 'Siguiente juego' + ': ' + esc(GAMES[nextKind].name) + ic('arrow') + '</button>' +
+    '<button type="button" class="key ghost" data-again="1">' + 'Jugar esta ronda otra vez' + '</button></div></div>';
+  if (!miss.length) burstFrom(gameBody.querySelector('.recap-h'));
+  const f = gameBody.querySelector('.recap-h'); if (f) { f.tabIndex = -1; f.focus({preventScroll: true}); }
 }
+
 $('#gameTabs').addEventListener('click', e => { const b = e.target.closest('[data-game]'); if (b) startGame(b.dataset.game); });
 $('#gameDays').addEventListener('click', e => { const b = e.target.closest('[data-gday]'); if (b) startGame(G.kind, +b.dataset.gday); });
 
@@ -596,12 +673,15 @@ function shButton() {
   $('#shPlay').innerHTML = SH.playing ? ic('stop') + 'Parar' : SH.mode === 'solo' ? ic('mic') + 'Empezar solo' : ic('play') + (SH.mode === 'listen' ? 'Escuchar' : 'Escuchar y repetir');
   $('#shHelp').textContent = MODE_HELP[SH.mode];
 }
-function shStop() { Voice.stop(); Mic.stop(); SH.playing = false; if (SH.k) SH.k.mark(-1); shButton(); }
-function shDone(html, xp) { SH.playing = false; shButton(); if (xp) addXP(xp); $('#shResult').innerHTML = html; }
+function shStop() { Voice.stop(); Mic.cancel(); SH.playing = false; if (SH.k) SH.k.mark(-1); shButton(); }
+function shDone(html, xp) { SH.playing = false; shButton(); if (xp) addXP(xp);
+  const nx = /data-rate-self/.test(html) ? '' : SH.mode === 'listen' ? 'shadow' : SH.mode === 'shadow' ? (SH.reps % 3 === 0 ? 'solo' : 'shadow') : (xp ? 'clip' : 'solo');
+  if (SH.mode !== 'listen' && xp) track('round_complete', {mode: 'shadow:' + SH.mode});
+  $('#shResult').innerHTML = html + (nx ? shNext(nx) : ''); }
 function shPlay() {
   if (SH.playing) { shStop(); return; }
   const text = clipText(); SH.playing = true; SH.k.clear(); $('#shResult').innerHTML = ''; $('#shHeard').textContent = ''; shButton();
-  if (SH.mode === 'listen') Voice.speak(text, {rate: SH.rate, onWord: SH.k.mark, onEnd: () => shDone('<div class="fb info">¡Escuchado! <span>Ponlo otra vez o cambia de modo y habla a la vez que la voz.</span></div>', 0)});
+  if (SH.mode === 'listen') Voice.speak(text, {rate: SH.rate, onWord: SH.k.mark, onEnd: () => { track('round_complete', {mode: 'shadow:listen'}); shDone('<div class="fb info">¡Escuchado! <span>Ponlo otra vez o cambia de modo y habla a la vez que la voz.</span></div>', 0); }});
   else if (SH.mode === 'shadow') Voice.speak(text, {rate: SH.rate, onWord: SH.k.mark, onEnd: () => { SH.reps++; const three = SH.reps % 3 === 0; if (three) markActivity('shadow:' + SH.clip); shDone(`<div class="fb ok">Repetición ${SH.reps} hecha. +5 XP<span>${three ? 'Tres seguidas. Ahora pasa a Solo.' : 'Hazlo ' + (3 - SH.reps % 3) + ' ' + (3 - SH.reps % 3 === 1 ? 'vez' : 'veces') + ' más y luego pasa a Solo.'}</span></div>`, 5); }});
   else {
     let said = '', paced = false, micDone = !Mic.ready();
@@ -612,7 +692,7 @@ function shPlay() {
         if (!said) { shDone('<div class="fb info">No te escuché. <span>Toca Empezar solo y habla mientras se iluminan las palabras.</span></div>', 0); return; }
         const hits = wordMatch(text, said), pct = Math.round(hits.filter(Boolean).length / hits.length * 100);
         SH.k.result(hits); markActivity('shadow:' + SH.clip);
-        shDone(`<p class="score num">${pct}%</p><p class="muted">de las palabras se oyeron con claridad. Las subrayadas no se oyeron: escúchalas otra vez. +15 XP</p>`, 15);
+        shDone(`<p class="score num">${pct}%</p><p class="muted">de las palabras las reconoció el micrófono. Eso comprueba las palabras, no tu acento. Las subrayadas no se reconocieron: escúchalas otra vez. +15 XP</p>`, 15);
         if (pct >= 80) burstFrom($('#shLine'));
       } else {
         shDone('<div class="fb info">¿Qué tal te salió?<span>Aquí no hay micrófono, así que el juez eres tú.</span></div><div class="row" style="margin-top:12px"><button type="button" class="key primary" data-rate-self="3">¡Perfecto!</button><button type="button" class="key" data-rate-self="2">Casi</button><button type="button" class="key" data-rate-self="1">Otra vez</button></div>', 0);
@@ -623,6 +703,10 @@ function shPlay() {
   }
 }
 $('#shPlay').addEventListener('click', shPlay);
+$('#shResult').addEventListener('click', e => { const b = e.target.closest('[data-shnext]'); if (!b) return; const m = b.dataset.shnext;
+  if (m === 'clip') { const ids = Object.keys(CLIPS).filter(k => k !== 'mine'), i = ids.indexOf(SH.clip); SH.clip = ids[(i + 1) % ids.length]; SH.reps = 0; SH.mode = 'listen'; renderShadow(); }
+  else { SH.mode = m; renderShadow(); shPlay(); } track('next', {mode: 'shadow:' + m}); });
+const shNext = m => '<div class="row sh-next"><button type="button" class="key primary" data-shnext="' + m + '">' + (m === 'shadow' ? ic('play') + (SH.mode === 'shadow' ? 'Imita otra vez' : 'Ahora imita') : m === 'solo' ? ic('mic') + 'Ahora prueba Solo' : 'Siguiente clip' + ic('arrow')) + '</button></div>';
 $('#mineSave').addEventListener('click', () => { shStop(); state.script = $('#mineText').value.replace(/\s+/g, ' ').trim().slice(0, 900); save(); $('#mineMsg').textContent = state.script ? 'Guardado en este dispositivo.' : 'Está vacío, así que se usa el guion de ejemplo.'; renderShadow(); });
 $('#shResult').addEventListener('click', e => { const b = e.target.closest('[data-rate-self]'); if (!b) return; const v = +b.dataset.rateSelf; if (v >= 2) { markActivity('shadow:' + SH.clip); shDone(`<div class="fb ok">${v === 3 ? '¡Perfecto!' : '¡Casi!'} +${v === 3 ? 15 : 10} XP<span>${v === 3 ? 'Prueba el siguiente clip o una velocidad más rápida.' : 'Una vez más en Solo y ya lo tienes.'}</span></div>`, v === 3 ? 15 : 10); } else shDone('<div class="fb info">Bien visto. <span>Repítelo dos veces más con la voz y vuelve a probar en Solo.</span></div>', 0); });
 $('#clips').addEventListener('click', e => { const b = e.target.closest('[data-clip]'); if (b) { shStop(); SH.clip = b.dataset.clip; SH.reps = 0; renderShadow(); } });
@@ -823,7 +907,7 @@ const started = {};
 function show() {
   const name = document.body.dataset.page || 'home';
   if (name === currentView && !pending) return;
-  Voice.stop(); Mic.stop(); if (SH.playing) shStop(); if (TALK.run) talkStop(false);
+  Voice.stop(); Mic.cancel(); if (SH.playing) shStop(); if (TALK.run) talkStop(false);
   const changed = name !== currentView; currentView = name;
   $$('[data-view]').forEach(v => { v.hidden = v.dataset.view !== name; });
   $$('.tabs a').forEach(a => { if (a.getAttribute('href') === PATHS[name]) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
@@ -856,14 +940,15 @@ function browserSpeech() {
     onPartial: sub(P), onFinal: sub(F), onState: sub(St), active: () => !!rec,
     start(opts) {
       return new Promise((resolve, reject) => {
-        let started = false, reason = 'stopped';
-        try { rec = new SR(); } catch (e) { reject({code: 'unavailable'}); return; }
-        rec.lang = (opts && opts.language) || 'en-US'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
-        rec.onstart = () => { started = true; emit(St, {state: 'listening'}); resolve(); };
-        rec.onresult = e => { let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) emit(F, {text: r[0].transcript.trim()}); else interim += r[0].transcript; } if (interim) emit(P, {text: interim.trim()}); };
-        rec.onerror = ev => { const code = (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') ? 'not_granted' : ev.error === 'no-speech' ? 'stopped' : 'unavailable'; reason = code; if (!started) { rec = null; reject({code}); } };
-        rec.onend = () => { rec = null; emit(St, {state: 'idle', reason}); };
-        try { rec.start(); } catch (e) { rec = null; reject({code: 'unavailable'}); }
+        let started = false, reason = 'stopped', me;
+        try { me = rec = new SR(); } catch (e) { reject({code: 'unavailable'}); return; }
+        // a recogniser that was cancelled or replaced keeps quiet: its late results and end belong to nobody
+        me.lang = (opts && opts.language) || 'en-US'; me.interimResults = true; me.continuous = true; me.maxAlternatives = 1;
+        me.onstart = () => { if (rec !== me) return; started = true; emit(St, {state: 'listening'}); resolve(); };
+        me.onresult = e => { if (rec !== me) return; let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) emit(F, {text: r[0].transcript.trim()}); else interim += r[0].transcript; } if (interim) emit(P, {text: interim.trim()}); };
+        me.onerror = ev => { const x = ev.error, code = (x === 'not-allowed' || x === 'service-not-allowed') ? 'not_granted' : x === 'no-speech' ? 'silence' : x === 'audio-capture' ? 'no_mic' : x === 'aborted' ? 'stopped' : x === 'network' ? 'network' : 'unavailable'; reason = code; if (!started) { if (rec === me) rec = null; reject({code}); } };
+        me.onend = () => { if (rec !== me) return; rec = null; emit(St, {state: 'idle', reason}); };
+        try { me.start(); } catch (e) { if (rec === me) rec = null; reject({code: 'unavailable'}); }
       });
     },
     stop() { return new Promise(res => { if (!rec) { res(); return; } const r = rec; const done = r.onend; r.onend = ev => { if (done) done(ev); res(); }; try { r.stop(); } catch (e) { res(); } setTimeout(res, 1500); }); }
@@ -871,10 +956,24 @@ function browserSpeech() {
 }
 if (!(window.claude && typeof window.claude.use === 'function')) { const bs = browserSpeech(); if (bs) Mic.attach(bs); }
 
-window.W2S = {Voice, RULES, addXP, logLine, burst: burstFrom, accent: () => state.accent, setAccent: id => { state.accent = id; save(); Voice.stop(); renderAccents(); }};
+window.W2S = {Voice, RULES, addXP, logLine, track, ic, path: v => (typeof pathOf === 'function' ? pathOf(v) : '#' + v), burst: burstFrom, accent: () => state.accent, setAccent: id => { state.accent = id; save(); Voice.stop(); renderAccents(); }};
+
+/* ---------- Continue: the next Sprint task, for a learner who has started ---------- */
+function renderResume() {
+  const a = document.getElementById('resume'); if (!a) return;
+  const started = Object.keys(state.sprint || {}).some(k => state.sprint[k]) || (state.sessions || 0) > 0 || state.xp > 0;
+  if (!started) { a.hidden = true; return; }
+  const d = sprintDay(), tasks = DAYS[d].tasks, ti = tasks.findIndex((t, k) => t.go && !state.sprint[taskId(d, k)]);
+  const t = ti >= 0 ? tasks[ti] : tasks.find(x => x.go); if (!t) { a.hidden = true; return; }
+  const go = t.go === 'talk' ? 'sprint' : t.go;
+  a.href = (typeof pathOf === 'function' ? pathOf(go) : '#' + go);
+  a.dataset.go = JSON.stringify(Object.assign({}, t.set, t.go === 'talk' ? {talk: 1} : {}));
+  a.innerHTML = '<span class="resume-k">' + 'Continuar · Día' + ' ' + (d + 1) + '</span><b>' + esc(t.short || t.label) + '</b>' + ic('arrow');
+  a.hidden = false;
+}
 
 /* ---------- boot ---------- */
-renderStats(); renderAccents(); renderMissions(); renderSprint(); save();
+renderStats(); renderAccents(); renderMissions(); renderSprint(); renderResume(); save();
 show();
 if (pending && pending.talk && currentView === 'sprint') setTimeout(toTalk, 400);
 })();

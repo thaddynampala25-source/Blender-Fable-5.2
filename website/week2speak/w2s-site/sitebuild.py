@@ -40,7 +40,7 @@ NULLJS = open('nulljs.txt').read()
 a = app_js
 a = rep(a, OLDSEL, NULLJS)
 a = rep(a, 'function markActivity(key) {', "function markActivity(key) {\n  document.dispatchEvent(new CustomEvent('w2s:activity', {detail: {key}}));")
-a = rep(a, "burstFrom($('.prompt', gameBody) || $('.tray', gameBody))", "burstFrom(gameBody.querySelector('.prompt') || gameBody.querySelector('.tray') || gameBody.querySelector('.pool') || gameBody)")
+# (the game burst picks its element with querySelector in apply_ux.py: $() never returns null here)
 a = rep(a, "/* ---------- router ---------- */", "/* ---------- router ---------- */\nconst PATHS = " + json.dumps(PATHS) + ";\nconst pathOf = v => PATHS[v] || '/';")
 a = rep(a, "  const name = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';", "  const name = document.body.dataset.page || 'home';")
 a = rep(a, "if (a.getAttribute('href') === '#' + name)", "if (a.getAttribute('href') === PATHS[name])")
@@ -75,14 +75,15 @@ function browserSpeech() {
     onPartial: sub(P), onFinal: sub(F), onState: sub(St), active: () => !!rec,
     start(opts) {
       return new Promise((resolve, reject) => {
-        let started = false, reason = 'stopped';
-        try { rec = new SR(); } catch (e) { reject({code: 'unavailable'}); return; }
-        rec.lang = (opts && opts.language) || 'en-US'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
-        rec.onstart = () => { started = true; emit(St, {state: 'listening'}); resolve(); };
-        rec.onresult = e => { let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) emit(F, {text: r[0].transcript.trim()}); else interim += r[0].transcript; } if (interim) emit(P, {text: interim.trim()}); };
-        rec.onerror = ev => { const code = (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') ? 'not_granted' : ev.error === 'no-speech' ? 'stopped' : 'unavailable'; reason = code; if (!started) { rec = null; reject({code}); } };
-        rec.onend = () => { rec = null; emit(St, {state: 'idle', reason}); };
-        try { rec.start(); } catch (e) { rec = null; reject({code: 'unavailable'}); }
+        let started = false, reason = 'stopped', me;
+        try { me = rec = new SR(); } catch (e) { reject({code: 'unavailable'}); return; }
+        // a recogniser that was cancelled or replaced keeps quiet: its late results and end belong to nobody
+        me.lang = (opts && opts.language) || 'en-US'; me.interimResults = true; me.continuous = true; me.maxAlternatives = 1;
+        me.onstart = () => { if (rec !== me) return; started = true; emit(St, {state: 'listening'}); resolve(); };
+        me.onresult = e => { if (rec !== me) return; let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) emit(F, {text: r[0].transcript.trim()}); else interim += r[0].transcript; } if (interim) emit(P, {text: interim.trim()}); };
+        me.onerror = ev => { const x = ev.error, code = (x === 'not-allowed' || x === 'service-not-allowed') ? 'not_granted' : x === 'no-speech' ? 'silence' : x === 'audio-capture' ? 'no_mic' : x === 'aborted' ? 'stopped' : x === 'network' ? 'network' : 'unavailable'; reason = code; if (!started) { if (rec === me) rec = null; reject({code}); } };
+        me.onend = () => { if (rec !== me) return; rec = null; emit(St, {state: 'idle', reason}); };
+        try { me.start(); } catch (e) { if (rec === me) rec = null; reject({code: 'unavailable'}); }
       });
     },
     stop() { return new Promise(res => { if (!rec) { res(); return; } const r = rec; const done = r.onend; r.onend = ev => { if (done) done(ev); res(); }; try { r.stop(); } catch (e) { res(); } setTimeout(res, 1500); }); }

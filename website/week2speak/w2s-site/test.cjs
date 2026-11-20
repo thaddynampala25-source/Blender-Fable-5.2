@@ -40,7 +40,7 @@ async function wire(ctx) {
   const paid = (await p.request.get(B + '/paid/sprint.es.json')).status();
   // home film + home Word Order still work
   await p.goto(B + '/'); await p.waitForTimeout(800); await p.evaluate(() => document.getElementById('try').scrollIntoView()); await p.waitForTimeout(500);
-  for (const w of ['Where','is','the','bus','station']) await p.locator('#gPool .tile').filter({hasText: new RegExp('^' + w + '$')}).first().click();
+  for (const w of ['Hi',"I'm",'Ana']) await p.locator('#gPool .tile').filter({hasText: new RegExp('^' + w + '$')}).first().click();
   await p.waitForTimeout(400); const gm = await p.locator('#gMsg').innerText(); const xp = await p.locator('#stXp').innerText();
   // phone overflow
   const m = await (async () => { const c = await b.newContext({viewport: {width: 390, height: 800}}); await wire(c); return c.newPage(); })(); const over = {};

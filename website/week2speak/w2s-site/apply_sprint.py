@@ -191,6 +191,8 @@ rep("`<div class=\"panel stack\"><h2 style=\"margin:0\">Practise in the rooms</h
 
 import apply_more
 s = apply_more.apply(s, C)
+import apply_ux
+s = apply_ux.apply(s)
 open(SRC, 'w', encoding='utf-8').write(s)
 
 # ---------- data for the crawlable pages ----------
