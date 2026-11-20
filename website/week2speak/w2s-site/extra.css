@@ -117,3 +117,24 @@ footer .logo{color:#fff}
 [data-view="shadow"] .shadow-opts .panel{height:100%}
 [data-view="shadow"] .shadow-opts .seg{display:grid;grid-template-columns:repeat(3,1fr)}
 @media (max-width:760px){[data-view="shadow"] .shadow-opts{grid-template-columns:minmax(0,1fr)}}
+
+/* Layout pass, 21 Nov 2026: no dead strips beside narrow columns, on desktop and phone */
+.view > .prose,.view > .game,.fx-faq{margin-left:auto;margin-right:auto}
+@media (min-width:901px){#mods{position:sticky;top:128px;align-self:start}}
+@media (min-width:821px){.fx-hero-tutor .fx-incl{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.toys{align-items:stretch}
+#gameBody{align-content:start}
+@media (max-width:600px){
+  #gameTabs{flex-wrap:wrap;overflow:visible}
+  .prose table,.prose tbody,.prose tr,.prose td,.prose th{display:block;width:auto}
+  .prose thead{display:none}
+  .prose tr{padding:12px 0;border-bottom:1px solid var(--line)}
+  .prose td:first-child{font-weight:800}
+}
+/* Games: buttons sit right under the tiles; the reserved feedback space goes below them */
+#gameBody > .row{order:5}
+#gameBody > .fb{order:6}
+@media (max-width:600px){#gameTabs.seg{flex-wrap:wrap!important;overflow:visible!important}}
+/* Home: the Word Order toy fills its card height instead of leaving a blank bottom */
+.toys .toy{display:flex;flex-direction:column}
+.toys .toy > .tray{flex:1 1 auto}

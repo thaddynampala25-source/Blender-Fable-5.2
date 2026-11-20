@@ -49,6 +49,10 @@ def plan(days, g):
     return {'items': items, 'prompt': ' [long pause] '.join(fix(x['text']) for x in items)}
 
 
+def probe(path):
+    return float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path], capture_output=True, text=True).stdout)
+
+
 def norm_words(t):
     return [w for w in re.sub(r"[^a-z0-9' ]+", ' ', t.lower().replace('\u2019', "'")).split() if w]
 
@@ -70,7 +74,7 @@ def split(take, batch, acc, g, words_json):
         for t in range(size):
             k = owner[a + t]; fi.setdefault(k, hi[b + t]); li[k] = hi[b + t]
     # a line the model misheard (single words like "air") gets the unmatched words between its neighbours
-    gaps = {}
+    gaps, merged = {}, []
     for k in range(len(items)):
         if k in fi: continue
         lo = max([li[j] for j in range(k) if j in li], default=-1) + 1
@@ -79,10 +83,19 @@ def split(take, batch, acc, g, words_json):
         # the model dropped the word: it is in the gap between the neighbours' heard words
         a = heard[lo - 1]['e'] if lo > 0 else 0.0
         b = heard[up]['s'] if up < len(heard) else probe(take)
-        if b - a < 0.3: sys.exit(f'{take}: nothing heard for {items[k]["text"]!r}')
-        gaps[k] = (a + 0.05, b - 0.05)
+        if b - a >= 0.3: gaps[k] = (a + 0.05, b - 0.05); continue
+        merged.append(k)   # heard as one word with the line before it ("estate esteem"): split that word's span below
     first = {k: heard[fi[k]]['s'] for k in fi}; last = {k: heard[li[k]]['e'] for k in li}
     for k, (a, b) in gaps.items(): first[k], last[k] = a, b
+    for k in merged:
+        p0 = max(j for j in range(k) if j in first)
+        a, b = first[p0], last[p0]
+        log = subprocess.run(['ffmpeg', '-hide_banner', '-ss', f'{a:.3f}', '-to', f'{b:.3f}', '-i', take, '-af', 'silencedetect=noise=-35dB:d=0.08', '-f', 'null', '-'], capture_output=True, text=True).stderr
+        S = [float(x) for x in re.findall(r'silence_start: ([\d.]+)', log)]; E = [float(x) for x in re.findall(r'silence_end: ([\d.]+)', log)]
+        sil = [(x, y) for x, y in zip(S, E) if 0.1 < x and y < b - a - 0.1]
+        if not sil: sys.exit(f'{take}: cannot split {items[p0]["text"]!r} / {items[k]["text"]!r}')
+        x, y = max(sil, key=lambda z: z[1] - z[0])
+        last[p0], first[k], last[k] = a + x, a + y, b
     dur = probe(take)
     for k in range(len(items) - 1):
         if not last[k] <= first[k + 1]: sys.exit(f'{take}: lines {k} and {k + 1} overlap ({items[k]["text"]!r})')

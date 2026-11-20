@@ -103,8 +103,9 @@ def course_list():
     out = ['<ol class="lessons">']
     for i, (d, c) in enumerate(zip(D['DAYS'], D['COURSE'])):
         r = rule[c['rule']]
-        out.append(f'<li><h3>Lesson {i + 1}: {e(d["title"])}</h3><p>{e(d["goal"])}</p><p><strong>Key phrases:</strong> {e(" / ".join(c["phr"]))}</p>'
-                   f'<p><strong>Mistake from Spanish:</strong> <s>{e(c["bad"])}</s> → {e(c["good"])} {e(r["tip"])}</p></li>')
+        ue = lambda s: e(H.unescape(H.unescape(s)))      # some lesson data is HTML-escaped once or twice: escape once only
+        out.append(f'<li><h3>Lesson {i + 1}: {ue(d["title"])}</h3><p>{ue(d["goal"])}</p><p><strong>Key phrases:</strong> {ue(" / ".join(c["phr"]))}</p>'
+                   f'<p><strong>Mistake from Spanish:</strong> <s>{ue(c["bad"])}</s> → {ue(c["good"])} {ue(r["tip"])}</p></li>')
     out.append('</ol>')
     return '\n'.join(out)
 

@@ -44,6 +44,9 @@ def _norm(s):
     return ' '.join(s.split())
 
 
+import html as _H
+_unesc = _H.unescape   # catalog entries may hold entities (&#x27;): decode before escaping once
+
 _RAW = {}     # entries with markup: raw snippet replacement
 _TXT = {}     # plain entries: whole text node, attribute or literal
 for row in CAT:
@@ -111,7 +114,7 @@ def html(doc, lang):
                 _USED.add(k)
                 lead = tok[:len(tok) - len(tok.lstrip())]
                 trail = tok[len(tok.rstrip()):]
-                out.append(lead + _TXT[k][lang].replace('&', '&amp;').replace('<', '&lt;') + trail)
+                out.append(lead + _unesc(_TXT[k][lang]).replace('&', '&amp;').replace('<', '&lt;') + trail)
             else:
                 out.append(tok)
     return paths(''.join(out), lang)
