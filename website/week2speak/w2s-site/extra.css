@@ -110,3 +110,10 @@ footer .logo{color:#fff}
   /* A8: in the shadowing studio the player comes first; the clip, accent and speed choices follow it */
   [data-view="shadow"] .cols>.side{order:2}
 }
+
+/* Shadowing: accent/voice and speed under the practice card */
+[data-view="shadow"] .shadow-main{display:grid;gap:22px;align-content:start}
+[data-view="shadow"] .shadow-opts{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:22px;align-items:start}
+[data-view="shadow"] .shadow-opts .panel{height:100%}
+[data-view="shadow"] .shadow-opts .seg{display:grid;grid-template-columns:repeat(3,1fr)}
+@media (max-width:760px){[data-view="shadow"] .shadow-opts{grid-template-columns:minmax(0,1fr)}}

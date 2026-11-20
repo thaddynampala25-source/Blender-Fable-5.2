@@ -365,6 +365,12 @@ const Voice = (() => {""")
     rep("  const norm = v => String(v.lang || '').replace('_', '-').toLowerCase();",
         "  const norm = v => String(v.lang || '').replace('_', '-').toLowerCase();\n" +
         "  const NOVELTY = /^(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|junior|organ|ralph|superstar|trinoids|whisper|wobble|zarvox|fred|kathy|eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley)\\b/i;")
+    # ---------- Shadowing layout: accent, voice and speed sit under the practice card, not in a tall side column ----------
+    ACC = '      <div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><div class="chips" data-voicegender style="margin-top:10px"></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>\n'
+    SPD = '      <div class="panel"><h2>Speed</h2><div class="seg" id="speeds" role="group" aria-label="Speed"><button type="button" data-rate="0.75">Slow</button><button type="button" data-rate="0.9">Steady</button><button type="button" data-rate="1">Natural</button></div></div>\n'
+    rep(ACC + SPD, '')
+    rep('    <div class="panel stage">\n      <div class="stepper" id="modes"', '    <div class="stack shadow-main">\n    <div class="panel stage">\n      <div class="stepper" id="modes"')
+    rep('      <div id="shResult" role="status"></div>\n    </div>\n', '      <div id="shResult" role="status"></div>\n    </div>\n    <div class="shadow-opts">\n' + ACC + SPD + '    </div>\n    </div>\n')
     # ---------- Scenes: the Buddy on screen says their own name (the scripts were written with "Sam") ----------
     rep("const S = {id:'cafe', step:0,", """const MISSION_SRC = JSON.parse(JSON.stringify(MISSIONS));
 function nameMissions() {

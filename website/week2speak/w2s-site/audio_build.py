@@ -1,6 +1,6 @@
 """Recorded voices for the fixed lines: plan a batch, split a generated take into clips, write the manifest.
 
-1. plan    python3 audio_build.py plan 1 2 > batch.json          lines of Sprint days 1-2 (audio_lines.py), with the
+1. plan    python3 audio_build.py plan f 1 2 > batch-f.json         lines of Sprint days 1-2 (audio_lines.py), with the
            batch prompt in batch.json["prompt"]: every line once, separated by "[long pause]" (ElevenLabs eleven_v4).
            Generate the prompt once per voice. Cost: one credit per character per take.
 2. words   python3 audio_words.py take.mp3                           word timings from a local speech-to-text model
@@ -20,29 +20,33 @@ import audio_lines as A, sprint_content as C
 
 OUT = 'audio/clips'
 # accent -> voice slot -> (ElevenLabs voice name, voice_id). Owner's picks, 20 Nov 2026.
-VOICES = {
-    'us': {'f': ('Brittney - Social Media Voice', 'kPzsL2i3teMYv0FxEYQ6'), 'm': ('Joe - Confident Idiot', 'qA5SHJ9UjGlW2QwXWR7w'),
-           'may': ('Genevieve - Warm & Expressive', 'QQdwP5hk1JyyWIo7BGvS'), 'kairo': ('Young Jamal', '6OzrBCQf8cjERkYgzSg8')},
-    'gb': {'f': ('Charlotte | Warm, Clear British RP', 'pLbOPegmoa1zxRcFjAVP'), 'm': ('Marcus - Black British London accent', 'XPItcki6tTIlq8JhllXm')},
-    'au': {'f': ('Jane - Warm & Professional', 's9nfsCILbj7TA7Jx98cv'), 'm': ('Paul', 'ck9HoVCLp6afqYbgxSAA')},
+VOICES = {   # owner's picks, 21 Nov 2026. Kairo uses the male voice of the accent, May the female one.
+    'us': {'f': ('Savvy - Warm, Grounded & Natural', 'ogwqBH5bbF03DSbNiRNN'), 'm': ('Young Jamal', '6OzrBCQf8cjERkYgzSg8')},
+    'gb': {'f': ('Charlotte - Sweet, Warm and Modern', '6fZce9LFNG3iEITDfqZZ'), 'm': ('Marcus - Black British London accent', 'XPItcki6tTIlq8JhllXm')},
+    'au': {'f': ('Sophia - Young Australian Female', 'LtPsVjX1k0Kl4StEMZPK'), 'm': ('Ben', 'sai9UY7iXkRDSsXHR0bZ')},
 }
+BUDDY = {'f': 'May', 'm': 'Kairo'}   # scenes say the Buddy's name where the script says "Sam" (nameMissions in apply_ux.py)
 
 
 def cid(text): return hashlib.sha1(text.encode()).hexdigest()[:10]
 
 
-def plan(days):
-    items = [x for x in A.lines(days) if not x['where'].endswith('sound-pair')]
-    have = {x['text'] for x in items}
+def plan(days, g):
+    """Lines for these Sprint days as voice g says them: "Sam" becomes that voice's Buddy, plus the Buddy's greeting."""
+    import buddy_roster
+    name = BUDDY[g]
+    items, have = [], set()
+    def add(text, where):
+        text = re.sub(r'\bSam\b', name, text)
+        if text not in have: have.add(text); items.append({'id': cid(text), 'text': text, 'chars': len(text), 'where': where})
+    for x in A.lines(days):
+        if not x['where'].endswith('sound-pair'): add(x['text'], x['where'])
     for d in days:
-        for w, alt, _ in C.SOUND[d]:
-            if alt not in have: have.add(alt); items.append({'id': cid(alt), 'text': alt, 'chars': len(alt), 'where': f'd{d+1}:sound-alt'})
+        for w, alt, _ in C.SOUND[d]: add(alt, f'd{d+1}:sound-alt')
+    for b in buddy_roster.ROSTER:
+        if b['name'] == name: add(b['greet'], 'greet')
     fix = lambda t: t if t[-1] in '.?!' else t + '.'
     return {'items': items, 'prompt': ' [long pause] '.join(fix(x['text']) for x in items)}
-
-
-def probe(path):
-    return float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path], capture_output=True, text=True).stdout)
 
 
 def norm_words(t):
@@ -92,16 +96,11 @@ def split(take, batch, acc, g, words_json):
 
 
 def build():
-    texts = {}
-    for d, day in enumerate(C.SOUND):
-        for w, alt, _ in day: texts[cid(w)] = w; texts[cid(alt)] = alt
-    for x in A.lines(list(range(len(C.S)))): texts[x['id']] = x['text']
-    import buddy_roster
-    for b in buddy_roster.ROSTER: texts[cid(b['greet'])] = b['greet']     # Speech Mode greetings (one take each)
     clips = {}
     for acc, slots in VOICES.items():
         for g in slots:
             pre = f'{acc}-{g}'
+            texts = {x['id']: x['text'] for x in plan(list(range(len(C.S))), g)['items']}
             for d, day in enumerate(C.SOUND):        # the pair Sound Lab plays after an answer: "word. other."
                 for w, alt, _ in day:
                     a, b = f'{OUT}/{pre}-{cid(w)}.mp3', f'{OUT}/{pre}-{cid(alt)}.mp3'
@@ -121,7 +120,7 @@ def build():
 
 if __name__ == '__main__':
     cmd = sys.argv[1] if len(sys.argv) > 1 else ''
-    if cmd == 'plan': print(json.dumps(plan([int(a) - 1 for a in sys.argv[2:]] or [0, 1]), ensure_ascii=False, indent=1))
+    if cmd == 'plan': print(json.dumps(plan([int(a) - 1 for a in sys.argv[3:]] or [0, 1], sys.argv[2]), ensure_ascii=False, indent=1))
     elif cmd == 'split': split(*sys.argv[2:7])
     elif cmd == 'build': build()
     else: sys.exit(__doc__)

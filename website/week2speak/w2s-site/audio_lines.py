@@ -8,8 +8,8 @@ Run apply_sprint.py first so ../w2s-show/showcase.html holds the current scenes.
 import hashlib, json, re, sys
 import sprint_content as C
 
-DAY_SCENES = {0: ['meet'], 1: ['cafe']}          # Speech Mode scenes that belong to each day
-DAY_CLIPS = {0: ['intro'], 1: ['coffee']}         # Imita clips that belong to each day
+DAY_SCENES = {0: ['meet'], 1: ['cafe'], 2: ['airport'], 3: ['weekend'], 4: ['opinion']}   # Speech Mode scenes of each Sprint day
+DAY_CLIPS = {0: ['intro'], 1: ['coffee'], 2: ['airport'], 3: ['yesterday'], 4: ['opinion'], 5: ['smalltalk'], 6: ['talk']}   # Imita clips
 HOME = ["Hi, I'm Ana.", "I'm from Lima, in Peru.", "I'm thirty years old.", 'Nice to meet you.']   # home Word Order (apply_ux.py)
 
 
