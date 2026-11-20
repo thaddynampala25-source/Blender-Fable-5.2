@@ -1,6 +1,6 @@
 # Week2Speak: notes for Claude Code
 
-Read PROJECT_HANDOFF.md first. The short version:
+Read PROJECT_HANDOFF.md first, and `ops/OWNER_TASKS.md` (what still needs the owner or Mei; keep it current). The short version:
 
 - Edit sources in `w2s-site/` and `w2s-show/showcase.pre-sprint.html`. Never edit `w2s-site/dist/` or `w2s-show/showcase.html` by hand: both are generated.
 - Build: `npm run build`. Serve: `npm run serve` (static, port 8765; then `npm test`, `npm run test:buddies`) or `npm run dev` (Worker + local D1 on 8787; then `npm run test:api`).

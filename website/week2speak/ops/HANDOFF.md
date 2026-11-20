@@ -150,3 +150,6 @@ Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git
   Job interview, Chat about yesterday and Coffee chat come back by themselves once recorded. May is never shown
   next to Mei: no May on the Sprint hero (the Day 1 preview is there instead), the limit and sign-up pop-ups, or
   Mei's messages (an "M" badge). May appears only as the Buddy: Speech Mode, the Sprint daily "May says".
+- Deployed (see below): Shadowing clips, game days and course lessons are listed only when recorded (textRecorded,
+  dayRecorded in apply_ux.py), like the scenes. Everything still hidden, and every task that needs the owner, is in
+  `ops/OWNER_TASKS.md`.

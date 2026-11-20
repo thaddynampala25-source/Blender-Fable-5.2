@@ -378,6 +378,11 @@ const S = {id:'cafe', step:0, turns:[], hintLevel:0, hint:null, busy:false, ende
 const chat = $('#chat');
 function bubble(cls, html) { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; chat.appendChild(d); chat.scrollTop = chat.scrollHeight; return d; }
 function renderTally() { $('#sSent').textContent = S.sent; $('#sFix').textContent = S.fixes; $('#sHelp').textContent = S.helps; }
+function textRecorded(t) {
+  const c = (window.W2S_AUDIO || {}).clips; if (!c || !t) return false; t = String(t).trim();
+  return ['us', 'gb', 'au'].some(a => ['f', 'm'].some(g => c[a + '|' + g + '|' + t]));
+}
+function dayRecorded(i) { return !!(COURSE[i] && COURSE[i].phr.every(p => textRecorded(p[0]))); }
 function sceneRecorded(id) {
   const m = MISSIONS[id], c = (window.W2S_AUDIO || {}).clips; if (!m || m.ai || !c || !m.steps) return false;
   const g = window.W2S_BUDDY_GENDER || 'f';
@@ -502,7 +507,7 @@ function startGame(kind, day) {
   track('practice_start', {mode: 'game:' + kind});
   $$('#gameTabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.game === kind));
   { const on = document.querySelector('#gameTabs [aria-pressed=true]'), bar = document.getElementById('gameTabs'); if (on && bar && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = Math.max(0, on.offsetLeft - 8); }
-  $('#gameDays').innerHTML = DAYS.map((d, i) => `<button type="button" class="chip" data-gday="${i}" aria-pressed="${i === G.day}">Día ${i + 1}</button>`).join('');
+  $('#gameDays').innerHTML = DAYS.map((d, i) => !(dayRecorded(i) || i === G.day) ? '' : `<button type="button" class="chip" data-gday="${i}" aria-pressed="${i === G.day}">Día ${i + 1}</button>`).join('');
   $('#gameDayNote').textContent = kind === 'sound' ? 'Sonido del día: ' + SOUND_NAMES[G.day] + '.' : 'Día ' + (G.day + 1) + ': ' + DAYS[G.day].title + '. ' + DAYS[G.day].can;
   loadItem();
 }
@@ -706,7 +711,7 @@ const clipText = () => SH.clip === 'mine' ? ((state.script || '').trim() || MINE
 const SH = {clip:'intro', mode:'listen', rate:.9, playing:false, reps:0, k:null};
 const MODE_HELP = {listen:'Solo escucha y sigue las palabras.', shadow:'Habla a la vez que la voz, un instante por detrás.', solo:'Te toca. Las palabras se iluminan al ritmo del habla, sin voz.'};
 function renderShadow() { setTimeout(renderAccents, 0);
-  $('#clips').innerHTML = Object.keys(CLIPS).map(id => `<button type="button" class="chip" data-clip="${id}" aria-pressed="${id === SH.clip}">${esc(CLIPS[id].name)}</button>`).join('');
+  $('#clips').innerHTML = Object.keys(CLIPS).filter(id => id === 'mine' || id === SH.clip || textRecorded(CLIPS[id].text)).map(id => `<button type="button" class="chip" data-clip="${id}" aria-pressed="${id === SH.clip}">${esc(CLIPS[id].name)}</button>`).join('');
   $$('#speeds button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.rate === SH.rate));
   $$('#modes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === SH.mode));
   SH.k = karaoke($('#shLine'), clipText());
@@ -924,7 +929,7 @@ let courseDay = -1;
 function renderCourse() {
   const done = state.course.done, said = state.course.said;
   if (courseDay < 0) { courseDay = DAYS.findIndex((_, i) => !done['d' + i]); if (courseDay < 0) courseDay = 0; }
-  $('#mods').innerHTML = DAYS.map((d, i) => `<button type="button" class="mod${done['d' + i] ? ' done' : ''}" data-mod="${i}" aria-pressed="${i === courseDay}"><span class="dn num">${done['d' + i] ? ic('check') : i + 1}</span><span>${esc(d.title)}</span></button>`).join('');
+  $('#mods').innerHTML = DAYS.map((d, i) => !(dayRecorded(i) || i === courseDay) ? '' : `<button type="button" class="mod${done['d' + i] ? ' done' : ''}" data-mod="${i}" aria-pressed="${i === courseDay}"><span class="dn num">${done['d' + i] ? ic('check') : i + 1}</span><span>${esc(d.title)}</span></button>`).join('');
   const d = DAYS[courseDay], c = COURSE[courseDay], r = ruleById(c.rule), isDone = !!done['d' + courseDay];
   $('#lesson').innerHTML =
     `<div class="panel stack"><h2 style="margin:0;font-size:1.7rem">Lección ${courseDay + 1}: ${esc(d.title)}</h2><p class="muted"><b>${esc(d.can)}</b> ${esc(d.goal)}</p><div class="fb info">Con Mei a tu lado<span>En el Sprint de 7 días tienes dos llamadas 1 a 1 con Mei y la tienes por WhatsApp toda la semana. Mientras tanto, trabaja las frases y la práctica de abajo.</span></div></div>` +

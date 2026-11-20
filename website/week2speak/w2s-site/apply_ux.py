@@ -392,6 +392,19 @@ const S = {id:'cafe', step:0,""")
 }
 function renderMissions() {
   $('#missions').innerHTML = Object.keys(MISSIONS).filter(id => sceneRecorded(id) || id === S.id).map(""")
+    # ---------- Clips, game days and lessons: only recorded ones are listed (owner, 21 Nov) ----------
+    rep("$('#clips').innerHTML = Object.keys(CLIPS).map(",
+        "$('#clips').innerHTML = Object.keys(CLIPS).filter(id => id === 'mine' || id === SH.clip || textRecorded(CLIPS[id].text)).map(")
+    rep("$('#gameDays').innerHTML = DAYS.map((d, i) => `",
+        "$('#gameDays').innerHTML = DAYS.map((d, i) => !(dayRecorded(i) || i === G.day) ? '' : `")
+    rep("$('#mods').innerHTML = DAYS.map((d, i) => `",
+        "$('#mods').innerHTML = DAYS.map((d, i) => !(dayRecorded(i) || i === courseDay) ? '' : `")
+    rep("function sceneRecorded(id) {", """function textRecorded(t) {
+  const c = (window.W2S_AUDIO || {}).clips; if (!c || !t) return false; t = String(t).trim();
+  return ['us', 'gb', 'au'].some(a => ['f', 'm'].some(g => c[a + '|' + g + '|' + t]));
+}
+function dayRecorded(i) { return !!(COURSE[i] && COURSE[i].phr.every(p => textRecorded(p[0]))); }
+function sceneRecorded(id) {""")
     # ---------- Accents: offer only what can really be heard ----------
     # An accent is offered for what is on screen when every line has a recording in it, or the device has its own
     # voice for it (right gender). Otherwise the chip is hidden and lines play in an accent that works, so an
