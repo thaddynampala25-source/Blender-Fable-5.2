@@ -4,6 +4,7 @@ Newest first. "Proposed" = written by an agent, not yet approved by the owner. F
 
 | Date | Decision | Why | Status |
 | --- | --- | --- | --- |
+| 2026-11-20 | May is a fictional Buddy with no link to Mei: "Mei's 3D twin" removed everywhere; no Buddy on Join, thank-you or Tutor pages; no picture of Mei until the owner sends one | Owner's instruction; a cartoon in checkout looked unprofessional | Approved by owner; deployed (af611dd5) |
 | 2026-11-20 | Recorded voices replaced with the owner's own picks, per accent: US woman Brittney (Social Media Voice), US man Joe (Confident Idiot), US May Genevieve (Warm & Expressive), US Kairo Young Jamal; British woman and May Charlotte (Warm, Clear British RP), British man and Kairo Marcus (Black British London); Australian woman and May Jane (Warm & Professional), Australian man and Kairo Paul. Female/Male voice choice in Games, Imita and the course; Speech Mode follows the Buddy | Owner did not want Matilda and Chris, which an agent had chosen without asking | Approved by owner; deployed |
 | 2026-11-20 | Mei's tutor login wamulow@gmail.com, her WhatsApp and Cal.com link set in wrangler.jsonc | T1 purchase path | Approved by owner; deployed |
 | 2026-11-20 | No new tools, plugins or subscriptions in the first week | Everything the first five sales need is already connected | Proposed |

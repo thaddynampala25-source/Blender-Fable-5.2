@@ -25,7 +25,7 @@ an account; free accounts hit a stricter daily limit and see what the Sprint add
 ### Product designer (onboarding, engagement, feeling accompanied)
 1. **"Tu tutora" tab:** Mei's card, her availability, the student's booked calls, a one-tap WhatsApp
    button (paid only), and a short "message from Mei" for today.
-2. **Day-by-day Sprint with a guide:** each day opens with May (Mei's 3D twin) saying today's goal, then
+2. **Day-by-day Sprint with a guide:** each day opens with May (the Buddy) saying today's goal, then
    a checklist of tasks; finishing a day unlocks the next with a small celebration.
 3. **Streak and progress ring:** the week as seven circles, the current day pulsing; a friendly nudge
    when today is unfinished ("May sigue esperándote").

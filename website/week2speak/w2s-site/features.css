@@ -46,6 +46,7 @@
 .fx-incl span b{color:var(--ink)}
 .fx-buy{position:sticky;top:calc(var(--nav,58px) + 16px);background:var(--surface);border-radius:26px;box-shadow:0 2px 4px rgba(16,22,66,.08),0 24px 60px rgba(16,22,66,.18);padding:24px;display:grid;gap:14px}
 .fx-buy-top{display:flex;gap:14px;align-items:center}
+.fx-hero.fx-hero-tutor{grid-template-columns:minmax(0,1fr)}
 .fx-buy-top img{width:64px;height:64px;border-radius:18px;object-fit:cover;object-position:50% 12%;background:linear-gradient(#EDF0FF,#C6D0FF)}
 .fx-buy h2{margin:0;font-size:1.3rem}
 .fx-places{margin:4px 0 0;display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:700;color:var(--ok)}

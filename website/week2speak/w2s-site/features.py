@@ -89,7 +89,7 @@ def join(lang):
       <ul class="fx-incl">{''.join(f'<li>{ic(i)}<span><b>{h}</b>{p}</span></li>' for i, h, p in incl)}</ul>
     </div>
     <aside class="fx-buy" id="buyCard" aria-labelledby="buyTitle">
-      <div class="fx-buy-top"><img src="{picture('may')}" alt="" width="64" height="64"><div><h2 id="buyTitle">{t('Sprint de 7 días', '7-Day Sprint')}</h2><p class="fx-places" id="placesLine"><span class="fx-dot" aria-hidden="true"></span><span id="placesText">{t('Plazas limitadas', 'Limited places')}</span></p></div></div>
+      <div class="fx-buy-top"><div><h2 id="buyTitle">{t('Sprint de 7 días', '7-Day Sprint')}</h2><p class="fx-places" id="placesLine"><span class="fx-dot" aria-hidden="true"></span><span id="placesText">{t('Plazas limitadas', 'Limited places')}</span></p></div></div>
       <div class="fx-price"><s id="pAnchor" aria-label="{t('Valor', 'Value')}"></s><b id="pAmount" class="num">…</b></div>
       <p class="fx-perday" id="pDay"></p>
       <p class="fx-launch">{t('Precio de lanzamiento de la fase de prueba.', 'Launch price for the testing phase.')}</p>
@@ -125,7 +125,7 @@ def sprint(lang, legacy):
       <div><h1 class="fx-h1">{t('Siete días para decir tus primeras frases en inglés.', 'Seven days to say your first sentences in English.')}</h1>
       <p class="fx-lead">{t('Un plan cerrado, veinte minutos al día y Mei a tu lado. Sin teoría eterna: cada día dices algo nuevo en voz alta.', 'A set plan, twenty minutes a day and Mei by your side. No endless theory: every day you say something new out loud.')}</p>
       <div class="row"><a class="key hl big" href="{A['join']}">{t('Ver plazas y precio', 'See places and price')}</a><a class="key big" href="{A['tutor']}">{t('Conoce a Mei', 'Meet Mei')}</a></div></div>
-      <figure class="fx-may"><img src="{picture('may')}" alt="{t('May, la gemela 3D de Mei', "May, Mei's 3D twin")}" width="540" height="670"><figcaption>{t('«Hoy hablas de ti.»', '"Today you talk about yourself."')}</figcaption></figure>
+      <figure class="fx-may"><img src="{picture('may')}" alt="{t('May, tu Buddy', 'May, your Buddy')}" width="540" height="670"><figcaption>{t('«Hoy hablas de ti.»', '"Today you talk about yourself."')}</figcaption></figure>
     </div>
     <section class="fx-taste" aria-labelledby="tasteH"><h2 id="tasteH">{t('Así empieza el Día 1', 'This is how Day 1 starts')}</h2>
       <blockquote class="fx-brief"><img src="{picture('may')}" alt="" width="48" height="48"><p>{d1['brief'][0 if lang == 'es' else 1]}</p></blockquote>
@@ -165,12 +165,11 @@ def tutor(lang):
         <li>{ic('whatsapp')}<span><b>{t('WhatsApp toda la semana', 'WhatsApp all week')}</b>{t('Dudas, audios, victorias pequeñas: se las mandas a ella.', 'Questions, voice notes, small wins: you send them to her.')}</span></li>
         <li>{ic('heart')}<span><b>{t('Sin vergüenza', 'No embarrassment')}</b>{t('Aquí equivocarse es parte del plan. Mei celebra que lo intentes.', "Here, getting it wrong is part of the plan. Mei celebrates that you try.")}</span></li>
       </ul></div>
-      <figure class="fx-may"><img src="{picture('may')}" alt="{t('May, la gemela 3D de Mei', "May, Mei's 3D twin")}" width="540" height="670"><figcaption>{t('May, su gemela 3D, te acompaña cuando Mei no está.', "May, her 3D twin, keeps you company when Mei isn't around.")}</figcaption></figure>
     </div>
     <div class="fx-lockcard" id="tutorLock">{ic('lock')}<div><b>{t('El WhatsApp de Mei es para quienes hacen el Sprint.', "Mei's WhatsApp is for people doing the Sprint.")}</b><p>{t('Cuando reserves tu plaza, aquí tendrás su contacto directo, tus llamadas y sus mensajes para ti.', "Once you book your place, you'll find her direct contact, your calls and her messages for you here.")}</p></div><a class="key hl" href="{A['join']}">{t('Reservar mi plaza', 'Book my place')}</a></div>
   </div>
   <div id="tutorStudent" hidden>
-    <header class="fx-me"><div><p class="fx-hi" id="tsHi"></p><h1 class="fx-h1">{t('Tu tutora', 'Your tutor')}</h1></div><img class="fx-avatar" src="{picture('may')}" alt="" width="72" height="72"></header>
+    <header class="fx-me"><div><p class="fx-hi" id="tsHi"></p><h1 class="fx-h1">{t('Tu tutora', 'Your tutor')}</h1></div></header>
     <div class="fx-grid2">
       <section class="fx-block fx-contact" aria-labelledby="contactH"><h2 id="contactH">{ic('whatsapp')}{t('Escríbele a Mei', 'Message Mei')}</h2>
         <p class="muted">{t('Normalmente responde el mismo día. Mándale un audio: le encanta oírte.', 'She usually replies the same day. Send her a voice note: she loves hearing you.')}</p>
@@ -228,7 +227,6 @@ def thanks(lang):
     t = L(lang); A = I.SLUG[lang]
     return f'''<section class="light fx fx-thanks" data-view="thanks"><canvas class="fx-confetti" id="confetti" aria-hidden="true"></canvas><div class="wrap view fx-narrow">
   <div class="fx-ty-head">
-    <img class="fx-ty-may" src="{picture('may')}" alt="{t('May, saludándote', 'May, waving at you')}" width="540" height="670">
     <h1 class="fx-ty-h"><span id="tyName"></span>{t('¡Ya estás dentro!', "You're in!")}</h1>
     <p class="fx-lead" id="tyStatus">{t('Tu plaza en el Sprint de 7 días está reservada.', 'Your place in the 7-Day Sprint is booked.')}</p>
   </div>

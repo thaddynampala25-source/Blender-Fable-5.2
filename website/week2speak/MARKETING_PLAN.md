@@ -260,7 +260,7 @@ Rough volume: TikTok 1–2/day (≈20 in 14 days), Reels/Shorts/FB 1/day, WhatsA
 
 ## 4. Animated content: May and Kairo (obvious-ad style, separate from Mei)
 
-These run on a **Week2Speak brand account** (and as paid ads later if wanted), **never presented as Mei**. May is a stylised Buddy who resembles Mei, so never caption May as "Mei" and never cut May and real Mei together in one video.
+These run on a **Week2Speak brand account** (and as paid ads later if wanted), **never presented as Mei**. May is a fictional Buddy with no link to any real person: never caption May as "Mei" and never cut May and real Mei together in one video.
 
 **What the Buddies can do today** (from the site runtime and the Blender rigs): idle breathing/sway, blinks (lash-line blink on May), talk (mouth shapes through the integrated face shader), a happy reaction, poke reactions (head/body), spin, a hop, the instant Switch Buddy swap, and the camera framing used in Speech Mode. Anything beyond that (walking, hand gestures with fingers, props) is new animation work and is marked **(new)** below.
 
