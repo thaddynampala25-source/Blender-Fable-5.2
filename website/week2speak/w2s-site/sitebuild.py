@@ -210,6 +210,11 @@ for href in ('/', '/tutor/'):
     NAV = rep(NAV, f'<a href="{href}">', f'<a class="tab-x" href="{href}">')
 NAV = rep(NAV, '<a href="/join/">Join</a>', '')
 NAV = rep(NAV, '<span class="stat num" id="stXp" title="Experience points"></span></div>', '<span class="stat num" id="stXp" title="Experience points"></span></div>\n  <div class="nav-act"><a class="nav-lang" href="__LANGSW_HREF__" hreflang="__LANGSW_CODE__" lang="__LANGSW_CODE__" aria-label="__LANGSW_LABEL__">__LANGSW_TEXT__</a>\n  <a class="nav-join" href="/join/">Join free</a></div>')
+# header: a Menu button for narrow screens (and Speech Mode on phones) that shows the same section links; see the "Header, final layout" block in features.css
+NAV = rep(NAV, '<nav class="tabs"', '<nav class="tabs" id="navTabs"')
+NAV = rep(NAV, '<div class="nav-act">', '<button class="nav-menu" type="button" aria-expanded="false" aria-controls="navTabs"><svg class="b" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><svg class="x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span class="t">__MENU_TEXT__</span></button>\n  <div class="nav-act">')
+MENU_JS = """(function(){var h=document.querySelector('header.nav'),b=h&&h.querySelector('.nav-menu'),t=document.getElementById('navTabs');if(!b||!t)return;function extras(){var x=t.querySelector('.nav-xtra');if(x)x.remove();x=document.createElement('div');x.className='nav-xtra';h.querySelectorAll('.nav-act .nav-lang,.nav-act .nav-me').forEach(function(a){var c=a.cloneNode(true);c.removeAttribute('aria-current');x.appendChild(c)});if(x.children.length)t.appendChild(x)}function set(o){h.classList.toggle('menu-open',o);b.setAttribute('aria-expanded',o?'true':'false');if(o)extras();else{var x=t.querySelector('.nav-xtra');if(x)x.remove()}}b.addEventListener('click',function(){var o=!h.classList.contains('menu-open');set(o);if(o){var a=t.querySelector('a');if(a)a.focus()}});t.addEventListener('click',function(e){if(e.target.closest('a'))set(false)});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&h.classList.contains('menu-open')){set(false);b.focus()}});document.addEventListener('click',function(e){if(!h.contains(e.target))set(false)});addEventListener('resize',function(){if(getComputedStyle(b).display==='none')set(false)})})();"""
+NAV = rep(NAV, '</div><div class="progress" id="progress"></div></header>', '</div><div class="progress" id="progress"></div></header>\n<script>' + MENU_JS + '</script>')
 # Speech Mode is rebuilt around the Buddy: the old two-column panel is replaced by one screen (stage, subtitle, reply bar, bottom sheet).
 _i = ROOMS['speak'].index('<div class="cols">'); _j = ROOMS['speak'].rindex('</div></section>')
 ROOMS['speak'] = ROOMS['speak'][:_i] + BB.APP + ROOMS['speak'][_j:]
@@ -299,7 +304,7 @@ def page_html(name, lang):
     html = head(name, title, desc, path, noindex=(name in NOINDEX), lang=lang, alt=None if name in NOINDEX else alt) + f'<body data-page="{name}" data-lang="{lang}">\n' + page_body(name, lang) + ('<script>window.W2S_HOLD = 1;</script>\n' if name == 'speak' else '') + SCRIPTS + (BB.script(VER) if name == 'speak' else '') + EXTRA_SCRIPTS + '</body>\n</html>\n'
     html = I.html(html, lang)
     tx, code, label = LSW[lang]
-    html = html.replace('__LANGSW_HREF__', I.SLUG[other][name]).replace('__LANGSW_CODE__', code).replace('__LANGSW_LABEL__', label).replace('__LANGSW_TEXT__', tx)
+    html = html.replace('__MENU_TEXT__', 'Menú' if lang == 'es' else 'Menu').replace('__LANGSW_HREF__', I.SLUG[other][name]).replace('__LANGSW_CODE__', code).replace('__LANGSW_LABEL__', label).replace('__LANGSW_TEXT__', tx)
     for asset in LANG_ASSETS: html = html.replace(f'/assets/{asset}.js', f'/assets/{asset}.{lang}.js')
     return html
 for lang in I.LANGS:
