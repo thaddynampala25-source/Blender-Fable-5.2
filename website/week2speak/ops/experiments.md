@@ -1,6 +1,6 @@
 # Experiments
 
-Draft, updated 20 Nov 2026 (evening), written by Claude. **Not approved.** One row per experiment, failed ones
+**Approved by the owner, 20 Nov 2026.** Written by Claude; change only with the owner's OK. One row per experiment, failed ones
 included. **[A]** marks guesses.
 
 ## How we run one

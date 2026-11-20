@@ -1,6 +1,6 @@
 # Brand
 
-Draft, updated 20 Nov 2026 (evening), written by Claude. **Not approved.** Owner and Mei sign off.
+**Approved by the owner, 20 Nov 2026.** Written by Claude; change only with the owner's OK.
 **[E]** = evidence (with where it comes from), **[A]** = assumption to test.
 
 ## Who we are

@@ -1,6 +1,6 @@
 # Teaching approach
 
-Draft, updated 20 Nov 2026 (evening), written by Claude. **Not approved.** Mei signs off this page.
+**Approved by the owner, 20 Nov 2026.** Written by Claude; change only with the owner's OK.
 **[E]** = evidence, **[A]** = assumption to test.
 
 ## Principles

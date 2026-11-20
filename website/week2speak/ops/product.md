@@ -1,6 +1,6 @@
 # Product
 
-Draft, updated 20 Nov 2026 (evening), written by Claude. **Not approved.** Owner signs off.
+**Approved by the owner, 20 Nov 2026.** Written by Claude; change only with the owner's OK.
 **[E]** = evidence (file, live system), **[A]** = assumption to test.
 
 ## Free practice (live)

@@ -1,6 +1,6 @@
 # Audience
 
-Draft, updated 20 Nov 2026 (evening), written by Claude. **Not approved.** Owner and Mei sign off.
+**Approved by the owner, 20 Nov 2026.** Written by Claude; change only with the owner's OK.
 **[E]** = evidence, **[A]** = assumption to test.
 
 Honest status: almost no customer evidence yet. Live data, evening of 20 Nov: 2 accounts (Mei's tutor account
