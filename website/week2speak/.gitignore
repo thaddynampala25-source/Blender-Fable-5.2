@@ -6,3 +6,5 @@ __pycache__/
 # never commit API keys
 .env
 *.key
+.wrangler/
+.dev.vars

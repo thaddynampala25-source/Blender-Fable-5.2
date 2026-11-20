@@ -816,13 +816,18 @@ try { const raw = localStorage.getItem(KEY); if (raw) state = Object.assign(fres
 if (!state.course || !state.course.done) state.course = {done:{}, said:{}};
 if (!['us', 'gb', 'au'].includes(state.accent)) state.accent = 'us';
 const emit = (n, d) => { try { window.dispatchEvent(new CustomEvent('w2s:' + n, {detail: d || {}})); } catch (e) {} };
-if (state.buddy !== 'rio') state.buddy = 'mila';
-window.W2S_BUDDY = state.buddy; window.W2S_BUDDY_GENDER = state.buddy === 'rio' ? 'm' : 'f';
-window.addEventListener('w2s:buddy', e => { const id = e.detail && e.detail.id === 'rio' ? 'rio' : 'mila'; state.buddy = id; save(); renderVoiceNotes();
-  setTimeout(() => { if (currentView === 'speak' && $('#speakAloud').checked) Voice.speak(id === 'rio' ? "Hey! I'm Max. Let's talk." : "Hi! I'm Ruby. Let's talk.", {rate: 1}); }, 700); });
+const paceRate = () => (window.W2S_PACE === 'slow' ? .72 : .95);   // Speech Mode: Normal or Slow
+/* the active Buddies come from buddy_roster.py via assets/config.js; a saved choice that is not active falls back to the first */
+const BUDDIES = (window.W2S_BUDDIES && window.W2S_BUDDIES.length) ? window.W2S_BUDDIES : [{id: 'mila', gender: 'f', greet: "Hi! I'm Ruby. Let's talk."}];
+const buddyOf = id => BUDDIES.find(b => b.id === id);
+if (!buddyOf(state.buddy)) state.buddy = BUDDIES[0].id;
+window.W2S_BUDDY = state.buddy; window.W2S_BUDDY_GENDER = buddyOf(state.buddy).gender;
+window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); renderVoiceNotes();
+  setTimeout(() => { if (currentView === 'speak' && $('#speakAloud').checked) Voice.speak(b.greet, {rate: 1}); }, 700); });
 /* Speech Mode screen: Start talking, Play again and the replay button */
 window.addEventListener('w2s:start', () => { window.W2S_HOLD = 0; startMission(S.id); });
-window.addEventListener('w2s:replay', () => { const t = S.turns.slice().reverse().find(x => x.role === 'tutor'); if (t) Voice.speak(t.text, {rate: .95}); });
+window.addEventListener('w2s:replay', () => { const t = S.turns.slice().reverse().find(x => x.role === 'tutor'); if (t) Voice.speak(t.text, {rate: paceRate()}); });
+window.addEventListener('w2s:stop', () => { Voice.stop(); });
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
 const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
 const yesterday = () => { const d = new Date(Date.now() - 864e5); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
@@ -963,19 +968,19 @@ const Voice = (() => {
       emit('speak', {text: String(text)}); }
     const id = token, rate = opts.rate || 1, r = route();
     const end = () => { if (id !== token) return; clear(); if (opts.onWord) opts.onWord(-1); if (opts.onEnd) opts.onEnd(); };
-    const viaClaude = () => { plan(text, rate, opts.onWord, null, id); tts.speak(text, {rate: Math.min(1.5, Math.max(.7, rate)), language:'en'}).then(end, end); };
+    const viaClaude = () => { emit('speakstart', {audio: true}); plan(text, rate, opts.onWord, null, id); tts.speak(text, {rate: Math.min(1.5, Math.max(.7, rate)), language:'en'}).then(end, end); };
     if (r.kind === 'device') {
       let started = false, exact = false; const offs = offsets(text);
       const u = new SpeechSynthesisUtterance(text);
       u.voice = r.v; u.lang = r.v.lang; u.rate = rate;
-      u.onstart = () => { if (id !== token) return; started = true; fails = 0; plan(text, rate, i => { if (!exact && opts.onWord) opts.onWord(i); }, null, id); };
-      u.onboundary = e => { if (id !== token || (e.name && e.name !== 'word')) return; exact = true; let i = 0; while (i + 1 < offs.length && offs[i + 1] <= e.charIndex) i++; if (opts.onWord) opts.onWord(i); };
+      u.onstart = () => { if (id !== token) return; started = true; fails = 0; emit('speakstart', {audio: true}); plan(text, rate, i => { if (!exact && opts.onWord) opts.onWord(i); }, null, id); };
+      u.onboundary = e => { if (id !== token || (e.name && e.name !== 'word')) return; if (!exact) emit('timing', {exact: true}); exact = true; let i = 0; while (i + 1 < offs.length && offs[i + 1] <= e.charIndex) i++; if (opts.onWord) opts.onWord(i); };
       u.onend = end;
       u.onerror = () => { if (id !== token) return; if (!started) { broken = ++fails >= 2; renderVoiceNotes(); if (tts) return viaClaude(); clear(); plan(text, rate, opts.onWord, end, id); return; } end(); };
       timers.push(setTimeout(() => { if (id !== token) return; try { synth.speak(u); } catch (e) { u.onerror(); } }, 60));
       timers.push(setTimeout(() => { if (id === token && !started) { try { synth.cancel(); } catch (e) {} u.onend = null; u.onerror = null; broken = ++fails >= 2; renderVoiceNotes(); if (tts) viaClaude(); else { clear(); plan(text, rate, opts.onWord, end, id); } } }, 2500));
     } else if (r.kind === 'claude') viaClaude();
-    else plan(text, rate, opts.onWord, end, id);
+    else { emit('speakstart', {audio: false}); plan(text, rate, opts.onWord, end, id); }
   }
   return {speak, pace, stop, note: () => route().note, setTts: t => { tts = t; renderVoiceNotes(); }};
 })();
@@ -1072,7 +1077,7 @@ function renderMissions() {
 function sayTutor(text) {
   S.turns.push({role:'tutor', text}); bubble('msg t', esc(text));
   S.hintLevel = 0; renderHint();
-  if ($('#speakAloud').checked && currentView === 'speak' && !window.W2S_HOLD) Voice.speak(text, {rate:.95});
+  if ($('#speakAloud').checked && currentView === 'speak' && !window.W2S_HOLD) Voice.speak(text, {rate: paceRate()});
 }
 function startMission(id) {
   if (MISSIONS[id].ai && !cap.sample) id = 'cafe';
@@ -1152,7 +1157,7 @@ $('#composer').addEventListener('submit', e => { e.preventDefault(); sendLine($(
 $('#speakMic').innerHTML = ic('mic');
 $('#speakMic').addEventListener('click', e => {
   const input = $('#speakInput');
-  Mic.start({button: e.currentTarget, onText: t => { input.value = t; }, onEnd: said => { if (said) sendLine(said); }});
+  Mic.start({button: e.currentTarget, onText: t => { input.value = t; }, onEnd: (said, reason) => { if (said) { emit('micresult'); sendLine(said); } else emit('micempty', {reason: reason || ''}); }});
 });
 $('#helpBtn').addEventListener('click', () => { if (S.hintLevel < 3) { emit('help'); S.hintLevel++; S.helps++; renderTally(); renderHint(); } });
 $('#restartBtn').innerHTML = ic('refresh') + 'Restart scene';

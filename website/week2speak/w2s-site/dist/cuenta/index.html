@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tu cuenta | Week2Speak</title>
+<meta name="description" content="Entra en tu cuenta de Week2Speak o crea una gratis.">
+<link rel="canonical" href="https://week2speak.com/cuenta/">
+<meta name="robots" content="noindex,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Week2Speak">
+<meta property="og:title" content="Tu cuenta | Week2Speak">
+<meta property="og:description" content="Entra en tu cuenta de Week2Speak o crea una gratis.">
+<meta property="og:url" content="https://week2speak.com/cuenta/">
+<meta property="og:image" content="https://week2speak.com/media/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Week2Speak: habla inglés en 7 días">
+<meta property="og:locale" content="es_ES">
+<meta property="og:locale:alternate" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0B103A">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.12556e8b0b.css" onerror="if(!this.dataset.retry){this.dataset.retry=1;this.href=this.href.split('?')[0]+'?retry='+Date.now()}">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "EducationalOrganization", "@id": "https://week2speak.com/#org", "name": "Week2Speak", "url": "https://week2speak.com/", "logo": "https://week2speak.com/apple-touch-icon.png", "description": "Práctica oral y clases de inglés para hispanohablantes.", "email": "hello@week2speak.com", "founder": {"@type": "Person", "name": "Mei Gabriela Parrablanco"}}]}</script>
+</head>
+<body data-page="account" data-lang="es">
+
+
+<header class="nav"><div class="wrap nav-in">
+  <a class="logo" href="/" aria-label="Inicio de Week2Speak">Week<span class="two">2</span>Speak</a>
+  <nav class="tabs" aria-label="Secciones"><a class="tab-x" href="/">Inicio</a><a href="/modo-habla/" aria-label="Modo Habla"><span class="tl">Modo Habla</span><span class="ts">Habla</span></a><a href="/juegos/">Juegos</a><a href="/shadowing/" aria-label="Shadowing"><span class="tl">Shadowing</span><span class="ts">Shadow</span></a><a href="/sprint-7-dias/" aria-label="Sprint de 7 días"><span class="tl">Sprint de 7 días</span><span class="ts">Sprint</span></a><a href="/curso/">Curso</a><a class="tab-x" href="/tutora/">Tutora</a></nav>
+  <div class="stats"><span class="stat num" id="stStreak" title="Racha de días"></span><span class="stat num" id="stXp" title="Puntos de experiencia"></span></div>
+  <div class="nav-act"><a class="nav-lang" href="/en/account/" hreflang="en" lang="en" aria-label="Read this page in English">EN</a>
+  <a class="nav-join" href="/unete/">Empieza tu Sprint</a></div>
+</div><div class="progress" id="progress"></div></header>
+<main id="main">
+<section class="light fx" data-view="account"><div class="wrap view fx-narrow">
+  <div id="acOut">
+    <h1 class="fx-h1">Tu cuenta gratis</h1>
+    <p class="fx-lead">Guarda tu progreso, practica cada día y, cuando quieras, empieza tu Sprint.</p>
+    <div class="fx-auth" data-auth-host></div>
+  </div>
+  <div id="acReset" hidden>
+    <h1 class="fx-h1">Nueva contraseña</h1>
+    <form class="fx-form" id="resetForm"><label class="fx-f"><span>Contraseña nueva</span><input type="password" name="password" minlength="8" required autocomplete="new-password"></label>
+      <button class="key primary big" type="submit">Guardar y entrar</button><p class="fx-msg" role="status"></p></form>
+  </div>
+  <div id="acIn" hidden>
+    <header class="fx-me"><div><p class="fx-hi" id="acHi"></p><h1 class="fx-h1">Tu cuenta</h1></div><span class="fx-plan" id="acPlan"></span></header>
+    <section class="fx-block" id="acUsage" aria-labelledby="useH"><h2 id="useH"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Tu práctica de hoy</h2><div class="fx-meters" id="meters"></div><p class="muted small" id="usageNote"></p></section>
+    <section class="fx-block" id="acSprint" aria-labelledby="spH"><h2 id="spH"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.9Z"/></svg>Sprint de 7 días</h2><div id="acSprintBody"></div></section>
+    <section class="fx-block" aria-labelledby="setH"><h2 id="setH"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>Tus datos</h2>
+      <dl class="fx-dl"><dt>Nombre</dt><dd id="acName"></dd><dt>Email</dt><dd id="acEmail"></dd></dl>
+      <div class="row"><button class="key" id="logoutBtn" type="button">Cerrar sesión</button><button class="key fx-danger" id="delOpen" type="button">Borrar mi cuenta</button></div>
+      <form class="fx-form" id="delForm" hidden><p>Se borrarán tu cuenta, tu progreso y tus datos. No se puede deshacer.</p>
+        <label class="fx-f"><span>Escribe tu contraseña para confirmar</span><input type="password" name="password" required autocomplete="current-password"></label>
+        <button class="key fx-danger" type="submit">Sí, borrarlo todo</button><p class="fx-msg" role="status"></p></form>
+    </section>
+  </div>
+</div></section>
+</main>
+<footer><div class="wrap foot">
+  <div class="foot-brand"><a class="logo" href="/" aria-label="Inicio de Week2Speak">Week<span class="two">2</span>Speak</a><p>Práctica para hablar inglés, hecha para hispanohablantes. En fase de prueba.</p></div>
+  <nav class="foot-nav" aria-label="Pie de página"><div><b>Practica</b><a href="/modo-habla/">Modo Habla</a><a href="/juegos/">Juegos</a><a href="/shadowing/">Shadowing</a></div>
+  <div><b>Aprende</b><a href="/sprint-7-dias/">Sprint de 7 días</a><a href="/curso/">Curso</a><a href="/errores-comunes/">Errores comunes</a></div>
+  <div><b>Week2Speak</b><a href="/como-ensenamos/">Cómo enseñamos</a><a href="/unete/">Reserva tu plaza</a><a href="/privacidad/">Privacidad</a><a href="/terminos/">Términos</a><a href="mailto:hello@week2speak.com">hello@week2speak.com</a></div></nav>
+</div></footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<script src="/assets/config.838fe76f58.js" onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
+<script src="/assets/vendor/gsap-3.12.5.min.js" defer></script>
+<script src="/assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
+<script src="/assets/app.es.f588ef4c6e.js" defer onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
+<script src="/assets/home.es.e75914828e.js" defer onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
+<script src="/assets/account.950c27e2cf.js" defer></script>
+</body>
+</html>

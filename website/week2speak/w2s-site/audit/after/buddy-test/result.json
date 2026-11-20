@@ -1,20 +1,34 @@
 {
  "loaded": {
-  "id": "mila",
-  "rig": "w2s-1",
+  "id": "kairo",
+  "rig": "w2s-chibi-1",
   "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
-  "name": "Ruby",
+  "name": "Kairo",
   "is3d": true,
   "state": "landing"
  },
+ "roster": [
+  "kairo",
+  "may"
+ ],
+ "capabilities": {
+  "rig": "w2s-chibi-1",
+  "mouthShapes": false,
+  "faceCards": true,
+  "skeleton": "hips, spine, head"
+ },
  "lipsync": {
   "spoke": true,
-  "mouthMaxWhileSpeaking": 0.75,
+  "mouthMaxWhileSpeaking": 0.53,
   "wordsHighlighted": 9,
   "mouthAfter": 0,
   "stateAfter": "turn",
+  "mouthCardWhileSpeaking": true,
+  "timing": "estimated",
+  "audio": false,
   "pass": true
  },
+ "integratedFace": true,
  "pokes": {
   "hit": [
    "face>face",
@@ -31,28 +45,28 @@
    "torso>torso"
   ],
   "log": [
-   "giggle",
-   "startled",
-   "tickle",
-   "shrug",
-   "sip",
    "boop",
-   "hairflick",
-   "tickle",
+   "startled",
+   "shrug",
    "wave",
    "sip",
    "giggle",
-   "shrug"
-  ],
-  "distinct": [
-   "giggle",
-   "startled",
+   "hairflick",
    "tickle",
    "shrug",
-   "sip",
+   "wave",
    "boop",
+   "tickle"
+  ],
+  "distinct": [
+   "boop",
+   "startled",
+   "shrug",
+   "wave",
+   "sip",
+   "giggle",
    "hairflick",
-   "wave"
+   "tickle"
   ],
   "repeats": 0,
   "pass": true
@@ -88,23 +102,63 @@
  },
  "switch": {
   "afterTap": {
-   "id": "rio",
-   "name": "Max",
-   "speaker": "Max",
-   "live": "Max is your Buddy now",
-   "saved": "rio",
-   "gender": "m"
+   "id": "may",
+   "name": "May",
+   "speaker": "May",
+   "live": "May is your Buddy now",
+   "saved": "may",
+   "gender": "f"
   },
   "afterReload": {
-   "id": "rio",
-   "name": "Max"
+   "id": "may",
+   "name": "May"
   },
   "afterKeyboard": {
-   "id": "mila",
-   "name": "Ruby",
-   "live": "Ruby is your Buddy now"
+   "id": "kairo",
+   "name": "Kairo",
+   "live": "Kairo is your Buddy now"
   },
-  "afterReload2": "mila",
+  "afterReload2": "kairo",
+  "pass": true,
+  "button": {
+   "label": "Switch Buddy to May",
+   "face": [
+    "/assets/buddies/may-v1.d5a6ace491.webp"
+   ]
+  }
+ },
+ "blink": {
+  "lidsClosed": [
+   true,
+   true
+  ],
+  "lidsOpen": [
+   false,
+   false
+  ],
+  "pass": true
+ },
+ "stop": {
+  "shownWhileSpeaking": true,
+  "voice": "speaking",
+  "speakingAfter": false,
+  "hiddenAfter": true,
+  "voiceAfter": "ready",
+  "pass": true
+ },
+ "micEmpty": {
+  "card": "I didn’t catch that. Try again, a little closer to the microphone, or type it.\nTry again\nGot it",
+  "tryAgain": 1,
+  "chat": 0,
+  "denied": "The microphone is blocked for this site. Allow it in your browser’s site settings, then reload. You can keep typing below.\nGot it",
+  "voice": "error",
+  "pass": true
+ },
+ "settings": {
+  "pace": "slow",
+  "storedPace": "slow",
+  "subsHidden": true,
+  "restored": true,
   "pass": true
  },
  "sound": {
@@ -115,31 +169,34 @@
  },
  "desktop": {
   "stageShare": 0.52,
-  "stageH": 802,
+  "stageH": 698,
   "panelH": 802,
   "conversationBeside": true,
+  "barFullWidth": true,
+  "barBelowStage": true,
+  "fieldW": 757,
   "pass": true
  },
  "fps": {
-  "readout": "7 fps | 27 draw calls, 89k triangles | quality step 3 of 3 (1.00x, shadows off) | ANGLE (Google, Vulkan 1.3.0 (SwiftShader Devic",
+  "readout": "6 fps | 2 draw calls, 70k triangles | quality step 3 of 3 (1.00x, shadows off) | ANGLE (Google, Vulkan 1.3.0 (SwiftShader Devic",
   "samples": [
-   "3fps q0",
-   "4fps q1",
-   "3fps q1",
-   "4fps q2",
-   "5fps q2",
+   "17fps q2",
+   "5fps q3",
+   "7fps q3",
+   "5fps q3",
    "5fps q3",
    "7fps q3",
    "7fps q3",
-   "8fps q3"
+   "5fps q3",
+   "6fps q3"
   ],
   "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
   "info": {
-   "ppu": 272,
-   "faceShare": 0.55,
-   "calls": 27,
-   "tris": 89010,
-   "slowFor": 3.9
+   "ppu": 151,
+   "faceShare": 0.25,
+   "calls": 2,
+   "tris": 70001,
+   "slowFor": 10
   },
   "pass": true,
   "hiddenWithoutFlag": true
@@ -147,15 +204,18 @@
  "phone": {
   "vh": 640,
   "nav": 48,
-  "stageH": 516,
-  "barH": 76,
+  "stageH": 308,
+  "barH": 73,
   "barBottom": 640,
-  "mic": 64,
-  "faceY": 219,
-  "faceShare": 0.42,
+  "mic": 52,
+  "faceY": 221,
+  "faceShare": 0.25,
   "scrollY": 0,
   "overflow": 0,
   "kb": false,
+  "thread": true,
+  "threadH": 231,
+  "lineVisible": null,
   "pass": true
  },
  "sheet": {
@@ -168,16 +228,19 @@
  "keyboard": {
   "vh": 350,
   "nav": 48,
-  "stageH": 226,
-  "barH": 76,
+  "stageH": 0,
+  "barH": 69,
   "barBottom": 350,
   "mic": 0,
-  "faceY": 146,
-  "faceShare": 0.33,
+  "faceY": 0,
+  "faceShare": 0.25,
   "scrollY": 0,
   "overflow": 0,
   "kb": true,
-  "stageShareOfScreen": 0.35,
+  "thread": true,
+  "threadH": 281,
+  "lineVisible": true,
+  "stageShareOfScreen": 0,
   "micHidden": true,
   "fieldVisible": true,
   "pass": true,
@@ -191,29 +254,30 @@
  "noMic": {
   "hasMic": false,
   "micVisible": false,
-  "fieldLeft": 8,
-  "fieldW": 237,
+  "fieldLeft": 10,
+  "fieldW": 227,
   "pass": true
  },
  "reducedMotion": {
   "flag": true,
-  "mouthMax": 0.552,
+  "mouthMax": 0.773,
   "hopMax": 0,
-  "switched": "rio",
+  "switched": "may",
   "sheetTransition": "0s",
   "pass": true
  },
  "noWebGL": {
   "no3d": true,
   "is3d": false,
-  "picture": "/assets/buddies/ruby.webp",
+  "picture": "/assets/buddies/kairo-v2.5c2898cca6.webp",
   "pictureLoaded": true,
-  "alt": "Ruby, a Language Buddy",
+  "alt": "Kairo, a Language Budd",
   "subtitle": "Hi there! Welcome. What can I ",
-  "fixCard": 1,
+  "fixCard": 0,
+  "fixInThread": 1,
   "afterSwitch": {
-   "name": "Max",
-   "picture": "/assets/buddies/max.webp"
+   "name": "May",
+   "picture": "/assets/buddies/may-v1.d5a6ace491.webp"
   },
   "pass": true
  },
@@ -228,6 +292,10 @@
   "conversation": true,
   "replay": true,
   "switch": true,
+  "blink": true,
+  "stop": true,
+  "micEmpty": true,
+  "settings": true,
   "sound": true,
   "desktop": true,
   "fps": true,
@@ -241,5 +309,8 @@
   "noErrors": true,
   "noExternalRequests": true
  },
- "allPass": true
+ "allPass": true,
+ "notes": [
+  "lipsync: the model's own mouth deforms (lips part along their seam), timed by word events (estimated); this browser had no voice, so the line played silently at speaking pace. Not phoneme-accurate."
+ ]
 }

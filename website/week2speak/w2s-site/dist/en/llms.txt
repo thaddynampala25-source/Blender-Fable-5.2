@@ -1,0 +1,22 @@
+# Week2Speak
+
+> Week2Speak is a programme for speaking English, designed for adults whose first language is Spanish. It combines a 7-Day Sprint with Mei, a tutor who speaks Spanish, short lessons and speaking practice in the browser: Speech Mode conversations, sentence and sound games, and shadowing in American, British and Australian accents.
+
+Status: in testing (November 2026). The site is in Spanish (at /) and English (at /en/). There is one paid offer, the 7-Day Sprint, with five places in this phase. In the UK it costs £49; in other countries the price is shown in the local currency before payment. A free account gives Speech Mode, the games, shadowing and lessons 1 and 2 of the course, with a daily limit.
+
+## Main pages
+- [7-Day Sprint](https://week2speak.com/en/7-day-sprint/): two 25-minute 1-to-1 calls with Mei, WhatsApp straight to her all week, about 20 minutes of practice a day and a 2-minute talk at the end.
+- [Join](https://week2speak.com/en/join/): price in your currency, places left and start date.
+- [Course](https://week2speak.com/en/course/): seven lessons of 12 minutes or less, each with five key phrases and one mistake that comes from Spanish.
+- [Speech Mode](https://week2speak.com/en/speech-mode/): guided speaking practice in six scenes, with hints in three steps.
+- [Games](https://week2speak.com/en/games/): Word Order, Fill the Gap, Flash Translate, Sound Lab and Quick Answers, with a pack for each day of the Sprint.
+- [Shadowing](https://week2speak.com/en/shadowing/): a clip for each day and your own script, three speeds and three accents.
+- [16 English mistakes Spanish speakers make](https://week2speak.com/en/common-mistakes/): each with the wrong sentence, the right one and the Spanish pattern behind it.
+- [How we teach](https://week2speak.com/en/about/): the method and the research behind it.
+- [Versión en español](https://week2speak.com/): the same site in Spanish.
+
+## Facts
+- Audience: Spanish-speaking adults starting from zero, or who understand some English but freeze when speaking.
+- Scope: the Sprint does not promise fluency in 7 days. It aims for a 2-minute talk with no script at the end.
+- Refund: in full only before the first call.
+- Live AI tutor: not available; Speech Mode is guided, scripted practice.

@@ -48,7 +48,7 @@ FAQ = {
   ("What is Week2Speak?", "Week2Speak is an English speaking programme for Spanish speakers. It combines a 7-day Sprint with a tutor who speaks Spanish, short daily lessons, and practice rooms for speaking out loud: Speech Mode, sentence games and shadowing."),
   ("Can you really speak English in 7 days?", "You will not be fluent in 7 days. The Sprint aims for something smaller and real: by Day 7 you can introduce yourself, order, ask questions and give a 2-minute talk in English without a script. Your Day 1 and Day 7 recordings show the change."),
   ("Who is Week2Speak for?", "Adults whose first language is Spanish who understand some English but freeze when they have to speak. If you have never studied English at all, the first week will feel fast."),
-  ("How much does it cost?", "The founding cohort is free and has ten places. Prices for the paid plans are set before the public launch."),
+  ("How much does Week2Speak cost?", "The founding cohort is free and has ten places. Prices for the paid plans are set before the public launch."),
   ("Do I need to download an app?", "No. Everything runs in the browser on your phone or computer. The microphone works in Chrome, Edge and Safari; in other browsers you can type your answers instead."),
   ("Which English accents can I learn?", "American, British and Australian. The voices come from your own device, so the accents you hear depend on the voices your phone or computer has installed."),
  ],
@@ -179,11 +179,11 @@ def mistakes_page():
 </div></div></section>
 '''
 
-def mistakes_ld(site):
+def mistakes_ld(site, path="/common-mistakes/", lang="en"):
     return [{"@type": "Article", "headline": f"{N} English mistakes Spanish speakers make", "description": f"The {N} most common English mistakes Spanish speakers make, with the wrong sentence, the right one, and the Spanish pattern behind each.",
-             "datePublished": UPDATED_ISO, "dateModified": UPDATED_ISO, "inLanguage": "en", "author": {"@id": site + "/#org"}, "publisher": {"@id": site + "/#org"},
-             "mainEntityOfPage": site + "/common-mistakes/", "image": site + "/media/og.png"},
-            {"@type": "ItemList", "name": "English mistakes Spanish speakers make", "itemListElement": [{"@type": "ListItem", "position": i + 1, "name": r["name"], "url": f"{site}/common-mistakes/#{r['id']}"} for i, r in enumerate(D['RULES'])]}]
+             "datePublished": UPDATED_ISO, "dateModified": UPDATED_ISO, "inLanguage": lang, "author": {"@id": site + "/#org"}, "publisher": {"@id": site + "/#org"},
+             "mainEntityOfPage": site + path, "image": site + "/media/og.png"},
+            {"@type": "ItemList", "name": "English mistakes Spanish speakers make", "itemListElement": [{"@type": "ListItem", "position": i + 1, "name": r["name"], "url": f"{site}{path}#{r['id']}"} for i, r in enumerate(D['RULES'])]}]
 
 # ---------------- about page ----------------
 def about_page():

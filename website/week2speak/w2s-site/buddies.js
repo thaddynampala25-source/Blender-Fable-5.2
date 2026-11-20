@@ -7,7 +7,9 @@ import {GLTFLoader} from './vendor/GLTFLoader-0.170.0.js';
 
 const wrap = document.getElementById('buddy'), stage = document.getElementById('buddyStage'), sm = document.getElementById('sm');
 const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const FILE = {mila: 'ruby', rio: 'max'};
+const ROSTER = (window.W2S_BUDDIES && window.W2S_BUDDIES.length) ? window.W2S_BUDDIES : [{id: 'mila', file: 'ruby'}, {id: 'rio', file: 'max'}];   // buddy_roster.py, via config.js
+const FILE = {}; ROSTER.forEach(b => { FILE[b.id] = b.file; });
+const pick = id => FILE[id] ? id : ROSTER[0].id;
 const D = window.W2SBuddies = {ready: false, id: null, log: [], fps: 0, turns: 0, spun: 0, mouth: 0, blink: 0, speaking: false, listening: false, info: {}, delights: {}, quality: 0, renderer: '', reduced: RM, rig: ''};
 const lerp = (a, b, t) => a + (b - a) * t, clamp = (v, a, b) => v < a ? a : v > b ? b : v, rnd = (a, b) => a + Math.random() * (b - a);
 class Spring { constructor(x = 0, k = 140, d = 17) { this.x = x; this.t = x; this.v = 0; this.k = k; this.d = d; } step(dt) { this.v += ((this.t - this.x) * this.k - this.v * this.d) * dt; this.x += this.v * dt; return this.x; } }
@@ -22,7 +24,9 @@ const buzz = ms => { if (touched && navigator.vibrate && !RM) try { navigator.vi
 
 /* ---------- renderer, scene, lights ---------- */
 let renderer, scene, camera, canvas, shadowLight, ground, blob, raf = 0, running = false, visible = true, W = 1, H = 1, last = 0;
-const QUAL = [{pr: 2, sh: true}, {pr: 1.5, sh: true}, {pr: 1, sh: true}, {pr: 1, sh: false}];   // steps down: pixel ratio first, then shadows
+const QUAL = [{pr: 2, sh: true}, {pr: 1.5, sh: true}, {pr: 1.5, sh: false}, {pr: 1, sh: false}];   // steps down: pixel ratio, then the shadow pass
+// phones start lighter: no shadow pass (the soft contact shadow stays), textures at 1024 px, the second Buddy not on the GPU until it is shown
+const LIGHT = window.matchMedia('(max-width: 899px), (pointer: coarse)').matches;
 function boot() {
   try { if (!document.createElement('canvas').getContext('webgl2')) throw new Error('no WebGL 2'); canvas = document.createElement('canvas'); canvas.className = 'buddy-canvas'; canvas.tabIndex = 0; canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', 'Your Language Buddy. Drag to spin, tap to poke.');
     renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: true, powerPreference: 'high-performance'}); } catch (e) { wrap.classList.add('no-3d'); return false; }
@@ -38,7 +42,7 @@ function boot() {
   blob = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.95), new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false})); blob.rotation.x = -Math.PI / 2; blob.position.y = 0.006; scene.add(blob);   // contact shadow under the feet
   stage.appendChild(canvas); return true;
 }
-function setQuality(q) { D.quality = clamp(q, 0, QUAL.length - 1); const Q = QUAL[D.quality]; renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.pr)); renderer.shadowMap.enabled = Q.sh; shadowLight.castShadow = Q.sh; ground.visible = Q.sh; renderer.setSize(W, H, false); }
+function setQuality(q) { D.quality = clamp(q, 0, QUAL.length - 1); const Q = QUAL[D.quality]; renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.pr)); renderer.shadowMap.enabled = Q.sh; shadowLight.castShadow = Q.sh; ground.visible = Q.sh; renderer.setSize(W, H, false);  if (B && scene && camera) renderer.render(scene, camera); }
 
 /* ---------- a Buddy: model, rig lookup, pose channels ---------- */
 const buddies = {}, loading = {}; let B = null, pending = null;
@@ -49,17 +53,22 @@ function rimPatch(m) { if (m.userData.rim) return; m.userData.rim = 1; m.onBefor
 async function fetchModel(name) {
   const base = '/assets/buddies/' + name + '.glb';
   if ('DecompressionStream' in window) try { const r = await fetch(base + '.gz'); if (r.ok) { const buf = await r.arrayBuffer(), u = new Uint8Array(buf, 0, 4); if (u[0] === 0x67 && u[1] === 0x6C) return buf; return await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer(); } } catch (e) {}
-  const r = await fetch(base); if (!r.ok) throw new Error('model ' + r.status); return r.arrayBuffer();
+  let r = await fetch(base); if (!r.ok) r = await fetch(base + '?retry=' + Date.now(), {cache: 'no-store'});   // a 404 kept from a deploy in progress
+  if (!r.ok) throw new Error('model ' + r.status); return r.arrayBuffer();
 }
 function load(id) { if (buddies[id]) return Promise.resolve(buddies[id]); if (loading[id]) return loading[id];
   return loading[id] = fetchModel(FILE[id]).then(buf => new Promise((ok, no) => new GLTFLoader().parse(buf, '', g => ok(buddies[id] = make(g, id)), no))); }
+function shrinkMap(m) {   // phones: the 2048 px texture at 1024 px (a quarter of the GPU memory; the face is ~150 px wide on screen)
+  const t = m && m.map, im = t && t.image; if (!im || !im.width || im.width <= 1024) return;
+  const c = document.createElement('canvas'); c.width = Math.round(im.width / 2); c.height = Math.round(im.height / 2); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); t.image = c; t.needsUpdate = true;
+}
 function make(gltf, id) {
   const model = gltf.scene, ex = model.userData.w2s || {}, full = ex.rig === 'w2s-1';
   const N = (...names) => { for (const n of names) { const o = model.getObjectByName(n); if (o) return o; } return null; };
   const b = {id, model, ex, full, P: {}, M: {jaw: 0, pucker: 0, wide: 0, smile: 0.3, frown: 0}, Mt: {jaw: 0, pucker: 0, wide: 0, smile: 0.3, frown: 0}, morph: [], blink: 0, gaze: {x: new Spring(0, 90, 14), y: new Spring(0, 90, 14)}, rot: 0, rotV: 0, hop: 0, hopV: 0, sq: new Spring(1, 260, 14), pop: new Spring(1, 170, 13), pony: new Spring(0, 60, 5), pony2: new Spring(0, 60, 5), nextBlink: rnd(1.5, 3.5), shades: null, shadesS: new Spring(0, 180, 13)};
   for (const k in IDLE) b.P[k] = new Spring(IDLE[k], k === 'headS' ? 90 : 130, k === 'headS' ? 9 : 16);
   b.spin = new THREE.Group(); b.tilt = new THREE.Group(); b.sqG = new THREE.Group(); b.spin.add(b.tilt); b.tilt.add(b.sqG); b.sqG.add(model);
-  model.traverse(o => { if (!o.isMesh) return; o.frustumCulled = false; o.castShadow = !/Shine/.test(o.name); o.receiveShadow = !/Eye|Shine|Lid|Lash|Head|Mouth|Brow|Freckle/.test(o.name); const m = o.material; if (m && m.isMeshStandardMaterial) { if (!/Eye|Shine/.test(m.name)) rimPatch(m); if (/Shine/.test(m.name)) m.emissive = new THREE.Color(1, 1, 1); }
+  model.traverse(o => { if (!o.isMesh) return; o.frustumCulled = false; o.castShadow = !/Shine/.test(o.name); o.receiveShadow = !/Eye|Shine|Lid|Lash|Head|Mouth|Brow|Freckle/.test(o.name); const m = o.material; if (m && m.isMeshStandardMaterial) { if (LIGHT) shrinkMap(m); if (!/Eye|Shine/.test(m.name)) rimPatch(m); if (/Shine/.test(m.name)) m.emissive = new THREE.Color(1, 1, 1); }
     if (o.morphTargetDictionary) b.morph.push(o); });
   b.bones = {hips: N('Hips', 'mixamorigHips', 'pelvis'), spine: N('Spine', 'Spine1', 'Chest', 'mixamorigSpine1'), neck: N('Neck', 'mixamorigNeck'), head: N('Head', 'mixamorigHead'), la: N('LeftArm'), lf: N('LeftForeArm'), lh: N('LeftHand'), ra: N('RightArm'), rf: N('RightForeArm'), rh: N('RightHand'), ll: N('LeftUpLeg'), rl: N('RightUpLeg')};
   b.lid = [N('LidL'), N('LidR')]; b.low = [N('LowLidL'), N('LowLidR')]; b.eye = [N('EyeL'), N('EyeR')]; b.brow = [N('BrowL'), N('BrowR')]; b.ponyN = N('Pony'); b.prop = N('Prop');
@@ -68,15 +77,249 @@ function make(gltf, id) {
   // which morph target names this model offers for each mouth control
   const ALIAS = {jaw: ['jawOpen', 'mouthOpen', 'viseme_aa', 'MouthOpen'], pucker: ['mouthPucker', 'mouthFunnel', 'viseme_U', 'viseme_O'], wide: ['mouthWide', 'mouthStretchLeft', 'mouthStretchRight', 'viseme_I', 'viseme_E'], smile: ['mouthSmile', 'mouthSmileLeft', 'mouthSmileRight'], frown: ['mouthFrown', 'mouthFrownLeft', 'mouthFrownRight'], blink: ['eyeBlinkLeft', 'eyeBlinkRight', 'eyesClosed', 'blink', 'Blink']};
   b.mt = {}; for (const k in ALIAS) { b.mt[k] = []; for (const o of b.morph) for (const n of ALIAS[k]) if (n in o.morphTargetDictionary) { b.mt[k].push([o, o.morphTargetDictionary[n]]); if (k === 'jaw' || k === 'pucker') break; } }
-  D.rig = full ? 'w2s-1' : (b.mt.jaw.length ? 'generic with morph targets' : 'generic');
+  b.chibi = ex.rig === 'w2s-chibi-1' && !!b.bones.head;
+  if (b.chibi) { const r_ = ROSTER.find(x => x.id === id) || {}; b.persona = PERSONA[r_.persona] || PERSONA.laidback; chibiSetup(b); }
+  D.rig = full ? 'w2s-1' : b.chibi ? 'w2s-chibi-1' : (b.mt.jaw.length ? 'generic with morph targets' : 'generic');
   return b;
 }
 const setM = (b, k, v) => { for (const [o, i] of b.mt[k]) o.morphTargetInfluences[i] = v; };
 
+
+/* ---------- chibi Buddies (rig "w2s-chibi-1", made by buddy-gen/build_buddy.py) ----------
+   One fused mesh with a painted face and a small skeleton: Hips, Spine, Head. The body breathes and shifts
+   through Spine and Hips, the head turns, nods and tilts. The painted eyes cannot move, so gaze is carried by
+   the head. Two kinds of face "cards" (small canvases fitted to the face, following the head):
+   - eyelids: invisible while the eye is open, they close over the painted eye to blink;
+   - mouth: invisible at rest (the painted mouth shows), it draws an animated mouth over it while the Buddy
+     speaks or reacts, then fades back to the painted one.
+   Lip shapes come from the letters of each word, timed by the voice's word events (exact where the browser
+   reports word boundaries, estimated where it does not). There is no phoneme timing in browser speech. */
+const PERSONA = {
+  laidback: {breath: 4.6, breathAmt: 0.010, tilt: 0.035, look: [3.2, 6.5], lookAmt: 0.06, sway: [6, 11], swayAmt: 0.016, blink: [2.8, 6.5], dbl: 0.08, nod: 0.7, wing: false},
+  playful: {breath: 3.8, breathAmt: 0.012, tilt: -0.03, look: [1.8, 4.2], lookAmt: 0.09, sway: [4, 8], swayAmt: 0.02, blink: [2.0, 5.0], dbl: 0.22, nod: 1.0, wing: true}
+};
+const _q = new THREE.Quaternion(), _e = new THREE.Euler();
+function boneRot(b, k, x, y, z) { const n = b.bones[k]; if (!n) return; n.quaternion.copy(b.restQ[k]).multiply(_q.setFromEuler(_e.set(x, y, z))); }
+function texSampler(map) {   // read colours from the model's own texture, to match skin and lip tones exactly
+  const im = map && map.image; if (!im || !im.width) return null;
+  const c = document.createElement('canvas'), W_ = c.width = Math.min(512, im.width), H_ = c.height = Math.min(512, im.height), g = c.getContext('2d', {willReadFrequently: true});
+  g.drawImage(im, 0, 0, W_, H_); const data = g.getImageData(0, 0, W_, H_).data;
+  return uv => { const x = clamp(Math.floor(uv.x * W_), 0, W_ - 1), y = clamp(Math.floor(uv.y * H_), 0, H_ - 1), i = (y * W_ + x) * 4; return [data[i], data[i + 1], data[i + 2]]; };
+}
+// Raycasts against a SkinnedMesh re-skin every triangle on every ray (~25 ms for these 70 k triangles).
+// In the rest pose the skinned surface equals the plain geometry, so rays go to plain copies instead:
+// a small face patch for fitting the face cards, and the whole body for taps.
+function proxyMesh(skin, keep) {
+  const g = skin.geometry, P = g.attributes.position, U = g.attributes.uv, I = g.index, M = skin.matrixWorld, n = I ? I.count : P.count;
+  const pos = [], uv = [], v = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+  for (let t = 0; t < n; t += 3) { const ids = [0, 1, 2].map(k => I ? I.getX(t + k) : t + k); ids.forEach((id, k) => v[k].fromBufferAttribute(P, id).applyMatrix4(M));
+    if (keep && !keep((v[0].x + v[1].x + v[2].x) / 3, (v[0].y + v[1].y + v[2].y) / 3, (v[0].z + v[1].z + v[2].z) / 3)) continue;
+    ids.forEach((id, k) => { pos.push(v[k].x, v[k].y, v[k].z); if (U) uv.push(U.getX(id), U.getY(id)); }); }
+  const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); if (U) pg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); pg.computeBoundingSphere(); pg.computeBoundingBox();
+  const m = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({side: THREE.DoubleSide})); m.updateMatrixWorld(true); return m;
+}
+const hitRay = new THREE.Raycaster(), DOWN_Z = new THREE.Vector3(0, 0, -1);
+function hitAt(b, x, y, zf) { hitRay.set(new THREE.Vector3(x, y, zf + 0.6), DOWN_Z); return hitRay.intersectObject(b.faceHit || b.skin, false)[0] || null; }
+function colourAt(b, pts) {
+  const acc = [0, 0, 0]; let n = 0;
+  for (const [x, y, zf] of pts) { const h = hitAt(b, x, y, zf); if (h && h.uv && b.sample) { const c = b.sample(h.uv); acc[0] += c[0]; acc[1] += c[1]; acc[2] += c[2]; n++; } }
+  return n ? `rgb(${Math.round(acc[0] / n)},${Math.round(acc[1] / n)},${Math.round(acc[2] / n)})` : 'rgb(240,200,170)';
+}
+function faceCard(b, c, w, h, cw, ch) {   // a small grid fitted to the face surface, in the Head bone's space
+  const nx = 12, ny = 8, pos = [], uv = [], idx = [], head = b.bones.head;
+  for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) {
+    const x = c[0] + (i / nx - 0.5) * w, y = c[1] + (j / ny - 0.5) * h, hit = hitAt(b, x, y, c[2]);
+    const p = hit ? hit.point.clone() : new THREE.Vector3(x, y, c[2]); p.z += 0.004;
+    head.worldToLocal(p); pos.push(p.x, p.y, p.z); uv.push(i / nx, j / ny);
+  }
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const a = j * (nx + 1) + i; idx.push(a, a + 1, a + nx + 2, a, a + nx + 2, a + nx + 1); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
+  const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({map: tex, transparent: true, depthWrite: false, roughness: 0.75, metalness: 0, polygonOffset: true, polygonOffsetFactor: -4}));
+  m.renderOrder = 2; m.visible = false; m.frustumCulled = false; m.castShadow = false; m.receiveShadow = false; m.name = 'FaceCard'; head.add(m);
+  return {mesh: m, cv, g2: cv.getContext('2d'), tex, last: ''};
+}
+
+/* ---------- the integrated face (models built with face2 data, see buddy-gen/face_map.py) ----------
+   No pieces are laid over the face. The body's own material does the work, before lighting, so the
+   features keep the model's skin tone, texture, light and shading:
+   - blink: the eye's own painted lash line (and any wings) slides down over the eye; the white, iris
+     and pupil it passes give way to the skin painted out of a small front-view raster of the eye band;
+   - mouth: the mesh deforms (lower lip and jaw down, upper lip up a little, corners in, out or up) along
+     the line where the lips part, and only the gap that opens between them is shaded. */
+const FACE_VS_HEAD = `
+uniform mat4 uSkinToModel; uniform mat3 uModelToSkin; uniform vec4 uSeam; uniform vec4 uMouth; uniform vec4 uMouthA;
+varying vec3 vFaceP; varying vec3 vFaceN; varying float vFaceDy;
+vec3 w2sMouthDisp(vec3 p, vec3 n) {
+  float hw = uMouth.x, ys = uSeam.x + uSeam.y * p.x + uSeam.z * p.x * p.x, dx = p.x - uSeam.w, u = dx / hw;
+  float front = smoothstep(uMouth.w - 0.13, uMouth.w - 0.07, p.z) * step(-0.2, n.z);
+  float lens = pow(clamp(1.0 - u * u, 0.0, 1.0), 0.6);
+  float jaw = clamp(1.0 - (dx * dx) / (2.6 * hw * hw), 0.0, 1.0);
+  float below = step(p.y, ys), dn = ys - p.y, upd = p.y - ys;
+  float lower = mix(lens, jaw, smoothstep(0.0, 0.05, dn)) * (1.0 - smoothstep(0.09, 0.2, dn)) * below;
+  float upper = lens * (1.0 - smoothstep(0.0, 0.035, upd)) * (1.0 - below);
+  float lipR = clamp(1.0 - u * u / 1.7, 0.0, 1.0) * (1.0 - smoothstep(0.02, 0.07, abs(p.y - ys)));
+  float J = uMouthA.x, P = uMouthA.y, W = uMouthA.z, S = uMouthA.w;
+  vec3 d = vec3(0.0);
+  d.y = -J * uMouth.y * lower + J * uMouth.z * upper + S * 0.009 * u * u * lipR;
+  d.x = dx * (W * 0.2 - P * 0.3) * lipR;
+  d.z = P * 0.012 * lipR - J * 0.006 * lower;
+  return d * front;
+}`;
+const FACE_VS_BODY = `
+  vFaceP = (uSkinToModel * vec4(position, 1.0)).xyz; vFaceN = normalize(mat3(uSkinToModel) * normal);
+  { vec3 w2sD = w2sMouthDisp(vFaceP, vFaceN); vFaceDy = w2sD.y; transformed += uModelToSkin * w2sD; }`;
+const FACE_FS_HEAD = `
+uniform sampler2D uFaceAtlas; uniform sampler2D uFaceProf; uniform vec4 uFaceBox; uniform vec4 uFaceEye;
+uniform vec4 uSeam; uniform vec4 uMouth; uniform vec4 uMouthA; uniform float uMouthKind; uniform float uFaceDbg;
+varying vec3 vFaceP; varying vec3 vFaceN; varying float vFaceDy;
+vec4 w2sAtlas(float col, float row) { float H2 = uFaceBox.w * 2.0; return texture2D(uFaceAtlas, vec2((col + 0.5) / uFaceBox.z, 1.0 - (row + 0.5) / H2)); }
+vec4 w2sProf(float col) { float c0 = floor(col); vec4 a = texelFetch(uFaceProf, ivec2(int(c0), 0), 0), b = texelFetch(uFaceProf, ivec2(int(c0) + 1, 0), 0);
+  if (a.b < 0.5) return b; if (b.b < 0.5) return a; return mix(a, b, col - c0); }`;
+const FACE_FS_BODY = `
+  if (uFaceEye.x > 0.002 && vFaceN.z > 0.25 && vFaceP.z > uFaceEye.y) {
+    float col = (vFaceP.x - uFaceBox.x) / uFaceEye.z, row = (uFaceBox.y - vFaceP.y) / uFaceEye.z, H = uFaceBox.w;
+    if (col >= 0.0 && col < uFaceBox.z - 1.0 && row >= 0.0 && row < H - 1.0) {
+      vec4 pr = w2sProf(col);
+      if (pr.b > 0.5) {
+        float s = uFaceEye.x * pr.g, edge = pr.r + s, cover = 1.0 - smoothstep(edge - 0.6, edge + 0.6, row);
+        if (cover > 0.0) {
+          vec4 cl = w2sAtlas(col, clamp(row, 0.0, H - 1.0) + H);
+          vec3 base = mix(diffuseColor.rgb, cl.rgb, cl.a);                 // the eye gives way to skin
+          float src = row - s; vec4 ln = w2sAtlas(col, clamp(src, 0.0, H - 1.0));
+          base = mix(base, ln.rgb, smoothstep(0.12, 0.55, ln.a) * step(0.0, src));   // its own lash line, moved down (crisp, as painted)
+          base *= 1.0 - 0.07 * uFaceEye.x * (1.0 - smoothstep(0.0, 9.0, edge - row));   // the lid's soft shade
+          diffuseColor.rgb = mix(diffuseColor.rgb, base, cover);
+          if (uFaceDbg > 0.5) diffuseColor.rgb = uFaceDbg < 1.5 ? vec3(ln.a, cl.a, 0.0) : ln.rgb;
+        }
+      }
+    }
+  }
+  float w2sGap = 0.0; vec3 w2sInside = vec3(0.0);
+  if (uMouthA.x > 0.01) {
+    float hw = uMouth.x, ys = uSeam.x + uSeam.y * vFaceP.x + uSeam.z * vFaceP.x * vFaceP.x, u = (vFaceP.x - uSeam.w) / hw;
+    float lens = pow(clamp(1.0 - u * u, 0.0, 1.0), 0.6), J = uMouthA.x;
+    float top = ys + J * uMouth.z * lens, bot = ys - J * uMouth.y * lens, y = vFaceP.y + vFaceDy;
+    float g = smoothstep(bot - 0.0006, bot + 0.0012, y) * (1.0 - smoothstep(top - 0.0012, top + 0.0006, y)) * step(abs(u), 1.0)
+            * smoothstep(uMouth.w - 0.13, uMouth.w - 0.07, vFaceP.z) * step(0.0, top - bot - 0.0004);
+    if (g > 0.0) {
+      w2sInside = vec3(0.020, 0.005, 0.005) * (0.5 + 0.5 * lens); w2sGap = g;   // the mouth's shadowed inside, applied after lighting (no facet shading)
+      diffuseColor.rgb = mix(diffuseColor.rgb, w2sInside, g);
+    }
+  }`;
+function faceSetup(b) {
+  const f2 = b.ex.face2, skin = b.skin; if (!f2 || !skin || !skin.material) return false;
+  const m = skin.material, Wc = f2.w, Hr = f2.h, mo = f2.mouth || {a: -99, b: 0, c: 0, cx: 0, hw: 0.01, kind: 'teeth', front: 0};
+  const img = new Image(); const atlas = new THREE.Texture(img); img.onload = () => { atlas.needsUpdate = true; }; img.src = f2.atlas;
+  atlas.colorSpace = THREE.SRGBColorSpace; atlas.generateMipmaps = false; atlas.minFilter = THREE.LinearFilter; atlas.magFilter = THREE.LinearFilter; atlas.flipY = true;
+  const pd = new Float32Array(Wc * 4); for (let i = 0; i < Wc; i++) { const t = f2.T[i]; pd[i * 4] = t; pd[i * 4 + 1] = f2.S[i]; pd[i * 4 + 2] = t >= 0 ? 1 : 0; pd[i * 4 + 3] = 1; }
+  const prof = new THREE.DataTexture(pd, Wc, 1, THREE.RGBAFormat, THREE.FloatType); prof.needsUpdate = true;
+  b.model.updateMatrixWorld(true);
+  const s2m = new THREE.Matrix4().copy(b.model.matrixWorld).invert().multiply(skin.matrixWorld), m2s = new THREE.Matrix3().setFromMatrix4(s2m).invert();
+  const lips = mo.kind === 'lips';
+  const U = b.faceU = {uSkinToModel: {value: s2m}, uModelToSkin: {value: m2s}, uFaceAtlas: {value: atlas}, uFaceProf: {value: prof},
+    uFaceBox: {value: new THREE.Vector4(f2.x0, f2.top, Wc, Hr)}, uFaceEye: {value: new THREE.Vector4(0, f2.front - 0.15, f2.px, 0)},
+    uSeam: {value: new THREE.Vector4(mo.a, mo.b, mo.c, mo.cx)}, uMouth: {value: new THREE.Vector4(mo.hw, lips ? 0.046 : 0.028, lips ? 0.007 : 0.0, mo.front)},
+    uMouthA: {value: new THREE.Vector4(0, 0, 0, 0)}, uMouthKind: {value: lips ? 1 : 0}, uFaceDbg: {value: 0}};
+  const prev = m.onBeforeCompile;
+  m.onBeforeCompile = (sh, r) => { if (prev) prev(sh, r); Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader.replace('void main() {', FACE_VS_HEAD + '\nvoid main() {').replace('#include <begin_vertex>', '#include <begin_vertex>' + FACE_VS_BODY);
+    sh.fragmentShader = sh.fragmentShader.replace('void main() {', FACE_FS_HEAD + '\nvoid main() {').replace('#include <map_fragment>', '#include <map_fragment>' + FACE_FS_BODY)
+      .replace('#include <opaque_fragment>', 'outgoingLight = mix(outgoingLight, w2sInside, w2sGap);\n#include <opaque_fragment>'); };
+  m.customProgramCacheKey = () => 'w2s-face2'; m.needsUpdate = true;
+  b.face2 = true; b.lids = []; b.mouthCard = null;
+  return true;
+}
+function faceUpdate(b, lid) {
+  const U = b.faceU; if (!U) return; const M = b.M;
+  U.uFaceEye.value.x = clamp(lid, 0, 1);
+  U.uMouthA.value.set(clamp(M.jaw, 0, 1), clamp(M.pucker, 0, 1), clamp(M.wide, 0, 1), clamp(M.smile - 0.3, -0.4, 0.7) - clamp(M.frown, 0, 1) * 0.5);
+}
+function chibiSetup(b) {
+  const f = b.ex.face || {}; b.model.updateMatrixWorld(true);
+  b.skin = null; b.model.traverse(o => { if (o.isSkinnedMesh || (o.isMesh && !b.skin)) b.skin = o; });
+  b.sample = texSampler(b.skin && b.skin.material && b.skin.material.map);
+  if (b.skin) { const pts = [f.eye_l, f.eye_r, f.mouth].filter(Boolean); b.hitBody = proxyMesh(b.skin);   // taps: the whole body, unskinned (rest pose)
+    if (pts.length) { const xs = pts.map(e => e.c[0]), ys = pts.map(e => e.c[1]), zs = pts.map(e => e.c[2]), x0 = Math.min(...xs) - 0.2, x1 = Math.max(...xs) + 0.2, y0 = Math.min(...ys) - 0.2, y1 = Math.max(...ys) + 0.2, z0 = Math.min(...zs) - 0.3;
+      b.faceHit = proxyMesh(b.skin, (x, y, z) => x > x0 && x < x1 && y > y0 && y < y1 && z > z0); } }
+  b.restQ = {}; for (const k of ['hips', 'spine', 'head']) if (b.bones[k]) b.restQ[k] = b.bones[k].quaternion.clone();
+  b.idle = {lx: new Spring(0, 30, 9), ly: new Spring(0, 30, 9), lz: new Spring(0, 30, 9), sw: new Spring(0, 12, 6), lookT: 1, swayT: 2, nodT: 2};
+  b.lids = []; b.mouthA = new Spring(0, 220, 26);
+  if (faceSetup(b)) return;
+  for (const k of ['eye_l', 'eye_r']) { const e = f[k]; if (!e) continue;
+    const card = faceCard(b, e.c, e.w * 1.35, e.h * 1.8, 128, 96);
+    card.outer = e.c[0] > 0 ? 1 : -1;     // which canvas side is the outer corner
+    card.skin = colourAt(b, [[e.c[0], e.c[1] + e.h * 0.95, e.c[2]], [e.c[0] - e.w * 0.25, e.c[1] + e.h * 0.9, e.c[2]], [e.c[0] + e.w * 0.25, e.c[1] + e.h * 0.9, e.c[2]]]);
+    b.lids.push(card); }
+  const mo = f.mouth;
+  if (mo) { const lips = mo.kind === 'lips', w = lips ? Math.max(mo.w * 1.9, 0.13) : mo.w * 1.5, h = lips ? 0.11 : Math.max(mo.h * 3, 0.1);
+    b.mouthCard = faceCard(b, mo.c, w, h, 256, 128); b.mouthCard.lips = lips;
+    b.mouthCard.skin = colourAt(b, [[mo.c[0] + w * 0.62, mo.c[1] + 0.012, mo.c[2]], [mo.c[0] - w * 0.62, mo.c[1] + 0.012, mo.c[2]]]);
+    b.mouthCard.lip = lips ? colourAt(b, [[mo.c[0], mo.c[1] + 0.012, mo.c[2]], [mo.c[0], mo.c[1] - 0.015, mo.c[2]]]) : b.mouthCard.skin;
+    b.mouthCard.cover = [w ? (mo.w / w) * 0.5 * (lips ? 1.25 : 1.3) : 0.45, lips ? 0.36 : Math.min(0.46, (mo.h / h) * 0.5 * 2.2)]; }
+  b.mouthA = new Spring(0, 220, 26);
+}
+function drawLids(card, t, wing) {
+  const key = (t * 40 | 0) + (wing ? 'w' : ''); if (key === card.last) return; card.last = key;
+  const g = card.g2, Wc = card.cv.width, Hc = card.cv.height, cx = Wc / 2, cy = Hc / 2, rx = Wc / 2 / 1.35, ry = Hc / 2 / 1.8;
+  g.clearRect(0, 0, Wc, Hc); card.mesh.visible = t > 0.03; if (!card.mesh.visible) { card.tex.needsUpdate = true; return; }
+  const top = cy - ry * 1.15, closed = cy + ry * 0.7, edge = top + (closed - top) * Math.min(1, t), bow = ry * (0.15 + 0.35 * Math.min(1, t));
+  // canvas y runs down; the card's v runs up, so the eye's top is at small canvas y after the texture flip
+  g.save(); g.beginPath(); g.ellipse(cx, cy, rx * 1.1, ry * 1.25, 0, 0, Math.PI * 2); g.clip();
+  g.beginPath(); g.moveTo(cx - rx * 1.2, 0); g.lineTo(cx + rx * 1.2, 0); g.lineTo(cx + rx * 1.2, edge); g.quadraticCurveTo(cx, edge + bow, cx - rx * 1.2, edge); g.closePath();
+  g.fillStyle = card.skin; g.fill();
+  g.beginPath(); g.moveTo(cx - rx * 1.05, edge + 1); g.quadraticCurveTo(cx, edge + bow, cx + rx * 1.05, edge + 1);
+  g.lineWidth = 5; g.strokeStyle = '#1b1414'; g.lineCap = 'round'; g.stroke(); g.restore();
+  if (wing && t > 0.5) { const ox = cx + card.outer * rx * 1.02; g.beginPath(); g.moveTo(ox, edge + 1); g.lineTo(ox + card.outer * 12, edge - 9); g.lineWidth = 4; g.strokeStyle = '#1b1414'; g.stroke(); }
+  card.tex.needsUpdate = true;
+}
+function drawMouth(card, M, a) {
+  const key = [a, M.jaw, M.pucker, M.wide, M.smile].map(v => (v * 24) | 0).join(); if (key === card.last) return; card.last = key;
+  const g = card.g2, Wc = card.cv.width, Hc = card.cv.height, cx = Wc / 2, cy = Hc / 2;
+  g.clearRect(0, 0, Wc, Hc); card.mesh.visible = a > 0.02; if (!card.mesh.visible) { card.tex.needsUpdate = true; return; }
+  g.save(); g.globalAlpha = Math.min(1, a);
+  // 1) cover the painted mouth (skin for a painted grin; lip colour over modelled lips)
+  const prx = card.cover[0] * Wc, pry = card.cover[1] * Hc;
+  const grd = g.createRadialGradient(cx, cy, Math.min(prx, pry) * 0.5, cx, cy, Math.max(prx, pry));
+  grd.addColorStop(0, card.lips ? card.lip : card.skin); grd.addColorStop(0.82, card.lips ? card.lip : card.skin); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  g.save(); g.scale(1, pry / prx); g.beginPath(); g.arc(cx, cy * prx / pry, prx, 0, Math.PI * 2); g.restore(); g.fillStyle = grd; g.fill();
+  // 2) the mouth shape: width from wide/pucker, height from the jaw, corners lifted by the smile
+  const base = Wc * (card.lips ? 0.36 : 0.31), ow = base * (0.6 + 0.4 * M.wide - 0.35 * M.pucker + 0.15 * M.jaw), oh = 2 + M.jaw * Hc * (card.lips ? 0.42 : 0.38) * (1 + 0.3 * M.pucker), lift = M.smile * 7;
+  if (oh < 4.5) {   // closed: a lip line, curving up a little with the smile
+    g.beginPath(); g.moveTo(cx - ow, cy - lift); g.quadraticCurveTo(cx, cy + 3 + lift, cx + ow, cy - lift); g.lineWidth = 3.5; g.strokeStyle = card.lips ? 'rgba(120,45,55,0.9)' : 'rgba(80,35,30,0.9)'; g.lineCap = 'round'; g.stroke();
+  } else {
+    g.beginPath(); g.moveTo(cx - ow, cy - lift); g.bezierCurveTo(cx - ow * 0.6, cy - oh * 0.9, cx + ow * 0.6, cy - oh * 0.9, cx + ow, cy - lift); g.bezierCurveTo(cx + ow * 0.7, cy + oh * 1.25, cx - ow * 0.7, cy + oh * 1.25, cx - ow, cy - lift); g.closePath();
+    g.fillStyle = '#3d1418'; g.fill(); g.save(); g.clip();
+    if (M.jaw > 0.12) { g.fillStyle = '#fbf7f2'; g.fillRect(cx - ow, cy - oh, ow * 2, oh * 0.62); }
+    if (M.jaw > 0.3) { g.fillStyle = '#c4545f'; g.beginPath(); g.ellipse(cx, cy + oh * 0.95, ow * 0.55, oh * 0.45, 0, 0, Math.PI * 2); g.fill(); }
+    g.restore();
+    g.lineWidth = card.lips ? 7 : 2.5; g.strokeStyle = card.lips ? card.lip : 'rgba(80,35,30,0.8)'; g.stroke();
+  }
+  g.restore(); card.tex.needsUpdate = true;
+}
+function chibiUpdate(b, dt, t, gx, gy, bl, idle) {
+  const P = b.P, ps = b.persona, I = b.idle;
+  // idle life: small look-arounds and posture shifts at varied intervals; calmer while listening
+  I.lookT -= dt; if (I.lookT <= 0) { I.lookT = rnd(ps.look[0], ps.look[1]) * (listening ? 1.7 : 1); const a = ps.lookAmt * (listening ? 0.35 : thinking ? 0.5 : 1) * idle; I.ly.t = rnd(-a, a); I.lx.t = rnd(-a * 0.5, a * 0.4); I.lz.t = rnd(-a * 0.6, a * 0.6); }
+  I.swayT -= dt; if (I.swayT <= 0) { I.swayT = rnd(ps.sway[0], ps.sway[1]); I.sw.t = rnd(-1, 1) * ps.swayAmt * idle * (listening ? 0.4 : 1); }
+  if (listening && idle) { I.nodT -= dt; if (I.nodT <= 0) { I.nodT = rnd(2.4, 4.4); P.hx.v += 0.8 * ps.nod; } }   // an occasional small nod while you talk
+  I.lx.step(dt); I.ly.step(dt); I.lz.step(dt); I.sw.step(dt);
+  const br = Math.sin(t * Math.PI * 2 / ps.breath) * idle, th = thinking ? 1 : 0;
+  boneRot(b, 'hips', 0, I.sw.x * 0.6, I.sw.x);
+  boneRot(b, 'spine', P.sx.x + br * ps.breathAmt + P.lean.x * 0.6, P.sy.x, P.sz.x - I.sw.x * 0.5);
+  if (b.bones.spine) b.bones.spine.scale.set(1 + br * ps.breathAmt * 0.4, 1 + br * ps.breathAmt * 0.7, 1 + br * ps.breathAmt * 0.4);
+  boneRot(b, 'head', P.hx.x - gy * 0.1 + I.lx.x - th * 0.07, P.hy.x + gx * 0.2 + I.ly.x + th * 0.1, P.hz.x + ps.tilt * idle + I.lz.x - I.sw.x * 0.5 + th * 0.06);
+  if (b.bones.head) b.bones.head.scale.setScalar(P.headS.x);
+  const lid = Math.max(bl, th * 0.28, b.hold || 0);
+  if (b.face2) faceUpdate(b, lid);
+  for (const c of b.lids) drawLids(c, lid, ps.wing);
+  if (b.mouthCard) { const want = (speaking && audioOn) || performance.now() < sayUntil ? 1 : 0; b.mouthA.t = want; b.mouthA.step(dt); drawMouth(b.mouthCard, b.M, clamp(b.mouthA.x, 0, 1)); }
+}
+
 /* ---------- mouth shapes and lip sync ---------- */
 const SHAPE = {rest: [0, 0, 0], A: [0.8, 0, 0.2], E: [0.42, 0, 0.6], I: [0.26, 0, 0.85], O: [0.6, 0.75, 0], U: [0.3, 1, 0], closed: [0, 0.12, 0], F: [0.12, 0, 0.25], cons: [0.3, 0, 0.25], L: [0.4, 0, 0.1], laugh: [0.7, 0, 0.7], oh: [0.55, 0.6, 0], hmm: [0, 0.3, 0]};
 const VIS = {a: 'A', e: 'E', i: 'I', y: 'I', o: 'O', u: 'U', w: 'U', m: 'closed', b: 'closed', p: 'closed', f: 'F', v: 'F', l: 'L', t: 'cons', d: 'cons', n: 'cons', s: 'cons', z: 'cons', r: 'cons', k: 'cons', g: 'cons', c: 'cons', j: 'cons', h: 'A', q: 'U', x: 'cons'};
-let speaking = false, listening = false, lastWord = 0, vq = [], vqT = 0, sayUntil = 0;
+let speaking = false, listening = false, thinking = false, audioOn = false, lastWord = 0, vq = [], vqT = 0, sayUntil = 0;
 function mouth(shape) { if (!B) return; const s = SHAPE[shape] || SHAPE.rest; B.Mt.jaw = s[0]; B.Mt.pucker = s[1]; B.Mt.wide = s[2]; }
 function say(shape, sec) { mouth(shape); sayUntil = performance.now() + sec * 1000; }
 function sayWord(w) { const q = []; let prev = ''; for (const ch of String(w).toLowerCase()) { const v = VIS[ch]; if (v && v !== prev) { q.push(v); prev = v; } } if (!q.length) q.push('cons'); vq = q.slice(0, 5); vqT = 0; lastWord = performance.now(); }
@@ -123,9 +366,10 @@ function poke(part) {
 }
 
 /* ---------- conversation reactions ---------- */
-function onSpeak() { speaking = D.speaking = true; if (!B) return; B.Mt.smile = 0.15; if (performance.now() > busyUntil) talkPose(); }
+function onSpeak() { thinking = false; }   // the line was requested; the voice may take a moment to start
+function onSpeakStart(e) { speaking = D.speaking = true; audioOn = true; D.audio = !!(e && e.detail && e.detail.audio); D.timing = 'estimated'; if (!B) return; B.Mt.smile = 0.15; if (performance.now() > busyUntil) talkPose(); }
 function onWord(e) { if (!B) return; sayWord(e.detail && e.detail.word || ''); if (performance.now() > busyUntil && !RM) { B.P.rfx.v += rnd(-2.2, 2.2); B.P.rfz.v += rnd(-1.6, 1.6); B.P.rhz.v += rnd(-3, 3); B.P.hx.v += rnd(-0.5, 0.7); B.P.hz.v += rnd(-0.4, 0.4); } }
-function onSpeakEnd() { speaking = D.speaking = false; vq = []; if (!B) return; mouth('rest'); if (performance.now() > busyUntil) relax(); }
+function onSpeakEnd() { speaking = D.speaking = false; audioOn = false; vq = []; if (!B) return; mouth('rest'); if (performance.now() > busyUntil) relax(); }
 function onMic(e) { listening = D.listening = !!(e.detail && e.detail.on); if (B && performance.now() > busyUntil) relax(); }
 function onGood() { if (!B) return; seq('good', [[0, {hx: 0.24, brow: 0.6}], [0, () => { B.Mt.smile = 1; hop(1.5); }], [170, {hx: -0.04}], [330, {hx: 0.2}], [480, {hx: 0}]], 760, {sfx: 'good'}); if (!RM) confetti(14); }
 function onOops() { if (!B) return; seq('oops', [[0, {hx: 0.15, hz: -0.12, brow: 0.7, rfx: -0.8, rfz: 0.2}], [0, () => { B.gazeHold = [0, -0.55]; B.Mt.smile = 0.1; say('oh', 0.35); }], [900, {hx: 0.16, hz: 0}], [900, () => { B.gazeHold = null; B.Mt.smile = 0.8; }], [1060, {hx: 0}], [1220, {hx: 0.14}]], 1500, {sfx: 'hmm'}); }   // looks down at the correction card, then nods
@@ -150,15 +394,20 @@ function confetti(n) { if (!scene) return; if (!conf) { conf = new THREE.Instanc
 function confStep(dt) { if (!conf) return; let any = false; cp.forEach((p, i) => { if (p.life > 0) { any = true; p.life -= dt; p.vy -= 5.5 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.r += p.vr * dt; dummy.position.set(p.x, p.y, p.z); dummy.rotation.set(p.r, p.r * 0.7, p.r * 1.3); dummy.scale.setScalar(p.life > 0.25 ? 1 : Math.max(0.001, p.life * 4)); } else dummy.scale.setScalar(0.0001); dummy.updateMatrix(); conf.setMatrixAt(i, dummy.matrix); }); conf.instanceMatrix.needsUpdate = true; conf.visible = any; }
 
 /* ---------- which Buddy is on stage ---------- */
-let firstShow = true;
+let firstShow = true, firstLoad = true;
+// once the first Buddy is on stage, the others load quietly in the background so Switch Buddy is instant
+function preloadOthers(id) { const c = navigator.connection; if (c && (c.saveData || /2g/.test(c.effectiveType || ''))) return;
+  const go = () => ROSTER.filter(r => r.id !== id && FILE[r.id]).forEach(r => load(r.id).then(b => { if (!LIGHT) b.model.traverse(o => { if (o.material && o.material.map) renderer.initTexture(o.material.map); }); }).catch(() => {}));
+  setTimeout(go, 600); }   // not requestIdleCallback: the render loop keeps the page from ever being idle
 function show(id, instant) {
   pending = id;
+  if (B && !buddies[id]) wrap.classList.remove('is-3d');   // not loaded yet: the new Buddy's picture shows at once, the 3D follows
   return load(id).then(b => { if (pending !== id) return; const old = B;
     const swap = () => { if (old && old !== b) scene.remove(old.spin); B = b; D.id = id; scene.add(b.spin); b.rot = 0; b.rotV = 0; turnAcc = 0; frameCam(); relax();
       if (instant || RM) { b.pop.x = 1; b.pop.t = 1; b.pop.v = 0; } else { b.pop.x = 0.02; b.pop.t = 1; b.pop.v = 6; hop(2.4); confetti(26); SFX.pop(); }
       if (!RM && (firstShow || !instant)) at(firstShow ? 700 : 280, () => { if (performance.now() > busyUntil) R.wave(); }); firstShow = false;
-      wrap.classList.add('is-3d'); D.ready = true; };
-    if (old && old !== b && !instant && !RM) { cancel(); D.ready = false; old.pop.t = 0.02; old.rotV = 16; SFX.whoosh(); setTimeout(swap, 300); } else swap(); })
+      wrap.classList.add('is-3d'); D.ready = true; if (firstLoad) { firstLoad = false; preloadOthers(id); } };
+    if (old && old !== b && !instant && !RM && wrap.classList.contains('is-3d')) { cancel(); D.ready = false; old.pop.t = 0.02; old.rotV = 18; SFX.whoosh(); setTimeout(swap, 170); } else swap(); })
     .catch(() => { if (!B) wrap.classList.add('no-3d'); });
 }
 
@@ -167,14 +416,15 @@ let camForce = null;
 function frameCam() {
   if (!B || !camera) return; const kb = sm && sm.classList.contains('kb'), phone = window.matchMedia('(max-width: 899px)').matches;
   const topPad = kb ? 10 : phone ? 62 : Math.max(64, H * 0.08), headH = B.fw * 1.14;
-  let ppu = Math.min((phone ? 0.42 : 0.36) * W / B.fw, 0.6 * H / headH), cy;
+  // phones: head and upper body (the top ~65% of the Buddy) between the buttons and the conversation panel
+  let ppu = phone ? Math.min(0.25 * W / B.fw, (H - topPad - 26) / (B.H * 0.65)) : Math.min(0.36 * W / B.fw, 0.6 * H / headH), cy;
   const fit = (H - topPad - 16) / (B.H * 1.04); if (ppu < fit) ppu = fit;          // never smaller than "the whole body fits"
   if (camForce === 'full') { ppu = (H - 40) / (B.H * 1.08); cy = B.H * 0.5; } else if (camForce === 'face') { ppu = 0.62 * H / headH; cy = B.H - headH * 0.5; }
   else cy = B.H + 0.035 - (H / 2 - topPad) / ppu;
   const d = H / (2 * ppu * Math.tan(camera.fov * Math.PI / 360)); camera.aspect = W / H; camera.position.set(0, cy, d); camera.lookAt(0, cy, 0); camera.updateProjectionMatrix(); if (sm && !camForce) sm.style.setProperty('--sm-chin', Math.round(topPad + headH * ppu * 0.93) + 'px');   // cards over the stage stop below the chin
   D.info.ppu = Math.round(ppu); D.info.faceShare = +(B.fw * ppu / W).toFixed(2);
 }
-function resize() { const r = stage.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return; W = Math.round(r.width); H = Math.round(r.height); renderer.setSize(W, H, false); frameCam(); }
+function resize() { const r = stage.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return; const w = Math.round(r.width), h = Math.round(r.height); if (w === W && h === H) return; W = w; H = h; renderer.setSize(W, H, false); frameCam(); if (B && scene) renderer.render(scene, camera); }   // setSize clears the canvas: draw now, not next frame
 
 /* ---------- per-frame update ---------- */
 let ptr = {x: 0, y: 0, t: -1e9}, dragging = false, turnAcc = 0;
@@ -199,7 +449,7 @@ function update(dt, now) {
   const g = b.gazeHold || (now - ptr.t < 4000 ? [ptr.x, ptr.y] : [Math.sin(t * 0.31) * 0.12 * idle, Math.sin(t * 0.23) * 0.06 * idle]);
   const sgn = Math.cos(b.rot) >= 0 ? 1 : -1; b.gaze.x.t = clamp(g[0], -1, 1) * sgn; b.gaze.y.t = clamp(g[1], -1, 1); const gx = b.gaze.x.step(dt), gy = b.gaze.y.step(dt);
   // blinking with the eyelids
-  b.nextBlink -= dt; if (b.nextBlink <= 0) { b.blinkT = 0.16; b.nextBlink = rnd(2.2, 5.5); } let bl = 0; if (b.blinkT > 0) { b.blinkT -= dt; bl = Math.sin(clamp(1 - b.blinkT / 0.16, 0, 1) * Math.PI); } if (b.hold != null) bl = Math.max(bl, b.hold); b.blink = bl; D.blink = +bl.toFixed(2);
+  b.nextBlink -= dt; if (b.nextBlink <= 0) { b.blinkT = 0.16; const pb = b.persona && b.persona.blink; b.nextBlink = pb ? (Math.random() < b.persona.dbl ? 0.28 : rnd(pb[0], pb[1])) : rnd(2.2, 5.5); } let bl = 0; if (b.blinkT > 0) { b.blinkT -= dt; bl = Math.sin(clamp(1 - b.blinkT / 0.16, 0, 1) * Math.PI); } if (b.hold != null) bl = Math.max(bl, b.hold); b.blink = bl; D.blink = +bl.toFixed(2);
   const K = b.bones, smile = b.M.smile;
   if (b.full) {
     const br = Math.sin(t * 1.7) * 0.009 * idle;   // breathing
@@ -214,7 +464,8 @@ function update(dt, now) {
     b.eye.forEach((n, i) => { if (n) n.rotation.set(-gy * 0.3, gx * 0.42 + P.cross.x * (i ? 0.4 : -0.4), 0); });
     b.brow.forEach((n, i) => { if (n) { n.position.y = b.browY[i] + P.brow.x * 0.03 - P.squint.x * 0.008; n.rotation.z = (i ? 1 : -1) * P.brow.x * 0.06 + P.browTilt.x * 0.22; } });
     if (b.ponyN) { b.pony.t = clamp(-b.rotV * 0.02, -0.6, 0.6) + P.hx.x * 0.5; b.pony2.t = -P.hy.x * 0.5; b.ponyN.rotation.set(clamp(b.pony.step(dt), -0.9, 0.9) + Math.sin(t * 1.3) * 0.02 * idle, 0, clamp(b.pony2.step(dt), -0.9, 0.9)); }
-  } else setM(b, 'blink', bl);
+  } else if (b.chibi) chibiUpdate(b, dt, t, gx, gy, bl, idle);
+  else setM(b, 'blink', bl);
   if (b.shades) { const s = b.shadesS.x; b.shades.visible = s > 0.02; b.shades.scale.setScalar(Math.max(0.001, s)); b.shades.position.y = b.shadesY + (1 - s) * 0.5; }
   lipSync(dt, now); confStep(dt);
 }
@@ -237,10 +488,17 @@ function run() { const want = visible && !document.hidden && !wrap.classList.con
 const ray = new THREE.Raycaster();
 function partAt(cx, cy) {
   if (!B) return null; const r = canvas.getBoundingClientRect(); ray.setFromCamera(new THREE.Vector2((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1), camera);
-  const hits = ray.intersectObject(B.model, true); if (!hits.length) return null; const n = hits[0].object.name, p = B.model.worldToLocal(hits[0].point.clone());
+  let hits; if (B.hitBody) { B.hitBody.matrixWorld.copy(B.spin.matrixWorld); hits = ray.intersectObject(B.hitBody, false); } else hits = ray.intersectObject(B.model, true);   // the unskinned proxy follows the spin and hop
+  if (!hits.length) return null; const n = hits[0].object.name, p = B.model.worldToLocal(hits[0].point.clone());
   if (B.prop && hits[0].point.distanceTo(B.prop.getWorldPosition(new THREE.Vector3())) < 0.19) return 'prop';   // the cup or flask, and the hand round it
   if (/Hair|Pony/.test(n)) return 'hair'; if (/Head|Mouth|Eye|Lid|Lash|Brow|Shine|Freckle/.test(n)) return 'face'; if (/Prop|Headphones|Badge|HandL/.test(n)) return 'prop'; if (/Hand/.test(n)) return 'arm'; if (/Trousers|Shoe/.test(n)) return 'legs';
-  if (/Jacket/.test(n)) return Math.abs(p.x) > 0.34 ? 'arm' : 'torso'; return p.y > B.H * 0.63 ? 'face' : p.y > B.H * 0.28 ? 'torso' : 'legs';
+  if (/Jacket/.test(n)) return Math.abs(p.x) > 0.34 ? 'arm' : 'torso';
+  if (!B.full) {   // one fused mesh (no part names): classify by where on the body the tap landed
+    if (B.hw == null) { const bx = new THREE.Box3().setFromObject(B.model); B.hw = (bx.max.x - bx.min.x) / 2; }
+    const ax = Math.abs(p.x) / B.hw, ty = p.y / B.H;
+    if (ty > 0.86) return 'hair'; if (ty > 0.5) return ax > 0.6 ? 'hair' : 'face';
+    if (ty > 0.2) return ax > 0.36 ? (ty < 0.33 ? 'prop' : 'arm') : 'torso'; return 'legs'; }
+  return p.y > B.H * 0.63 ? 'face' : p.y > B.H * 0.28 ? 'torso' : 'legs';
 }
 function bindPointer() {
   let down = null, lastTap = 0, lastPart = '', press = 0, lx = 0, lt = 0, vel = 0;
@@ -261,23 +519,33 @@ function bindPointer() {
 /* ---------- start ---------- */
 function start() {
   if (!wrap || !stage || !boot()) return;
-  resize(); setQuality(0); bindPointer();
+  resize(); setQuality(LIGHT ? 2 : 0); bindPointer();
   new ResizeObserver(resize).observe(stage);
   new IntersectionObserver(es => { visible = es[0].isIntersecting; run(); }, {threshold: 0.02}).observe(stage);
   document.addEventListener('visibilitychange', run);
   const on = (n, f) => window.addEventListener('w2s:' + n, f);
-  on('speak', onSpeak); on('word', onWord); on('speakend', onSpeakEnd); on('mic', onMic); on('good', onGood); on('oops', onOops); on('help', onHelp); on('done', onDone);
-  on('buddy', e => { touched = true; show(e.detail && e.detail.id === 'rio' ? 'rio' : 'mila', false); });
+  on('speak', onSpeak); on('speakstart', onSpeakStart); on('timing', e => { D.timing = e.detail && e.detail.exact ? 'word boundaries' : 'estimated'; }); on('think', e => { thinking = !!(e.detail && e.detail.on); D.thinking = thinking; }); on('word', onWord); on('speakend', onSpeakEnd); on('mic', onMic); on('good', onGood); on('oops', onOops); on('help', onHelp); on('done', onDone);
+  on('buddy', e => { touched = true; show(pick(e.detail && e.detail.id), false); });
   on('mute', e => { muted = !!(e.detail && e.detail.on); if (!muted) { touched = true; SFX.pop(); } });
   on('shown', run); on('layout', () => setTimeout(resize, 30)); on('start', () => { touched = true; });
   // hooks for the tests, the turnaround renders and the static pictures
-  D.anchor = part => { if (!B) return null; const v = new THREE.Vector3(), n = {face: B.bones.head, hair: B.bones.head, torso: B.bones.spine, arm: B.bones.rf || B.bones.ra, prop: B.prop || B.bones.lh, legs: B.bones.ll}[part]; if (!n) return null; n.getWorldPosition(v);
-    if (part === 'face') { v.y += B.fw * 0.36; v.z += 0.1; } if (part === 'hair') v.y += B.fw * 0.93; if (part === 'torso') v.y += 0.22; if (part === 'legs') v.y -= 0.25; if (part === 'arm') v.y -= 0.1;
+  D.anchor = part => { if (!B) return null; const v = new THREE.Vector3(), n = B.chibi ? null : {face: B.bones.head, hair: B.bones.head, torso: B.bones.spine, arm: B.bones.rf || B.bones.ra, prop: B.prop || B.bones.lh, legs: B.bones.ll}[part];
+    if (n) { n.getWorldPosition(v);
+      if (part === 'face') { v.y += B.fw * 0.36; v.z += 0.1; } if (part === 'hair') v.y += B.fw * 0.93; if (part === 'torso') v.y += 0.22; if (part === 'legs') v.y -= 0.25; if (part === 'arm') v.y -= 0.1; }
+    else {   // no skeleton (a generic model): aim at the body by height, on the front of the model
+      const f = {face: [0, 0.66], hair: [0.78, 0.62], torso: [0, 0.4], arm: [0.44, 0.4], prop: [0.44, 0.27], legs: [0.12, 0.12]}[part]; if (!f) return null;
+      const bx = new THREE.Box3().setFromObject(B.model), r = (bx.max.x - bx.min.x) / 2; v.set(f[0] * r, f[1] * B.H, 0);
+      const rc = new THREE.Raycaster(new THREE.Vector3(v.x, v.y, 10), new THREE.Vector3(0, 0, -1)); if (B.hitBody) B.hitBody.matrixWorld.copy(B.spin.matrixWorld); const hit = rc.intersectObject(B.hitBody || B.model, !B.hitBody)[0]; if (hit) v.copy(hit.point); }
     v.project(camera); const r = canvas.getBoundingClientRect(), x = r.left + (v.x + 1) / 2 * r.width, y = r.top + (1 - v.y) / 2 * r.height; return {x, y, part: partAt(x, y)}; };
+  D.face = () => (B && B.chibi) ? {integrated: !!B.face2, mouth: B.face2 ? B.faceU.uMouthA.value.x > 0.02 : !!(B.mouthCard && B.mouthCard.mesh.visible), lids: B.face2 ? [0, 1].map(() => B.faceU.uFaceEye.value.x > 0.5) : B.lids.map(c => c.mesh.visible), jaw: B.face2 ? +B.faceU.uMouthA.value.x.toFixed(3) : null, persona: B.persona === PERSONA.playful ? 'playful' : 'laidback', head: B.bones.head ? B.bones.head.rotation.toArray().slice(0, 3).map(v => +v.toFixed(4)) : null} : null;
+  D.featurePts = () => { if (!B || !B.ex.face) return null; const r = canvas.getBoundingClientRect(), o = {}; B.model.updateMatrixWorld(true);
+    for (const [k, e] of Object.entries(B.ex.face)) { const v = new THREE.Vector3(...e.c); (B.bones.head || B.model).updateWorldMatrix(true, false); v.applyMatrix4(B.model.matrixWorld); v.project(camera); o[k] = {x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height}; } return o; };
+  D.faceDbg = v => { if (B && B.faceU) B.faceU.uFaceDbg.value = v; };
+  D.cached = () => Object.keys(buddies); D.hitInfo = () => B ? {body: B.hitBody ? B.hitBody.geometry.attributes.position.count / 3 : 0, face: B.faceHit ? B.faceHit.geometry.attributes.position.count / 3 : 0, sphere: B.hitBody ? B.hitBody.geometry.boundingSphere.radius : 0} : null;
   D.say = (s, sec) => say(s, sec || 0.5); D.poke = p => poke(p); D.react = n => R[n] && R[n](); D.setQuality = setQuality;
   D.view = o => { o = o || {}; camForce = o.frame || null; D.hold = o.rot != null ? o.rot : null; if (o.pose) pose(o.pose); if (o.blink != null && B) B.hold = o.blink; frameCam(); };
   D.snap = () => { update(0.016, performance.now()); renderer.render(scene, camera); return canvas.toDataURL('image/png'); };
-  show(window.W2S_BUDDY === 'rio' ? 'rio' : 'mila', true);   // the other Buddy is only downloaded when the learner switches
+  show(pick(window.W2S_BUDDY), true);   // the other Buddies are only downloaded when the learner switches
   run();
 }
 start();
