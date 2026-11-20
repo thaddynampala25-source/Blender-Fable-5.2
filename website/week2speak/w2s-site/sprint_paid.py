@@ -123,7 +123,7 @@ LIBRARY = [
   'desc': ('El Sprint rompe el miedo. Este plan de 15 minutos al día hace que no vuelva.', 'The Sprint breaks the fear. This 15-minutes-a-day plan stops it coming back.'),
   'tips': [
    (('Semana 1: repetir', 'Week 1: repeat'), ('Repite cada día una conversación de Modo Habla. La misma. Cuando salga sin pensar, cambia a otra.', "Repeat one Speech Mode conversation a day. The same one. When it comes out without thinking, switch to another."), []),
-   (('Semana 2: tu voz', 'Week 2: your voice'), ('Haz shadowing de 5 minutos al día con tu propio guion. Grábate el domingo y compáralo con tu Día 7.', 'Shadow your own script for 5 minutes a day. Record yourself on Sunday and compare it with your Day 7.'), []),
+   (('Semana 2: tu voz', 'Week 2: your voice'), ('Imita tu propio guion 5 minutos al día. Grábate el domingo y compáralo con tu Día 7.', 'Shadow your own script for 5 minutes a day. Record yourself on Sunday and compare it with your Day 7.'), []),
    (('Semana 3: la calle', 'Week 3: the street'), ('Una frase real en inglés al día: en una tienda, en un comentario, en un audio a un amigo.', 'One real sentence in English a day: in a shop, in a comment, in a voice note to a friend.'), []),
    (('Semana 4: más largo', 'Week 4: longer'), ('Habla 3 minutos seguidos sobre un tema nuevo cada día. Usa las frases de rescate cuando te bloquees.', 'Talk for 3 minutes in a row on a new topic every day. Use the rescue phrases when you get stuck.'), []),
   ]},

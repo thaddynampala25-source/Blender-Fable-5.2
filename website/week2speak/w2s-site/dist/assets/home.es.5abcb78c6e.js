@@ -106,7 +106,7 @@ const fPlay = $('#fPlay'), fSeek = $('#fSeek'), fTime = $('#fTime'), fCap = $('#
 const CAPS = {
   speak: 'Modo Habla. Respondes en voz alta, un error que viene del español recibe una corrección de una línea y, si te bloqueas, Ayúdame te da cómo empezar.',
   order: 'Ordena la frase. Arma la frase con fichas y luego dila. Cada frase correcta sube el combo.',
-  shadow: 'Shadowing. Escucha, habla a la vez y luego hazlo solo. La puntuación cuenta cuántas palabras se oyeron con claridad.',
+  shadow: 'Imita. Escucha, habla a la vez y luego hazlo solo. La puntuación cuenta cuántas palabras se oyeron con claridad.',
   rec: 'Grabación de pantalla de la app de prueba, hecha en un navegador. Sin sonido.'
 };
 const F = {active: 'speak', playing: false, inView: false, tls: {}, drag: false, fresh: false};
@@ -178,7 +178,7 @@ function showFilm(id) {
   ctl().pause(); F.active = id;
   $$('.film').forEach(f => { f.hidden = f.dataset.film !== id; });
   $$('#ftabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.film === id));
-  fCap.textContent = CAPS[id]; const tr = {speak: ['/modo-habla/', 'Prueba el Modo Habla'], order: ['/juegos/', 'Juega a Ordena la frase'], shadow: ['/shadowing/', 'Abre el estudio de shadowing'], rec: ['/sprint-7-dias/', 'Empieza el Sprint de 7 días']}[id]; $('#fTry').setAttribute('href', tr[0]); $('#fTry').textContent = tr[1];
+  fCap.textContent = CAPS[id]; const tr = {speak: ['/modo-habla/', 'Prueba el Modo Habla'], order: ['/juegos/', 'Juega a Ordena la frase'], shadow: ['/shadowing/', 'Abre Imita'], rec: ['/sprint-7-dias/', 'Empieza el Sprint de 7 días']}[id]; $('#fTry').setAttribute('href', tr[0]); $('#fTry').textContent = tr[1];
   if (gs && BUILD[id]) { if (F.tls[id]) F.tls[id].kill(); F.tls[id] = BUILD[id](); F.tls[id].time(F.tls[id].duration() - .05); F.fresh = true; }
   if (id === 'rec') vid.currentTime = 0;
   $('#fctl').hidden = id !== 'rec' && !gs;
@@ -260,12 +260,12 @@ gTray.addEventListener('click', gClick); gPool.addEventListener('click', gClick)
 
 /* ---------- the week, sideways ---------- */
 const DAYS = [
-  ['Primeras frases', 'Preséntate en voz alta.', ['Shadowing de una presentación', 'Conocer a alguien', 'Una ronda de Ordena la frase']],
-  ['Pedir y preguntar', 'Pide bebida y comida sin ayuda.', ['Una ronda de Completa la frase', 'Pedir en una cafetería', 'Shadowing de «Pedir un café»']],
-  ['Preguntas', 'Pregunta lo que necesita saber un viajero.', ['Una ronda de Traducción flash', 'Check-in en el aeropuerto', 'Shadowing de «En el aeropuerto»']],
-  ['Tu historia', 'Mantén una charla informal durante un minuto.', ['Ordena la frase, segunda ronda', 'Conocer a alguien, sin pistas', 'Shadowing de «Charla informal»']],
-  ['Inglés para el trabajo', 'Responde dos preguntas de entrevista.', ['Completa la frase, segunda ronda', 'Entrevista de trabajo', 'Shadowing de una respuesta de entrevista']],
-  ['Pensar en inglés', 'Termina una escena sin Ayúdame.', ['Traducción flash, segunda ronda', 'Pedir en una cafetería, sin pistas', 'Shadowing en solitario a velocidad natural']],
+  ['Primeras frases', 'Preséntate en voz alta.', ['Imita una presentación', 'Conocer a alguien', 'Una ronda de Ordena la frase']],
+  ['Pedir y preguntar', 'Pide bebida y comida sin ayuda.', ['Una ronda de Completa la frase', 'Pedir en una cafetería', 'Imita «Pedir un café»']],
+  ['Preguntas', 'Pregunta lo que necesita saber un viajero.', ['Una ronda de Traducción flash', 'Check-in en el aeropuerto', 'Imita «En el aeropuerto»']],
+  ['Tu historia', 'Mantén una charla informal durante un minuto.', ['Ordena la frase, segunda ronda', 'Conocer a alguien, sin pistas', 'Imita «Charla informal»']],
+  ['Inglés para el trabajo', 'Responde dos preguntas de entrevista.', ['Completa la frase, segunda ronda', 'Entrevista de trabajo', 'Imita una respuesta de entrevista']],
+  ['Pensar en inglés', 'Termina una escena sin Ayúdame.', ['Traducción flash, segunda ronda', 'Pedir en una cafetería, sin pistas', 'Imita en modo Solo a velocidad natural']],
   ['La charla de 2 minutos', 'Habla dos minutos, sin guion.', ['Prepara tres cosas que decir', 'Da tu charla', 'Compárala con el Día 1']]
 ];
 $('#wkTrack').innerHTML = DAYS.map((d, i) => `<article class="dcard${i === 6 ? ' last' : ''}"><div class="n num">${i + 1}</div><h3>${esc(d[0])}</h3><p>${esc(d[1])}</p><ul>${d[2].map(t => `<li>${esc(t)}</li>`).join('')}</ul></article>`).join('');

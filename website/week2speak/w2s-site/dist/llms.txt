@@ -10,7 +10,7 @@ Estado: fase de prueba (noviembre de 2026). El sitio está en español (en /) y 
 - [Curso](https://week2speak.com/curso/): siete lecciones de 12 minutos o menos, cada una con cinco frases clave y un error que viene del español.
 - [Modo Habla](https://week2speak.com/modo-habla/): práctica oral guiada en seis escenas, con pistas en tres pasos.
 - [Juegos](https://week2speak.com/juegos/): Ordena la frase, Completa la frase, Traducción flash, Laboratorio de sonidos y Respuestas rápidas, con un paquete para cada día del Sprint.
-- [Shadowing](https://week2speak.com/shadowing/): un clip para cada día y tu propio guion, tres velocidades y tres acentos.
+- [Imita](https://week2speak.com/shadowing/): ejercicios de shadowing, un clip para cada día y tu propio guion, tres velocidades y tres acentos.
 - [16 errores de inglés que cometen los hispanohablantes](https://week2speak.com/errores-comunes/): cada uno con la frase incorrecta, la correcta y el patrón del español que lo causa.
 - [Cómo enseñamos](https://week2speak.com/como-ensenamos/): el método y la investigación en la que se basa.
 - [English version](https://week2speak.com/en/): the same site in English.

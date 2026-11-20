@@ -20,7 +20,7 @@ _PLANS_ES = '''<h2 data-split>Solo cinco plazas.</h2>
   <p class="sub">Estamos en fase de prueba, así que el Sprint es para cinco personas. Siete días, Mei a tu lado y tu antes y después grabado.</p>
   <div class="pgrid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
     <div class="plan first"><h3>Sprint de 7 días</h3><p class="price">Pago único</p><ul><li>Dos llamadas 1 a 1 de 25 minutos con Mei</li><li>WhatsApp directo con Mei toda la semana</li><li>Todo Week2Speak, sin límites</li><li>El Sprint día a día y tu antes y después</li><li>Biblioteca de recursos</li></ul></div>
-    <div class="plan"><h3>Cuenta gratis</h3><p class="price">Gratis</p><ul><li>Modo Habla, juegos y shadowing, con un límite diario</li><li>Las lecciones 1 y 2 del curso</li><li>Sin cuenta, solo una prueba corta</li></ul></div>
+    <div class="plan"><h3>Cuenta gratis</h3><p class="price">Gratis</p><ul><li>Modo Habla, juegos e Imita, con un límite diario</li><li>Las lecciones 1 y 2 del curso</li><li>Sin cuenta, solo una prueba corta</li></ul></div>
   </div>'''
 _PLANS_EN = '''<h2 data-split>Only five places.</h2>
   <p class="sub">We are in testing, so the Sprint is for five people. Seven days, Mei by your side and your before and after on record.</p>
@@ -67,7 +67,7 @@ Estado: fase de prueba (noviembre de 2026). El sitio está en español (en /) y 
 - [Curso]({site}/curso/): siete lecciones de 12 minutos o menos, cada una con cinco frases clave y un error que viene del español.
 - [Modo Habla]({site}/modo-habla/): práctica oral guiada en seis escenas, con pistas en tres pasos.
 - [Juegos]({site}/juegos/): Ordena la frase, Completa la frase, Traducción flash, Laboratorio de sonidos y Respuestas rápidas, con un paquete para cada día del Sprint.
-- [Shadowing]({site}/shadowing/): un clip para cada día y tu propio guion, tres velocidades y tres acentos.
+- [Imita]({site}/shadowing/): ejercicios de shadowing, un clip para cada día y tu propio guion, tres velocidades y tres acentos.
 - [16 errores de inglés que cometen los hispanohablantes]({site}/errores-comunes/): cada uno con la frase incorrecta, la correcta y el patrón del español que lo causa.
 - [Cómo enseñamos]({site}/como-ensenamos/): el método y la investigación en la que se basa.
 - [English version]({site}/en/): the same site in English.
@@ -115,6 +115,8 @@ CAT = [
     ('Sections', 'Secciones'),
     ('Home', 'Inicio'),
     ('Speech Mode', 'Modo Habla'),
+    ('Shadowing', 'Imita'),
+    ('Shadow', 'Imita'),
     ('<span class="ts">Speak</span>', '<span class="ts">Habla</span>'),
     ('Games', 'Juegos'),
     ('7-Day Sprint', 'Sprint de 7 días'),
@@ -138,7 +140,7 @@ CAT = [
     ('English speaking practice and tutoring for Spanish speakers.', 'Práctica oral y clases de inglés para hispanohablantes.'),
     ('Week2Speak practice app walkthrough', 'Recorrido por la app de práctica de Week2Speak'),
     ('A 53-second screen recording of the Week2Speak practice rooms: a first sentence, Word Order, Speech Mode with a Spanish-speaker fix, and shadowing.',
-     'Una grabación de pantalla de 53 segundos de las salas de práctica de Week2Speak: una primera frase, Ordena la frase, Modo Habla con una corrección de un error típico del español y shadowing.'),
+     'Una grabación de pantalla de 53 segundos de las salas de práctica de Week2Speak: una primera frase, Ordena la frase, Modo Habla con una corrección de un error típico del español e Imita.'),
     ('Join', 'Únete'),
     ('About', 'Cómo enseñamos', 'How we teach'),
     ('Beginner', 'Principiante'),
@@ -148,7 +150,7 @@ CAT = [
     ('Week2Speak: Speak English in 7 Days for Spanish Speakers', 'Aprende a hablar inglés en 7 días | Week2Speak', 'Learn to speak English in 7 days | Week2Speak'),
     ('Week2Speak: Speak English in 7 days', 'Week2Speak: habla inglés en 7 días'),
     ('Say real English sentences from day one. A 7-day Sprint with a Spanish-speaking tutor, plus speaking practice, shadowing and games for Spanish speakers.',
-     'Di tus primeras frases en inglés desde el primer día. Un Sprint de 7 días con una tutora que habla español, práctica oral, juegos y shadowing.',
+     'Di tus primeras frases en inglés desde el primer día. Un Sprint de 7 días con una tutora que habla español, práctica oral, juegos e Imita.',
      'Say your first English sentences from the first day. A 7-day Sprint with a tutor who speaks Spanish, speaking practice, games and shadowing.'),
 
     # ---------- home: hero ----------
@@ -167,7 +169,7 @@ CAT = [
     ('Listen to a real sentence in the accent you want to learn.', 'Escucha una frase real con el acento que quieres aprender.'),
     ('Say it', 'Dila'),
     ('Repeat it, shadow it, build it from word tiles until your mouth knows it.',
-     'Repítela, síguela con shadowing y ármala con fichas hasta que te salga sola.',
+     'Repítela, imítala y ármala con fichas hasta que te salga sola.',
      'Repeat it, follow it with shadowing and build it from tiles until it comes out on its own.'),
     ('Use it', 'Úsala'),
     ('Take it into a café, an airport, a job interview. Hints catch you when you freeze.',
@@ -190,7 +192,7 @@ CAT = [
     ('Help me: start like this', 'Ayúdame: empieza así'),
     ('Put the words in order, then say the sentence.', 'Ordena las palabras y luego di la frase.'),
     ('Correct. Now say it out loud.', '¡Bien! Ahora dila en voz alta.', 'Good! Now say it out loud.'),
-    ('Shadowing studio', 'Estudio de shadowing'),
+    ('Shadowing studio', 'Imita'),
     ('Listen', 'Escucha'),
     ('Native', 'Nativo'),
     ('You', 'Tú'),
@@ -213,7 +215,7 @@ CAT = [
     ('Words', 'Palabras'),
     ('Open Speech Mode', 'Abrir Modo Habla'),
     ('Play all five games', 'Jugar a los cinco juegos'),
-    ('Open the shadowing studio', 'Abrir el estudio de shadowing'),
+    ('Open the shadowing studio', 'Abrir Imita'),
     ('See the course', 'Ver el curso'),
 
     # ---------- the seven days (home week cards, course, paid Sprint data) ----------
@@ -240,13 +242,13 @@ CAT = [
     ('Lesson 5 and Sound Lab (th)', 'Lección 5 y Laboratorio de sonidos (th)'),
     ('Lesson 6 and Sound Lab (v and b)', 'Lección 6 y Laboratorio de sonidos (v y b)'),
     ('Lesson 7 and Sound Lab', 'Lección 7 y Laboratorio de sonidos'),
-    ('Shadow "My script"', 'Shadowing: "Mi guion"', 'Shadowing: "My script"'),
-    ('Shadow "Ordering coffee"', 'Shadowing: "Pedir un café"', 'Shadowing: "Ordering coffee"'),
-    ('Shadow "At the airport"', 'Shadowing: "En el aeropuerto"', 'Shadowing: "At the airport"'),
-    ('Shadow "Yesterday"', 'Shadowing: "Ayer"', 'Shadowing: "Yesterday"'),
-    ('Shadow "My opinion"', 'Shadowing: "Mi opinión"', 'Shadowing: "My opinion"'),
-    ('Shadow "Keep talking"', 'Shadowing: "Sigue hablando"', 'Shadowing: "Keep talking"'),
-    ('Shadow your own talk', 'Shadowing de tu propia charla', 'Shadowing of your own talk'),
+    ('Shadow "My script"', 'Imita: "Mi guion"', 'Imita: "My script"'),
+    ('Shadow "Ordering coffee"', 'Imita: "Pedir un café"', 'Imita: "Ordering coffee"'),
+    ('Shadow "At the airport"', 'Imita: "En el aeropuerto"', 'Imita: "At the airport"'),
+    ('Shadow "Yesterday"', 'Imita: "Ayer"', 'Imita: "Yesterday"'),
+    ('Shadow "My opinion"', 'Imita: "Mi opinión"', 'Imita: "My opinion"'),
+    ('Shadow "Keep talking"', 'Imita: "Sigue hablando"', 'Imita: "Keep talking"'),
+    ('Shadow your own talk', 'Imita tu propia charla', 'Shadowing of your own talk'),
     ('Word Order and Speech Mode: Meet someone new', 'Ordena la frase y Modo Habla: Conocer a alguien'),
     ('Fill the Gap and Speech Mode: Café order', 'Completa la frase y Modo Habla: Pedir en un café'),
     ('Flash Translate and Speech Mode: Airport check-in', 'Traducción flash y Modo Habla: Facturar en el aeropuerto'),
@@ -274,7 +276,7 @@ CAT = [
     # ---------- home FAQ (HTML and JSON-LD) ----------
     ('What is Week2Speak?', '¿Qué es Week2Speak?'),
     ('Week2Speak is an English speaking programme for Spanish speakers. It combines a 7-day Sprint with a tutor who speaks Spanish, short daily lessons, and practice rooms for speaking out loud: Speech Mode, sentence games and shadowing.',
-     'Week2Speak es un programa para hablar inglés, pensado para hispanohablantes. Combina un Sprint de 7 días con Mei, una tutora que habla español, lecciones cortas y salas para practicar en voz alta: Modo Habla, juegos de frases y shadowing.',
+     'Week2Speak es un programa para hablar inglés, pensado para hispanohablantes. Combina un Sprint de 7 días con Mei, una tutora que habla español, lecciones cortas y salas para practicar en voz alta: Modo Habla, juegos de frases e Imita.',
      'Week2Speak is a programme for speaking English, designed for Spanish speakers. It combines a 7-Day Sprint with Mei, a tutor who speaks Spanish, short lessons and rooms for practising out loud: Speech Mode, sentence games and shadowing.'),
     ('Can you really speak English in 7 days?', '¿De verdad se puede hablar inglés en 7 días?'),
     ('You will not be fluent in 7 days. The Sprint aims for something smaller and real: by Day 7 you can introduce yourself, order, ask questions and give a 2-minute talk in English without a script. Your Day 1 and Day 7 recordings show the change.',
@@ -285,7 +287,7 @@ CAT = [
      'Adults whose first language is Spanish who are starting from zero, or who understand some English but freeze when they speak. You do not need to know grammar: you start by saying sentences.'),
     ('How much does Week2Speak cost?', '¿Cuánto cuesta?', 'How much does it cost?'),
     ('The founding cohort is free and has ten places. Prices for the paid plans are set before the public launch.',
-     'Crear una cuenta es gratis: tienes Modo Habla, los juegos, el shadowing y las lecciones 1 y 2 del curso, con un límite diario. El Sprint de 7 días es un pago único: en el Reino Unido cuesta 49 £ y en otros países ves el precio en tu moneda antes de pagar.',
+     'Crear una cuenta es gratis: tienes Modo Habla, los juegos, Imita y las lecciones 1 y 2 del curso, con un límite diario. El Sprint de 7 días es un pago único: en el Reino Unido cuesta 49 £ y en otros países ves el precio en tu moneda antes de pagar.',
      'An account is free: you get Speech Mode, the games, shadowing and lessons 1 and 2 of the course, with a daily limit. The 7-Day Sprint is a single payment: in the UK it costs £49, and in other countries you see the price in your currency before you pay.'),
     ('Do I need to download an app?', '¿Tengo que descargar una app?'),
     ('No. Everything runs in the browser on your phone or computer. The microphone works in Chrome, Edge and Safari; in other browsers you can type your answers instead.',
@@ -418,33 +420,33 @@ CAT = [
      'No. Completa la frase explica cada respuesta en una línea después de elegir, a partir de los errores más comunes de los hispanohablantes.'),
 
     # ---------- Shadowing page ----------
-    ('English Shadowing Practice for Beginners | Week2Speak', 'Shadowing en inglés para principiantes | Week2Speak', 'English shadowing for beginners | Week2Speak'),
+    ('English Shadowing Practice for Beginners | Week2Speak', 'Imita: shadowing en inglés para principiantes | Week2Speak', 'English shadowing for beginners | Week2Speak'),
     ('Speak along with a native voice while the words light up. Shadow a clip for each Sprint day, or your own script, in American, British or Australian English.',
      'Habla a la vez que una voz nativa mientras se iluminan las palabras. Un clip por día del Sprint o tu propio guion, en tres acentos de inglés.',
      'Speak along with a native voice while the words light up. A clip for each Sprint day or your own script, in three English accents.'),
-    ('English shadowing studio', 'Estudio de shadowing en inglés'),
+    ('English shadowing studio', 'Imita'),
     ('Shadowing means speaking along with a native voice, a beat behind it. It trains rhythm and sounds faster than reading rules about them.',
-     'Hacer shadowing es hablar a la vez que una voz nativa, un pelín por detrás. Entrena el ritmo y los sonidos más rápido que leer reglas sobre ellos.'),
+     'Imita es hablar a la vez que una voz nativa, un pelín por detrás. Entrena el ritmo y los sonidos más rápido que leer reglas sobre ellos.'),
     ('Clip', 'Clip'),
     ('My script', 'Mi guion'),
     ('Type the sentences from your lesson, or your 2-minute talk. They stay on this device.', 'Escribe las frases de tu lección o tu charla de 2 minutos. Se quedan en este dispositivo.'),
-    ('Save and shadow it', 'Guardar y hacer shadowing'),
+    ('Save and shadow it', 'Guardar e imitar'),
     ('Accent', 'Acento'),
     ('Speed', 'Velocidad'),
     ('Steady', 'Pausada'),
     ('Mode', 'Modo'),
-    ('What is shadowing?', '¿Qué es el shadowing?'),
+    ('What is shadowing?', '¿Qué es Imita?'),
     ('Shadowing is a speaking exercise where you listen to a native speaker and repeat what they say almost at the same time, a beat behind them. It trains the rhythm, stress and linked sounds of English, which reading rules does not.',
-     'El shadowing es un ejercicio de habla: escuchas a un hablante nativo y repites lo que dice casi a la vez, un pelín por detrás. Entrena el ritmo, el acento de las palabras y cómo se unen los sonidos en inglés, algo que leer reglas no consigue.'),
-    ('How to shadow in three steps', 'Cómo hacer shadowing en tres pasos'),
+     'Imita es la técnica que en inglés se llama shadowing: escuchas a un hablante nativo y repites lo que dice casi a la vez, un pelín por detrás. Entrena el ritmo, el acento de las palabras y cómo se unen los sonidos en inglés, algo que leer reglas no consigue.'),
+    ('How to shadow in three steps', 'Cómo imitar en tres pasos'),
     ('Listen.', 'Escucha.'),
     ('Play the clip and follow the words as they light up.', 'Pon el clip y sigue las palabras mientras se iluminan.'),
-    ('Shadow.', 'Acompaña.', 'Shadow.'),
+    ('Shadow.', 'Imita.', 'Shadow.'),
     ('Speak along with the voice, a beat behind. Do it three times.', 'Habla a la vez que la voz, un pelín por detrás. Hazlo tres veces.'),
     ('Solo.', 'Tú solo.', 'Solo.'),
     ('The words light up at speaking pace with no voice, and you say the clip alone.', 'Las palabras se iluminan al ritmo del habla, sin voz, y dices el clip tú solo.'),
     ('There is a clip for every day of the 7-Day Sprint, from Introducing yourself to My talk, plus My script, where you type your own sentences and shadow them. Choose from three speeds and three accents: American, British and Australian.',
-     'Hay un clip para cada día del Sprint de 7 días, de Presentarte a Mi charla, y además Mi guion, donde escribes tus propias frases y haces shadowing con ellas. Elige entre tres velocidades y tres acentos: estadounidense, británico y australiano.'),
+     'Hay un clip para cada día del Sprint de 7 días, de Presentarte a Mi charla, y además Mi guion, donde escribes tus propias frases y las imitas. Elige entre tres velocidades y tres acentos: estadounidense, británico y australiano.'),
     ('Source:', 'Fuente:'),
     ('script-enhanced shadowing study, Instructed Second Language Acquisition', 'estudio sobre shadowing con guion, Instructed Second Language Acquisition', 'study on shadowing with a script, Instructed Second Language Acquisition'),
     ('What is shadowing in language learning?', '¿Qué es el shadowing para aprender idiomas?'),
@@ -453,9 +455,9 @@ CAT = [
     ('Does shadowing improve your accent?', '¿El shadowing mejora tu pronunciación?', 'Does shadowing improve your pronunciation?'),
     ('It can help you hear and copy rhythm and linked sounds. Research on shadowing is still small: one study of 24 learners found it improved how well they heard linked sounds, while the gain in their own pronunciation was not statistically significant. Use it as daily practice, not as a guaranteed accent fix.',
      'Te puede ayudar a oír y copiar el ritmo y los sonidos que se unen. Todavía hay poca investigación: un estudio con 24 estudiantes vio que mejoraban al oír los sonidos unidos, pero la mejora en su propia pronunciación no fue estadísticamente significativa. Úsalo como práctica diaria, no como un arreglo garantizado del acento.'),
-    ('How long should I shadow each day?', '¿Cuánto tiempo hago shadowing al día?'),
+    ('How long should I shadow each day?', '¿Cuánto tiempo practico con Imita al día?'),
     ('Five minutes is enough. Shadow one clip three times at Steady speed, then once at Natural speed in Solo mode.',
-     'Con cinco minutos basta. Haz shadowing de un clip tres veces a velocidad Pausada y luego una vez a velocidad Natural en modo Solo.'),
+     'Con cinco minutos basta. Imita un clip tres veces a velocidad Pausada y luego una vez a velocidad Natural en modo Solo.'),
 
     # ---------- the Sprint page (legacy tools inside the paid area, JSON-LD) ----------
     ('7-Day English Speaking Sprint', 'Sprint de 7 días para hablar inglés'),
@@ -487,7 +489,7 @@ CAT = [
      'You keep your before and after recordings, your resource library and a 30-day plan to keep practising on your own.'),
     ('What homework is there?', '¿Hay deberes?', 'Is there homework?'),
     ('No written homework. Each day has six short tasks on this site: a lesson, a sound game, a clip to shadow, a sentence game, a spoken scene, and one voice note to your tutor. The page ticks them off as you finish.',
-     'No hay deberes escritos. Cada día tiene tareas cortas en esta web: una lección, un juego de sonidos, un clip de shadowing, un juego de frases, una escena hablada y el reto del día. Se marcan solas cuando las terminas.',
+     'No hay deberes escritos. Cada día tiene tareas cortas en esta web: una lección, un juego de sonidos, un clip para imitar, un juego de frases, una escena hablada y el reto del día. Se marcan solas cuando las terminas.',
      'There is no written homework. Each day has short tasks on this site: a lesson, a sound game, a shadowing clip, a sentence game, a spoken scene and the challenge of the day. They tick themselves off as you finish.'),
     ('What if I miss a day?', '¿Y si me salto un día?'),
     ('You can catch up the next day. The Sprint is about doing a little every day, not doing it perfectly.',
