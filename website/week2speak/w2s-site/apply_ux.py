@@ -335,7 +335,8 @@ function renderVoiceG() {
     box.innerHTML = VOICE_G.map(([id, name]) => `<button type="button" class="chip" data-vg="${id}" aria-pressed="${(state.voiceG === 'm' ? 'm' : 'f') === id}">${esc(name)}</button>`).join(''); });
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-vg]'); if (!b) return;
-  state.voiceG = b.dataset.vg === 'm' ? 'm' : 'f'; save(); Voice.stop(); renderVoiceG(); renderVoiceNotes(); });
+  state.voiceG = b.dataset.vg === 'm' ? 'm' : 'f'; save(); Voice.stop(); renderVoiceG(); renderAccents(); });
+document.addEventListener('input', e => { if (e.target && e.target.id === 'mineText') { clearTimeout(window.__accT); window.__accT = setTimeout(renderAccents, 400); } });
 const Voice = (() => {""")
     rep("const want = window.W2S_BUDDY_GENDER, same", "const want = voiceG(), same")
     # Device voice of the right gender: a woman's line never falls back to a man's voice (Windows lists
@@ -358,6 +359,38 @@ const Voice = (() => {""")
     rep('<div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>',
         '<div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><div class="chips" data-voicegender style="margin-top:10px"></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>')
     rep('  <div class="course"><div class="mods"', '  <div class="chips vg-row" data-voicegender style="margin-bottom:14px"></div>\n  <div class="course"><div class="mods"')
+    # ---------- Accents: offer only what can really be heard ----------
+    # An accent is offered for what is on screen when every line has a recording in it, or the device has its own
+    # voice for it (right gender). Otherwise the chip is hidden and lines play in an accent that works, so an
+    # Australian choice never turns into another accent's computer voice.
+    rep("  const clipKey = text => { const acc = state.accent;", "  const clipKey = text => { const acc = accentFor([text]);")
+    rep("    const acc = ACCENTS.find(a => a.id === state.accent) || ACCENTS[0];",
+        "    const acc = ACCENTS.find(a => a.id === accentFor(curText != null ? [curText] : viewTexts())) || ACCENTS[0];")
+    rep("  function speak(text, opts = {}) {\n", """  let curText = null;
+  function hasClipIn(id, text) { if (!AUD || !AUD.clips) return false; const t = String(text).trim(); return voiceSlots().some(v => !!AUD.clips[id + '|' + v + '|' + t]); }
+  function accentOK(id, texts) { const a = ACCENTS.find(x => x.id === id); if (!a) return false; if (pick(a.lang)) return true; return !!texts.length && texts.every(t => hasClipIn(id, t)); }
+  function accentFor(texts) { return [state.accent, 'us', 'gb', 'au'].find(id => accentOK(id, texts)) || state.accent; }
+  function speak(text, opts = {}) {
+    curText = String(text).trim();
+""")
+    rep("  return {speak, pace, stop, preload,", "  return {accentOK, accentFor, speak, pace, stop, preload,")
+    rep("  function load() { try { voices", "  function load() { setTimeout(() => { try { renderAccents(); } catch (e) {} }, 0); try { voices")
+    rep("function renderAccents() {\n  $$('[data-accents]').forEach(box => { box.innerHTML = ACCENTS.map(a => `<button type=\"button\" class=\"chip\" data-accent=\"${a.id}\" aria-pressed=\"${a.id === state.accent}\">${flag(a.id)}${a.name}</button>`).join(''); });",
+        """function viewTexts() {
+  if (currentView === 'speak' && MISSIONS[S.id]) return MISSIONS[S.id].steps.map(x => x.t);
+  if (currentView === 'shadow') return [clipText()];
+  return [];
+}
+function renderAccents() {
+  let T = [], ok = ACCENTS, eff = state.accent;
+  try { T = viewTexts(); ok = ACCENTS.filter(a => Voice.accentOK(a.id, T)); eff = Voice.accentFor(T); } catch (e) { ok = ACCENTS; }
+  if (!ok.length) ok = ACCENTS;
+  const hidden = ok.length < ACCENTS.length;
+  $$('[data-accents]').forEach(box => { box.innerHTML = ok.map(a => `<button type="button" class="chip" data-accent="${a.id}" aria-pressed="${a.id === eff}">${flag(a.id)}${a.name}</button>`).join('') +
+    (hidden ? '<p class="small muted acc-hidden" style="margin:8px 0 0;width:100%">' + 'Some accents are hidden here: this part has no recording, and this device has no voice for them.' + '</p>' : ''); });""")
+    rep("function renderShadow() {", "function renderShadow() { setTimeout(renderAccents, 0);")
+    rep("function startMission(id) {", "function startMission(id) { setTimeout(renderAccents, 0);")
+    rep("  const changed = name !== currentView; currentView = name;", "  const changed = name !== currentView; currentView = name; setTimeout(renderAccents, 0);")
     rep("renderStats(); renderAccents(); renderMissions(); renderSprint(); save();",
         "renderStats(); renderAccents(); renderVoiceG(); renderMissions(); renderSprint(); renderResume(); save();")
     return s

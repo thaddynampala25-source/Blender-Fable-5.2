@@ -167,12 +167,13 @@ function renderVoiceG() {
     box.innerHTML = VOICE_G.map(([id, name]) => `<button type="button" class="chip" data-vg="${id}" aria-pressed="${(state.voiceG === 'm' ? 'm' : 'f') === id}">${esc(name)}</button>`).join(''); });
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-vg]'); if (!b) return;
-  state.voiceG = b.dataset.vg === 'm' ? 'm' : 'f'; save(); Voice.stop(); renderVoiceG(); renderVoiceNotes(); });
+  state.voiceG = b.dataset.vg === 'm' ? 'm' : 'f'; save(); Voice.stop(); renderVoiceG(); renderAccents(); });
+document.addEventListener('input', e => { if (e.target && e.target.id === 'mineText') { clearTimeout(window.__accT); window.__accT = setTimeout(renderAccents, 400); } });
 const Voice = (() => {
   const synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
   let voices = [], broken = false, fails = 0, tts = null, token = 0, timers = [];
   const norm = v => String(v.lang || '').replace('_', '-').toLowerCase();
-  function load() { try { voices = synth ? synth.getVoices().filter(v => /^en(-|$)/.test(norm(v))) : []; } catch (e) { voices = []; } renderVoiceNotes(); }
+  function load() { setTimeout(() => { try { renderAccents(); } catch (e) {} }, 0); try { voices = synth ? synth.getVoices().filter(v => /^en(-|$)/.test(norm(v))) : []; } catch (e) { voices = []; } renderVoiceNotes(); }
   if (synth) { load(); try { synth.addEventListener('voiceschanged', load); } catch (e) {} }
   function pick(lang) {
     if (broken) return null;
@@ -193,7 +194,7 @@ const Voice = (() => {
     return top(pool.filter(v => near.test(norm(v)))) || top(pool);
   }
   function route() {
-    const acc = ACCENTS.find(a => a.id === state.accent) || ACCENTS[0];
+    const acc = ACCENTS.find(a => a.id === accentFor(curText != null ? [curText] : viewTexts())) || ACCENTS[0];
     const v = pick(acc.lang);
     if (v) return {kind:'device', v, note: acc.name + ' · voz: ' + v.name + '.'};
     if (tts) return {kind:'claude', note:'Tu dispositivo no tiene voz con acento ' + acc.name + ' — se usa la voz estándar.'};
@@ -216,7 +217,7 @@ const Voice = (() => {
   const AUD = window.W2S_AUDIO || null; let el = null; const pre = {};
   /* Speech Mode speaks as the Buddy (its own voice first, e.g. us|kairo, then its gender); every other room uses the
      learner's Female/Male voice choice (state.voiceG). */
-  const clipKey = text => { const acc = state.accent; return voiceSlots().map(v => acc + '|' + v + '|' + text).concat([acc + '|' + text]); };
+  const clipKey = text => { const acc = accentFor([text]); return voiceSlots().map(v => acc + '|' + v + '|' + text).concat([acc + '|' + text]); };
   function clipOf(text) { if (!AUD || !AUD.clips) return null; for (const k of clipKey(String(text).trim())) if (AUD.clips[k]) return AUD.clips[k]; return null; }
   function preload(text) { const c = clipOf(text); if (!c || pre[c.f]) return; const a = new Audio(); a.preload = 'auto'; a.src = AUD.base + c.f; pre[c.f] = a; }
   function playClip(c, text, rate, opts, id, end, fallback) {
@@ -232,7 +233,12 @@ const Voice = (() => {
   }
   function stop() { emit('speakend'); token++; clear(); if (el) { try { el.pause(); } catch (e) {} } try { if (synth) synth.cancel(); } catch (e) {} if (tts) { try { tts.stop().catch(() => {}); } catch (e) {} } }
   function pace(text, opts) { stop(); const id = token; plan(text, opts.rate || 1, opts.onWord, opts.onEnd, id); }
+  let curText = null;
+  function hasClipIn(id, text) { if (!AUD || !AUD.clips) return false; const t = String(text).trim(); return voiceSlots().some(v => !!AUD.clips[id + '|' + v + '|' + t]); }
+  function accentOK(id, texts) { const a = ACCENTS.find(x => x.id === id); if (!a) return false; if (pick(a.lang)) return true; return !!texts.length && texts.every(t => hasClipIn(id, t)); }
+  function accentFor(texts) { return [state.accent, 'us', 'gb', 'au'].find(id => accentOK(id, texts)) || state.accent; }
   function speak(text, opts = {}) {
+    curText = String(text).trim();
     stop();
     { const words = String(text).split(/\s+/).filter(Boolean), ow = opts.onWord, oe = opts.onEnd;
       opts = Object.assign({}, opts, {onWord: i => { if (i >= 0) emit('word', {word: words[i] || '', i}); if (ow) ow(i); }, onEnd: () => { emit('speakend'); if (oe) oe(); }});
@@ -259,7 +265,7 @@ const Voice = (() => {
     else { track('audio_fail', {via: 'none'}); emit('speakstart', {audio: false}); plan(text, rate, opts.onWord, end, id); }
     }
   }
-  return {speak, pace, stop, preload, hasClip: t => !!clipOf(t), kind: () => route().kind, note: () => route().note, setTts: t => { tts = t; renderVoiceNotes(); }};
+  return {accentOK, accentFor, speak, pace, stop, preload, hasClip: t => !!clipOf(t), kind: () => route().kind, note: () => route().note, setTts: t => { tts = t; renderVoiceNotes(); }};
 })();
 function renderVoiceNotes() { let n = ''; try { n = Voice.note(); } catch (e) { return; } $$('[data-voicenote]').forEach(e => e.textContent = n); }
 
@@ -315,8 +321,18 @@ function karaoke(el, text) {
 }
 
 /* ---------- accents ---------- */
+function viewTexts() {
+  if (currentView === 'speak' && MISSIONS[S.id]) return MISSIONS[S.id].steps.map(x => x.t);
+  if (currentView === 'shadow') return [clipText()];
+  return [];
+}
 function renderAccents() {
-  $$('[data-accents]').forEach(box => { box.innerHTML = ACCENTS.map(a => `<button type="button" class="chip" data-accent="${a.id}" aria-pressed="${a.id === state.accent}">${flag(a.id)}${a.name}</button>`).join(''); });
+  let T = [], ok = ACCENTS, eff = state.accent;
+  try { T = viewTexts(); ok = ACCENTS.filter(a => Voice.accentOK(a.id, T)); eff = Voice.accentFor(T); } catch (e) { ok = ACCENTS; }
+  if (!ok.length) ok = ACCENTS;
+  const hidden = ok.length < ACCENTS.length;
+  $$('[data-accents]').forEach(box => { box.innerHTML = ok.map(a => `<button type="button" class="chip" data-accent="${a.id}" aria-pressed="${a.id === eff}">${flag(a.id)}${a.name}</button>`).join('') +
+    (hidden ? '<p class="small muted acc-hidden" style="margin:8px 0 0;width:100%">' + 'Aquí faltan algunos acentos: esta parte no tiene grabación y tu dispositivo no tiene voz para ellos.' + '</p>' : ''); });
   renderVoiceNotes();
 }
 document.addEventListener('click', e => {
@@ -366,7 +382,7 @@ function sayTutor(text) {
   S.hintLevel = 0; renderHint();
   if ($('#speakAloud').checked && currentView === 'speak' && !window.W2S_HOLD) Voice.speak(text, {rate: paceRate()});
 }
-function startMission(id) {
+function startMission(id) { setTimeout(renderAccents, 0);
   if (MISSIONS[id].ai && !cap.sample) id = 'cafe';
   Voice.stop(); Mic.cancel(); track('practice_start', {mode: 'speak:' + id});
   Object.assign(S, {id, step:0, turns:[], hintLevel:0, hint:null, busy:false, ended:false, sent:0, fixes:0, helps:0});
@@ -680,7 +696,7 @@ const MINE_DEFAULT = "Hi, I'm Ana. I'm from Lima, in Peru. I'm a nurse, and I wo
 const clipText = () => SH.clip === 'mine' ? ((state.script || '').trim() || MINE_DEFAULT) : CLIPS[SH.clip].text;
 const SH = {clip:'intro', mode:'listen', rate:.9, playing:false, reps:0, k:null};
 const MODE_HELP = {listen:'Solo escucha y sigue las palabras.', shadow:'Habla a la vez que la voz, un instante por detrás.', solo:'Te toca. Las palabras se iluminan al ritmo del habla, sin voz.'};
-function renderShadow() {
+function renderShadow() { setTimeout(renderAccents, 0);
   $('#clips').innerHTML = Object.keys(CLIPS).map(id => `<button type="button" class="chip" data-clip="${id}" aria-pressed="${id === SH.clip}">${esc(CLIPS[id].name)}</button>`).join('');
   $$('#speeds button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.rate === SH.rate));
   $$('#modes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === SH.mode));
@@ -929,7 +945,7 @@ function show() {
   const name = document.body.dataset.page || 'home';
   if (name === currentView && !pending) return;
   Voice.stop(); Mic.cancel(); if (SH.playing) shStop(); if (TALK.run) talkStop(false);
-  const changed = name !== currentView; currentView = name;
+  const changed = name !== currentView; currentView = name; setTimeout(renderAccents, 0);
   $$('[data-view]').forEach(v => { v.hidden = v.dataset.view !== name; });
   $$('.tabs a').forEach(a => { if (a.getAttribute('href') === PATHS[name]) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   const p = pending || {}; pending = null;

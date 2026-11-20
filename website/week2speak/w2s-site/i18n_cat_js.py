@@ -12,6 +12,7 @@ CAT = [
     ("Female voice", "Voz de mujer"),
     ("Male voice", "Voz de hombre"),
     ("Choose the voice", "Elige la voz"),
+    ("Some accents are hidden here: this part has no recording, and this device has no voice for them.", "Aquí faltan algunos acentos: esta parte no tiene grabación y tu dispositivo no tiene voz para ellos."),
     ("British", "Británico"),
     ("Australian", "Australiano"),
     ("Speech Mode", "Modo Habla"),

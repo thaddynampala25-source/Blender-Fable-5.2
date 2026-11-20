@@ -116,3 +116,7 @@ Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git
   "Microsoft David" (robotic man) even for May or the female choice. The device fallback now keeps the speaker's
   gender (e.g. Google UK English Female). Buddy greetings recorded in all six Buddy voices (160 credits);
   about 2,050 credits left this month.
+- Accents (deployed, version 3dfa51d6, owner's request): an accent chip shows only when what is on screen can be
+  heard in it: every line recorded in that accent, or a device voice for it of the right gender. Otherwise it is
+  hidden with a short note, and unrecorded lines play in an accent the device has (American, then British). So on
+  Windows, Australian shows for the Day 1-2 scenes and clips and disappears from Day 3+ scenes.
