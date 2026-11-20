@@ -20,8 +20,8 @@
     "TUTOR_EMAILS": "wamulow@gmail.com",
     "TUTOR_WHATSAPP": "447956095685",
     "CAL_LINK": "https://cal.com/meipb/30min",
-    // Stripe Payment Links per price tier (TEST mode; swap for the live links before launch)
-    "PAY_LINKS": "{\"gbp\": \"https://buy.stripe.com/test_00wdR8ekga6bgQ92eSebu00\", \"eur\": \"https://buy.stripe.com/test_5kQ00i8ZW3HN0Rb4n0ebu01\", \"eur_es\": \"https://buy.stripe.com/test_5kQfZg7VSbaf6bv7zcebu02\", \"usd\": \"https://buy.stripe.com/test_cNi7sKfok4LRbvP9Hkebu03\", \"usd_latam\": \"https://buy.stripe.com/test_7sYfZg3FCa6b8jD5r4ebu04\", \"mxn\": \"https://buy.stripe.com/test_7sY28qcc8emr43nf1Eebu05\", \"cop\": \"https://buy.stripe.com/test_9B66oGb84fqv43n6v8ebu06\"}",
+    // Stripe Payment Links per price tier (LIVE mode since 20 Nov 2026; account Week2Speak)
+    "PAY_LINKS": "{\"gbp\": \"https://buy.stripe.com/00waEZ4Efgrm7DS2TzdQQ00\", \"eur\": \"https://buy.stripe.com/3cI5kFb2DejecYc1PvdQQ06\", \"eur_es\": \"https://buy.stripe.com/3cIcN72w7dfa7DS51HdQQ05\", \"usd\": \"https://buy.stripe.com/cNicN77Qrb724rGgKpdQQ04\", \"usd_latam\": \"https://buy.stripe.com/aFacN7b2D0sogao0LrdQQ03\", \"mxn\": \"https://buy.stripe.com/fZu8wR1s3fniaQ4cu9dQQ02\", \"cop\": \"https://buy.stripe.com/8x24gB0nZgrmaQ41PvdQQ01\"}",
     "SHOW_ANCHOR": "0"
   },
   "observability": {"enabled": true}

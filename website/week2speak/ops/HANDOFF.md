@@ -123,3 +123,7 @@ Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git
 - Mac (deployed, version f17423da): macOS lists novelty and Eloquence voices (Eddy, Reed, Rocko, Grandpa, Fred,
   Zarvox, Bad News...) as English voices, some under en-AU. The site now never uses them, so an Australian woman
   falls back to Karen, and accents with no real voice of the right gender are hidden for unrecorded content.
+- Stripe LIVE (deployed, version 4714646f): PAY_LINKS now hold the 7 live Payment Links of account Week2Speak
+  (checked through the Stripe connector: right prices, redirect to /gracias/; live webhook endpoint exists for
+  checkout.session.completed and async_payment_succeeded; charges and payouts enabled). No live purchase yet:
+  the first real purchase (owner buys and refunds) confirms the live webhook secret in Cloudflare.
