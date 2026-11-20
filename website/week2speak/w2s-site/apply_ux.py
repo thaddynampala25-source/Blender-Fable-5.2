@@ -359,6 +359,12 @@ const Voice = (() => {""")
     rep('<div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>',
         '<div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><div class="chips" data-voicegender style="margin-top:10px"></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>')
     rep('  <div class="course"><div class="mods"', '  <div class="chips vg-row" data-voicegender style="margin-bottom:14px"></div>\n  <div class="course"><div class="mods"')
+    # ---------- macOS novelty and Eloquence voices are never used (they sound robotic or silly) ----------
+    rep("voices = synth ? synth.getVoices().filter(v => /^en(-|$)/.test(norm(v))) : [];",
+        "voices = synth ? synth.getVoices().filter(v => /^en(-|$)/.test(norm(v)) && !NOVELTY.test(v.name)) : [];")
+    rep("  const norm = v => String(v.lang || '').replace('_', '-').toLowerCase();",
+        "  const norm = v => String(v.lang || '').replace('_', '-').toLowerCase();\n" +
+        "  const NOVELTY = /^(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|junior|organ|ralph|superstar|trinoids|whisper|wobble|zarvox|fred|kathy|eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley)\\b/i;")
     # ---------- Accents: offer only what can really be heard ----------
     # An accent is offered for what is on screen when every line has a recording in it, or the device has its own
     # voice for it (right gender). Otherwise the chip is hidden and lines play in an accent that works, so an

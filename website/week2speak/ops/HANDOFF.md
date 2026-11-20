@@ -120,3 +120,6 @@ Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git
   heard in it: every line recorded in that accent, or a device voice for it of the right gender. Otherwise it is
   hidden with a short note, and unrecorded lines play in an accent the device has (American, then British). So on
   Windows, Australian shows for the Day 1-2 scenes and clips and disappears from Day 3+ scenes.
+- Mac (deployed, version f17423da): macOS lists novelty and Eloquence voices (Eddy, Reed, Rocko, Grandpa, Fred,
+  Zarvox, Bad News...) as English voices, some under en-AU. The site now never uses them, so an Australian woman
+  falls back to Karen, and accents with no real voice of the right gender are hidden for unrecorded content.

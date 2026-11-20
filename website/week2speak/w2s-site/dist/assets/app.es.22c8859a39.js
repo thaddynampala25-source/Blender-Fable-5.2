@@ -173,7 +173,8 @@ const Voice = (() => {
   const synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
   let voices = [], broken = false, fails = 0, tts = null, token = 0, timers = [];
   const norm = v => String(v.lang || '').replace('_', '-').toLowerCase();
-  function load() { setTimeout(() => { try { renderAccents(); } catch (e) {} }, 0); try { voices = synth ? synth.getVoices().filter(v => /^en(-|$)/.test(norm(v))) : []; } catch (e) { voices = []; } renderVoiceNotes(); }
+  const NOVELTY = /^(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|junior|organ|ralph|superstar|trinoids|whisper|wobble|zarvox|fred|kathy|eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley)\b/i;
+  function load() { setTimeout(() => { try { renderAccents(); } catch (e) {} }, 0); try { voices = synth ? synth.getVoices().filter(v => /^en(-|$)/.test(norm(v)) && !NOVELTY.test(v.name)) : []; } catch (e) { voices = []; } renderVoiceNotes(); }
   if (synth) { load(); try { synth.addEventListener('voiceschanged', load); } catch (e) {} }
   function pick(lang) {
     if (broken) return null;
