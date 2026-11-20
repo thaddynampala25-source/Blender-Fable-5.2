@@ -1,37 +1,43 @@
 # Product
 
-Draft, 20 Nov 2026, written by Claude. **Not approved.** **[E]** = evidence (file or page), **[A]** = assumption.
+Draft, updated 20 Nov 2026 (evening), written by Claude. **Not approved.** Owner signs off.
+**[E]** = evidence (file, live system), **[A]** = assumption to test.
 
-## Free
+## Free practice (live)
 
-| Tool | What it does | Free limit, no account | Free limit, free account |
+| Room | What it does | No account, per day | Free account, per day |
 | --- | --- | --- | --- |
-| Modo Habla (Speech Mode) | Talk to a Buddy in a scene (café, airport, meet someone) | 5 replies a day | 10 a day |
-| Juegos | Word Order, Fill the Gap, Flash Translate, Sound Lab, Quick Answers | 1 round | 3 |
-| Imita (Shadowing) | Listen, speak along, then solo | 2 runs | 5 |
-| Curso | 7 lessons of 12 minutes or less | 1 lesson | 2 |
+| Modo Habla (Speech Mode) | Scripted scenes with a 3D Buddy (May or Kairo): meet someone, café, airport and 4 more | 5 replies | 10 replies |
+| Juegos | Word Order, Fill the Gap, Flash Translate, Sound Lab, Quick Answers | 1 round | 3 rounds |
+| Imita (Shadowing) | Listen, speak along, then solo; 3 speeds | 2 runs | 5 runs |
+| Curso | 7 short lessons | 1 lesson | 2 lessons |
 
-[E: account.js `ANON`, worker/index.js `LIMITS`; anonymous Modo Habla raised from 3 to 5 on 20 Nov, not deployed yet]
+[E: account.js `ANON`, worker/index.js `LIMITS`; anonymous Modo Habla raised to 5 on 20 Nov, live]
 
-## Paid: the 7-Day Sprint
+## Voices (live)
 
-- £49 in the UK; regional prices elsewhere, shown before paying. [E: worker price table, Sprint page]
+- Days 1-2 are recorded in 8 voices the owner chose (American, British, Australian; female, male, May, Kairo).
+  Learners pick Female or Male; Speech Mode uses the Buddy's voice. [E: audio_build.py `VOICES`]
+- Other lines use a device voice of the same gender; an accent the device lacks is hidden there. [E: apply_ux.py]
+
+## Paid: the 7-Day Sprint (live, real payments since 20 Nov)
+
+- Price by country: £49 UK; €49 euro area; €39 Spain and Portugal; US$49 US and default; US$29 Latin America;
+  MX$690 Mexico; COP 119.900 Colombia. [E: worker `TIERS`, live Stripe Payment Links]
 - 5 places in the testing phase. [E: `PLACES_TOTAL`]
-- Includes: daily plan (Day 0 to Day 7), two 25-minute video calls with Mei, WhatsApp with Mei, full access for the
-  week, Day 1 and Day 7 recordings. [E: sprint_paid.py, Join page]
+- Includes a daily plan, two 25-minute calls and WhatsApp with Mei, unlimited practice, Day 1 and Day 7
+  recordings. [E: sprint_paid.py]
+- After paying, the student sees Mei's WhatsApp and her Cal.com booking page (30 minutes). [E: wrangler.jsonc]
 - Refund: full before the first call; after it, within 14 days, the part not yet received. [E: terms]
 
-## Not working yet (blocks every sale)
+## Known gaps
 
-- Stripe links are in test mode; webhook secret, Mei's email, WhatsApp and Cal.com link are not set. [E: wrangler.jsonc]
-
-## Quality bar
-
-- Every fixed Day 1-2 line has a recorded voice; Days 3-7 still use the device voice. [E: audio/manifest.json]
-- Lesson review for Days 1-2 done 20 Nov (ops/lesson_review_day1_day2.md); Days 3-7 not reviewed. [E]
+- The live Stripe webhook secret is confirmed only by the first real sale; if it fails, the payment still arrives
+  and Mei marks the booking paid by hand. [E: worker, Stripe connector check 20 Nov]
+- Days 3-7: not reviewed, not recorded. [E]
+- No count of anonymous visitors who practise (owner decision). [E: audit §8]
 
 ## Assumptions to test
 
 - Two calls are enough for a beginner to feel progress. [A]
 - People finish the free café scene before they think about paying. [A]
-- One week is the right length; some may want a second week. [A]

@@ -4,7 +4,8 @@ Status: **proposed, awaiting the owner's review** (20 Nov 2026). Nothing here ha
 
 The audit, architecture, roles, integrations, content pipeline, routines, metrics, seven-day plan and the first ten
 tasks are in the Claude Docs document "Week2Speak Operating System: Audit and 7-Day Plan":
-https://claude.ai/artifact/Mh2GYDiGHWZyeDDERW66is (read and edit it through the Claude Docs connector).
+https://claude.ai/artifact/Mh2GYDiGHWZyeDDERW66is (read and edit it through the Claude Docs connector). A PDF copy
+(20 Nov 2026) is in this folder: `operating-system-audit-and-7-day-plan.pdf`; sessions that cannot open the doc read that.
 
 Baseline facts at audit time (live D1, read-only aggregate query, 20 Nov 2026): 1 account, 0 enrolments,
 0 waitlist entries, 0 usage rows. Stripe links are in test mode; `STRIPE_WEBHOOK_SECRET`, `TUTOR_EMAILS`,
