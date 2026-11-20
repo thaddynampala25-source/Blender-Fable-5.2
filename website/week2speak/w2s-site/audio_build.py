@@ -66,13 +66,19 @@ def split(take, batch, acc, g, words_json):
         for t in range(size):
             k = owner[a + t]; fi.setdefault(k, hi[b + t]); li[k] = hi[b + t]
     # a line the model misheard (single words like "air") gets the unmatched words between its neighbours
+    gaps = {}
     for k in range(len(items)):
         if k in fi: continue
         lo = max([li[j] for j in range(k) if j in li], default=-1) + 1
         up = min([fi[j] for j in range(k + 1, len(items)) if j in fi], default=len(heard))
-        if lo >= up: sys.exit(f'{take}: nothing heard for {items[k]["text"]!r}')
-        fi[k], li[k] = lo, up - 1
+        if lo < up: fi[k], li[k] = lo, up - 1; continue
+        # the model dropped the word: it is in the gap between the neighbours' heard words
+        a = heard[lo - 1]['e'] if lo > 0 else 0.0
+        b = heard[up]['s'] if up < len(heard) else probe(take)
+        if b - a < 0.3: sys.exit(f'{take}: nothing heard for {items[k]["text"]!r}')
+        gaps[k] = (a + 0.05, b - 0.05)
     first = {k: heard[fi[k]]['s'] for k in fi}; last = {k: heard[li[k]]['e'] for k in li}
+    for k, (a, b) in gaps.items(): first[k], last[k] = a, b
     dur = probe(take)
     for k in range(len(items) - 1):
         if not last[k] <= first[k + 1]: sys.exit(f'{take}: lines {k} and {k + 1} overlap ({items[k]["text"]!r})')
