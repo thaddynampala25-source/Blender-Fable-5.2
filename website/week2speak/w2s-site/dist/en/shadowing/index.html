@@ -29,7 +29,7 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.4821d298d5.css" onerror="if(!this.dataset.retry){this.dataset.retry=1;this.href=this.href.split('?')[0]+'?retry='+Date.now()}">
+<link rel="stylesheet" href="/assets/site.631cb60b76.css" onerror="if(!this.dataset.retry){this.dataset.retry=1;this.href=this.href.split('?')[0]+'?retry='+Date.now()}">
 <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "EducationalOrganization", "@id": "https://week2speak.com/#org", "name": "Week2Speak", "url": "https://week2speak.com/", "logo": "https://week2speak.com/apple-touch-icon.png", "description": "English speaking practice and tutoring for Spanish speakers.", "email": "hello@week2speak.com", "founder": {"@type": "Person", "name": "Mei Gabriela Parrablanco"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://week2speak.com/en/"}, {"@type": "ListItem", "position": 2, "name": "Shadowing", "item": "https://week2speak.com/en/shadowing/"}]}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is shadowing in language learning?", "acceptedAnswer": {"@type": "Answer", "text": "Shadowing means listening to a native speaker and repeating what they say almost at the same time, a beat behind them. It trains the rhythm, linking and stress of English."}}, {"@type": "Question", "name": "Does shadowing improve your pronunciation?", "acceptedAnswer": {"@type": "Answer", "text": "It can help you hear and copy rhythm and linked sounds. Research on shadowing is still small: one study of 24 learners found it improved how well they heard linked sounds, while the gain in their own pronunciation was not statistically significant. Use it as daily practice, not as a guaranteed accent fix."}}, {"@type": "Question", "name": "How long should I shadow each day?", "acceptedAnswer": {"@type": "Answer", "text": "Five minutes is enough. Shadow one clip three times at Steady speed, then once at Natural speed in Solo mode."}}]}]}</script>
 </head>
 <body data-page="shadow" data-lang="en">
@@ -52,9 +52,8 @@
     <div class="stack side">
       <div class="panel"><h2>Clip</h2><div class="chips" id="clips"></div></div>
       <div class="panel" id="minePanel" hidden><h2>My script</h2><p class="small muted" style="margin-bottom:10px">Type the sentences from your lesson, or your 2-minute talk. They stay on this device.</p><textarea class="field" id="mineText" rows="6" maxlength="900" aria-label="My script" placeholder="Hi, I'm Ana. I'm from Lima, in Peru."></textarea><div class="row" style="margin-top:10px"><button class="key primary" id="mineSave" type="button">Save and shadow it</button><span class="small muted" id="mineMsg" role="status"></span></div></div>
-      <div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><div class="chips" data-voicegender style="margin-top:10px"></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>
-      <div class="panel"><h2>Speed</h2><div class="seg" id="speeds" role="group" aria-label="Speed"><button type="button" data-rate="0.75">Slow</button><button type="button" data-rate="0.9">Steady</button><button type="button" data-rate="1">Natural</button></div></div>
     </div>
+    <div class="stack shadow-main">
     <div class="panel stage">
       <div class="stepper" id="modes" role="group" aria-label="Mode">
         <button type="button" data-mode="listen">Listen</button><button type="button" data-mode="shadow">Shadow</button><button type="button" data-mode="solo">Solo</button>
@@ -66,6 +65,11 @@
       </div>
       <p class="heard mic-only" id="shHeard"></p>
       <div id="shResult" role="status"></div>
+    </div>
+    <div class="shadow-opts">
+      <div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><div class="chips" data-voicegender style="margin-top:10px"></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>
+      <div class="panel"><h2>Speed</h2><div class="seg" id="speeds" role="group" aria-label="Speed"><button type="button" data-rate="0.75">Slow</button><button type="button" data-rate="0.9">Steady</button><button type="button" data-rate="1">Natural</button></div></div>
+    </div>
     </div>
   </div>
 </div></section>
@@ -92,7 +96,7 @@
 </div></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <canvas id="fx" aria-hidden="true"></canvas>
-<script src="/assets/config.ec728c2ab5.js" onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
+<script src="/assets/config.0377f1f359.js" onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
 <script src="/assets/vendor/gsap-3.12.5.min.js" defer></script>
 <script src="/assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
 <script src="/assets/app.en.f1a0ea6404.js" defer onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>

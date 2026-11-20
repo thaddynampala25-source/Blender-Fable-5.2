@@ -132,3 +132,17 @@ Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git
   (nameMissions in apply_ux.py). Still to record (ElevenLabs needed re-sign-in): "Hi! I'm Kairo. What's your name?"
   and "Hi Kairo, I'm Ana. Nice to meet you." in us-kairo, gb-m, au-m; the May versions in us-may, gb-f, au-f.
   Until then those two lines use a device voice of the Buddy's gender.
+
+## Update, 21 Nov 2026: final voices, Days 1-3, layout pass (deployed 862619a8)
+
+- Voices (owner's exact picks; ids in `w2s-site/audio_build.py` `VOICES`): US Savvy - Warm, Grounded & Natural (f),
+  Young Jamal (m); UK Charlotte - Sweet, Warm and Modern (f), Marcus - Black British London accent (m); AU Sophia -
+  Young Australian Female (f), Ben (m). May uses the female voice of the accent, Kairo the male one. Scenes say the
+  Buddy's name where scripts say "Sam" (plan() does the same when recording).
+- Recorded: Days 1-3 (151 clips per voice, 906 in all). New ElevenLabs account: about 35,300 of 40,000 credits used;
+  Sophia costs 2.25x per character. Day 4+ next month (about 13,000 credits per day for six voices).
+- Workflow: `audio_build.py plan f 1 2 > b.json`, generate with `[long pause]` between lines, `audio_words.py take.mp3`,
+  `audio_build.py split take.mp3 b.json us f take.mp3.words.json`, `audio_words.py --check us f b.json`, `build`.
+  If the speech-to-text drops a run of single words at the end of a take, transcribe that tail on its own and merge.
+- Layout: Shadowing options under the card; reading columns, game block and Join FAQ centred; Course lesson list
+  sticky; Tutor points in a row; phone game tabs scroll with a faded edge; English course page apostrophes fixed.

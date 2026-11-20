@@ -125,7 +125,6 @@ footer .logo{color:#fff}
 .toys{align-items:stretch}
 #gameBody{align-content:start}
 @media (max-width:600px){
-  #gameTabs{flex-wrap:wrap;overflow:visible}
   .prose table,.prose tbody,.prose tr,.prose td,.prose th{display:block;width:auto}
   .prose thead{display:none}
   .prose tr{padding:12px 0;border-bottom:1px solid var(--line)}
@@ -134,7 +133,9 @@ footer .logo{color:#fff}
 /* Games: buttons sit right under the tiles; the reserved feedback space goes below them */
 #gameBody > .row{order:5}
 #gameBody > .fb{order:6}
-@media (max-width:600px){#gameTabs.seg{flex-wrap:wrap!important;overflow:visible!important}}
+/* phones: one swipeable row of game tabs; the faded edge shows there are more */
+@media (max-width:600px){#gameTabs.seg{-webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);mask-image:linear-gradient(90deg,#000 80%,transparent);scroll-snap-type:x proximity;padding-right:36px}
+  #gameTabs.seg button{scroll-snap-align:start}}
 /* Home: the Word Order toy fills its card height instead of leaving a blank bottom */
 .toys .toy{display:flex;flex-direction:column}
 .toys .toy > .tray{flex:1 1 auto}

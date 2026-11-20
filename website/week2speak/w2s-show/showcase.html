@@ -688,9 +688,8 @@ td.t{white-space:nowrap;color:var(--ink-2)}
     <div class="stack side">
       <div class="panel"><h2>Clip</h2><div class="chips" id="clips"></div></div>
       <div class="panel" id="minePanel" hidden><h2>My script</h2><p class="small muted" style="margin-bottom:10px">Type the sentences from your lesson, or your 2-minute talk. They stay on this device.</p><textarea class="field" id="mineText" rows="6" maxlength="900" aria-label="My script" placeholder="Hi, I'm Ana. I'm from Lima, in Peru."></textarea><div class="row" style="margin-top:10px"><button class="key primary" id="mineSave" type="button">Save and shadow it</button><span class="small muted" id="mineMsg" role="status"></span></div></div>
-      <div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><div class="chips" data-voicegender style="margin-top:10px"></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>
-      <div class="panel"><h2>Speed</h2><div class="seg" id="speeds" role="group" aria-label="Speed"><button type="button" data-rate="0.75">Slow</button><button type="button" data-rate="0.9">Steady</button><button type="button" data-rate="1">Natural</button></div></div>
     </div>
+    <div class="stack shadow-main">
     <div class="panel stage">
       <div class="stepper" id="modes" role="group" aria-label="Mode">
         <button type="button" data-mode="listen">Listen</button><button type="button" data-mode="shadow">Shadow</button><button type="button" data-mode="solo">Solo</button>
@@ -702,6 +701,11 @@ td.t{white-space:nowrap;color:var(--ink-2)}
       </div>
       <p class="heard mic-only" id="shHeard"></p>
       <div id="shResult" role="status"></div>
+    </div>
+    <div class="shadow-opts">
+      <div class="panel"><h2>Accent</h2><div class="chips" data-accents></div><div class="chips" data-voicegender style="margin-top:10px"></div><p class="small muted" data-voicenote style="margin-top:10px"></p></div>
+      <div class="panel"><h2>Speed</h2><div class="seg" id="speeds" role="group" aria-label="Speed"><button type="button" data-rate="0.75">Slow</button><button type="button" data-rate="0.9">Steady</button><button type="button" data-rate="1">Natural</button></div></div>
+    </div>
     </div>
   </div>
 </div></section>

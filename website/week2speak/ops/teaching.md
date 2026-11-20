@@ -10,8 +10,8 @@
 2. **Mistakes come from Spanish, so they are predictable.** Each lesson names one transfer mistake ("I have thirty
    years", "I have hunger") and the fix. [E: sprint_content.py] [A: these are the most frequent; Mei to confirm.]
 3. **Recognise, then build, then say.** Word Order and Fill the Gap → Flash Translate → Quick Answers and the scene. [E]
-4. **One clear model voice.** Days 1-2 are recorded in American, British and Australian English, female and male;
-   the learner keeps the same voice all through. [E: audio/manifest.json, 798 clips]
+4. **One clear model voice.** Days 1-3 are recorded in American, British and Australian English, female and male;
+   the learner keeps the same voice all through. [E: audio/manifest.json, 906 clips]
 5. **Honest accents.** If a line has no recording and the learner's device has no voice for an accent, the site does
    not offer that accent rather than fake it with another one. [E: deployed 20 Nov]
 6. **Hints step down.** Starter → word bank → full model sentence, so a learner is never stuck. [E]
@@ -33,8 +33,8 @@
 
 ## For Mei to check
 
-- Listen to six recorded clips a machine could not confirm: Marcus "eat", "estate"; Young Jamal "at", "eat",
-  "estate", "esquire". Young Jamal says "Is there anything to eat?" for "Anything to eat?". [E: clip check, 20 Nov]
+- Listen to the single Sound Lab words in each voice first (estrange, espy, esquire, air): a machine cannot confirm
+  single words reliably. [E: clip check, 21 Nov]
 - The three open questions in `lesson_review_day1_day2.md`, above all pounds or dollars: the American voices say
   "four pounds" in the café.
 - Days 3-7 with the same checklist as Days 1-2.

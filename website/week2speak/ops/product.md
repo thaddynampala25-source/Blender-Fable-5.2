@@ -16,8 +16,8 @@
 
 ## Voices (live)
 
-- Days 1-2 are recorded in 8 voices the owner chose (American, British, Australian; female, male, May, Kairo).
-  Learners pick Female or Male; Speech Mode uses the Buddy's voice. [E: audio_build.py `VOICES`]
+- Days 1-3 are recorded in 6 voices the owner chose: female and male for American, British and Australian.
+  Learners pick Female or Male; in Speech Mode May speaks with the female voice, Kairo with the male. [E: `VOICES`]
 - Other lines use a device voice of the same gender; an accent the device lacks is hidden there. [E: apply_ux.py]
 
 ## Paid: the 7-Day Sprint (live, real payments since 20 Nov)
@@ -34,7 +34,7 @@
 
 - The live Stripe webhook secret is confirmed only by the first real sale; if it fails, the payment still arrives
   and Mei marks the booking paid by hand. [E: worker, Stripe connector check 20 Nov]
-- Days 3-7: not reviewed, not recorded. [E]
+- Days 4-7: not recorded; Days 3-7 not reviewed. [E]
 - No count of anonymous visitors who practise (owner decision). [E: audit §8]
 
 ## Assumptions to test

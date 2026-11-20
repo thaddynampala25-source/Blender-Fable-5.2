@@ -29,8 +29,9 @@
 
 - Two Language Buddies guide practice: **May** (warm and playful) and **Kairo** (laid-back and confident). Ruby and
   Max are retired. Mei is the real person; a Buddy is never presented as a human. [E: buddy_roster.py]
-- Recorded voices chosen by the owner, one set per accent: American (Brittney, Joe; Genevieve for May, Young Jamal
-  for Kairo), British (Charlotte, Marcus Black), Australian (Jane, Paul). [E: audio_build.py `VOICES`]
+- Recorded voices chosen by the owner (21 Nov), one female and one male per accent; May uses the female voice and
+  Kairo the male one: American Savvy and Young Jamal, British Charlotte (Sweet, Warm and Modern) and Marcus Black,
+  Australian Sophia and Ben. [E: audio_build.py `VOICES`]
 - The site never fakes an accent: if a line has no recording and the device has no voice for an accent, that
   accent is not offered. [E: deployed 20 Nov]
 - Privacy is part of the brand: no trackers, no requests to other domains. [E: privacy notice]
@@ -43,4 +44,3 @@
 ## Open questions
 
 - Is Mei comfortable being on camera for every video, or only some?
-- "Joe - Confident Idiot" is the American male voice: is that tone right for a teaching product? [A: owner's choice; review after Mei listens]
