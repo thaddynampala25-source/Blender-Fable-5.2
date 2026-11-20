@@ -42,7 +42,7 @@ const tapInOrder = async (pg, sentence, scope) => {
     await cta.click(); await pg.waitForTimeout(900);
     const top = await pg.evaluate(() => document.getElementById('try').getBoundingClientRect().top);
     ok('home: action scrolls to the sample', Math.abs(top) < 120, 'top=' + Math.round(top));
-    const GS = ["Hi, I'm Ana.", "I'm from Colombia.", "I'm thirty years old.", 'Nice to meet you.'];
+    const GS = ["Hi, I'm Ana.", "I'm from Lima, in Peru.", "I'm thirty years old.", 'Nice to meet you.'];
     for (let i = 0; i < GS.length; i++) {
       await tapInOrder(pg, GS[i], '#try');
       await pg.waitForTimeout(300);

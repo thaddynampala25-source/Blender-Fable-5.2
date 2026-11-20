@@ -56,7 +56,7 @@ Note for patches: in the built site `$()` never returns null (see `nulljs.txt`),
    (Escucha → Ahora imita → Ahora prueba Solo → Siguiente clip).
 7. Voice: recorded-clip layer in `Voice.speak` (manifest `window.W2S_AUDIO`, key `accent|gender|text` or
    `accent|text`, word timings drive highlighting and `w2s:word`, pitch-preserving rate, falls back to the device voice
-   on error or blocked autoplay). `Voice.preload(text)`, `Voice.hasClip`, `Voice.kind`. No manifest ships yet.
+   on error or blocked autoplay). `Voice.preload(text)`, `Voice.hasClip`, `Voice.kind`. Since 20 Nov a manifest ships for Days 1-2 (`w2s-site/audio/`, `audio_build.py`).
 8. `track(name, props)`: events `practice_start`, `audio_start`, `audio_fail`, `mic_start`, `mic_fail`, `mic_empty`,
    `attempt` (input typed/mic/tap), `feedback` (right/retry/shown), `next`, `round_complete`; daily counts in
    localStorage `w2s.metrics` (14 days), first-time ms in `window.W2S_FIRST`, every event as `w2s:metric`.
@@ -89,6 +89,6 @@ server's `/api/me` 404s (no Worker on port 8765; same before this work). Header 
 
 ## Owner decisions needed
 
-- Free limit vs café scene length (3 replies vs 5 needed).
+- Free limit vs café scene length: decided 20 Nov, anonymous limit is now 5 replies (account.js `ANON`).
 - Voice provider and budget for the fixed library; approval before any paid generation.
 - Whether to send anonymous aggregate events to the site's own Worker (would need a privacy-notice change).

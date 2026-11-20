@@ -324,7 +324,7 @@ Music: upbeat, confident.
 Content (TikTok/Reels/Shorts/FB/WhatsApp)
   → link in bio → week2speak.com (Spanish at /)
   → free tools: Speech Mode, games, shadowing
-      anonymous: 3 replies / 1 game / 2 shadowing a day → signup prompt within about a minute
+      anonymous: 5 replies / 1 game / 2 shadowing a day → signup prompt within about a minute
   → free account (10 / 3 / 5 a day, «¿Cómo nos encontraste?» field)
   → /unete/ (regional price, real places left, start Monday)
   → Stripe Payment Link → /gracias/ (book call on Cal.com, say hi on WhatsApp, add to calendar)
