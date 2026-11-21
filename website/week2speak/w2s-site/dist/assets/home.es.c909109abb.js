@@ -178,7 +178,7 @@ function showFilm(id) {
   ctl().pause(); F.active = id;
   $$('.film').forEach(f => { f.hidden = f.dataset.film !== id; });
   $$('#ftabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.film === id));
-  fCap.textContent = CAPS[id]; const tr = {speak: ['/modo-habla/', 'Prueba el Modo Habla'], order: ['/juegos/', 'Juega a Ordena la frase'], shadow: ['/shadowing/', 'Abre Imita'], rec: ['/sprint-7-dias/', 'Empieza el Sprint de 7 días']}[id]; $('#fTry').setAttribute('href', tr[0]); $('#fTry').textContent = tr[1];
+  fCap.textContent = CAPS[id]; const tr = {speak: ['/modo-habla/', 'Prueba el Modo Habla'], order: ['/juegos/', 'Juega a Ordena la frase'], shadow: ['/shadowing/', 'Abre Imita'], rec: ['/sprint-7-dias/', 'Ver el Sprint']}[id]; $('#fTry').setAttribute('href', tr[0]); $('#fTry').textContent = tr[1];
   if (gs && BUILD[id]) { if (F.tls[id]) F.tls[id].kill(); F.tls[id] = BUILD[id](); F.tls[id].time(F.tls[id].duration() - .05); F.fresh = true; }
   if (id === 'rec') vid.currentTime = 0;
   $('#fctl').hidden = id !== 'rec' && !gs;

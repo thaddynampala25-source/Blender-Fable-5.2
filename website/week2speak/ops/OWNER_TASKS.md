@@ -24,8 +24,14 @@ site by themselves as soon as their recordings are in `w2s-site/audio/` (no code
 - **Before a paid student reaches Day 4**, these must be recorded: the paid Sprint still opens them from the daily
   plan, where they would use the computer's voice.
 - How to record: `ops/HANDOFF.md`, "Update, 21 Nov 2026: final voices" (plan, generate, words, split, check, build).
+- **Reminder (owner, 21 Nov):** the owner wants to record Days 4-7 with **VoiceStudio** (https://github.com/debpalash/voicestudio,
+  already downloaded) instead of ElevenLabs, but is not yet sure how to import the six voices into it. Remind the owner,
+  and help with the import when asked. The clips still go through `audio_words.py` / `audio_build.py split` and `build`.
 
 ## 2. Mei
+
+- **Reminder (owner, 21 Nov): tutor page bio.** 3-4 lines about Mei (background, experience), no photo. Needs the facts
+  from the owner or Mei; Claude writes it in both languages once they arrive.
 
 - Listen to the single Sound Lab words in each voice, above all Sophia and Ben (heat, hand, old, hat, estrange, espy,
   esquire, air): a machine cannot confirm single words in a strong accent.
@@ -40,34 +46,33 @@ site by themselves as soon as their recordings are in `w2s-site/audio/` (no code
   secret; if it failed, the payment still arrived and the booking can be marked paid by hand).
 - **Read-only Stripe key** (optional): puts revenue and failed payments into `ops/weekly_metrics.py`. Goes in the
   environment settings, never in chat.
-- **Anonymous practice counts** (metric 3, "visitors who practise"): needs a privacy-notice change; owner decides.
-- **Social accounts** (TikTok, Instagram) for the first posts; Mei sets them up. Then Claude drafts three posts (T9).
+- **Anonymous practice counts** (metric 3): owner said yes (21 Nov). Built and deployed **switched off**
+  (`COUNT_PRACTICE: "0"` in `wrangler.jsonc`). To switch on, the owner approves this privacy-notice line, then Claude
+  adds it, sets `"1"` and deploys:
+  - ES: «Contamos, de forma anónima, cuántos navegadores practican cada día (Modo Habla, juegos, Imita, curso). Solo se guarda
+    un número por día; no guardamos quién eres, tu IP ni ningún identificador. Tu navegador recuerda en tu dispositivo que ya
+    contó hoy.»
+  - EN: "We count, anonymously, how many browsers practise each day (Speech Mode, games, Shadowing, course). Only one number
+    per day is kept; we do not store who you are, your IP or any identifier. Your browser remembers on your device that it
+    has already been counted today."
+- **Social accounts** (TikTok, Instagram): wanted, but **later**: the owner is still optimising the site and service
+  (21 Nov). Mei sets them up; then Claude drafts three posts (T9). Remind the owner when the site work settles.
 - **Notion "Week2Speak HQ"** (T5): Claude creates it only after the owner OKs pages in the personal workspace.
 - **Monday review** (45 minutes) once posts are out; **five Week2Speak lines in the morning brief** if wanted.
 
-## 4. Usability proposals from the 21 Nov review (owner decides; Claude can build any of them)
+## 4. Usability proposals still open (owner decides; Claude can build any of them)
 
-- **Free-limit dead end in Speech Mode**: 5 free replies = one scene; after that the buttons are disabled with only a
-  small counter. Proposal: a clear card ("You've used your 5 free replies today. Create a free account to keep going
-  tomorrow") and make "How did you find us?" visibly optional.
-- **Booking buttons**: six different labels ("Start your Sprint", "See places and price", "I want my place", "Book my
-  place"...). Proposal: two only, "See the Sprint" (information) and "Book my place" (booking).
-- **"Start Day 1" on home** goes to the Sprint sales page, where Day 1 shows a padlock. Proposal: send it to lesson 1
-  (free) and show Day 1 unlocked.
-- **Home pricing block**: the free-account card has no "Create free account" button and the Sprint card shows no price.
-- **Join checkbox** reads like legal text. Proposal: "I understand my Sprint starts on the Monday I choose. I can cancel
-  for free before the first call; after that I pay only for what I used."
-- **Tutor page** has no bio: 3-4 lines about Mei (background, experience), no photo.
 - **Speech Mode on desktop** stacks the correction, hint and Buddy line over the Buddy's face, and shows all settings
   at once. Proposal: one message at a time; settings folded under "Settings".
-- **Names** of scenes, clips and buttons differ between pages ("Café order" / "Ordering coffee"; "Abrir" / "Abre").
-- **Open questions from the bug test** (not changed): the thank-you page greets anyone who opens it, even without a
-  booking; Speech Mode scenes accept any reply of two words or more; Speech Mode forgets "read lines aloud" and the
-  last scene after a reload; the Join page still says "Book my place" while a booking waits for payment.
-- **Home headline** "Speak English in 7 days" vs the FAQ "you will not be fluent in 7 days": the Join headline "Your
-  first conversation in English, in 7 days" is more honest.
+- **Open questions from the bug test** (not changed): Speech Mode scenes accept any reply of two words or more; Speech
+  Mode forgets "read lines aloud" and the last scene after a reload; the Join page still says "Book my place" while a
+  booking waits for payment.
 
 ## Done
 
 - 21 Nov 2026: six voices chosen and recorded for Days 1-3; drafts in `ops/` approved; Stripe live; Mei's tutor
   account, WhatsApp and Cal.com link set; Cloudflare analytics permission added.
+- 21 Nov 2026 (owner approved, built and deployed): headline "Tu primera conversación en inglés, en 7 días"; two booking
+  labels only ("Ver el Sprint" / "Reservar mi plaza"); home "Empieza el Día 1" opens free lesson 1; Join checkbox in plain
+  words; home pricing shows the Sprint price and a "Crear cuenta gratis" button; one name per scene and button; Speech
+  Mode limit card and "(opcional)" on "¿Cómo nos encontraste?"; thank-you page says "Aún no tienes plaza" without a booking.

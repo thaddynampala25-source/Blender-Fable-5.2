@@ -172,7 +172,7 @@ def head(name, title, desc, path, noindex=False, lang='es', alt=None):
 <meta property="og:image" content="{SITE}/media/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Week2Speak: Speak English in 7 days">
+<meta property="og:image:alt" content="Week2Speak: your first conversation in English, in 7 days">
 <meta property="og:locale" content="{loc}">
 <meta property="og:locale:alternate" content="{loc2}">
 <meta name="twitter:card" content="summary_large_image">

@@ -453,7 +453,7 @@ CAT = [
     ("Try Speech Mode", "Prueba el Modo Habla"),
     ("Play Word Order", "Juega a Ordena la frase"),
     ("Open the shadowing studio", "Abre Imita"),
-    ("Start the 7-Day Sprint", "Empieza el Sprint de 7 días"),
+    ("Start the 7-Day Sprint", "Ver el Sprint", "See the Sprint"),
     ('<div class="fixc"><b>Waiting for a sentence</b><span>Type one above, or tap an example.</span></div>',
      '<div class="fixc"><b>Esperando una frase</b><span>Escribe una arriba o toca un ejemplo.</span></div>'),
     ('<div class="clean">Nothing caught. That sentence has none of the usual Spanish-speaker mistakes.</div>',

@@ -151,3 +151,12 @@ footer .logo{color:#fff}
 .fx-hero-card .fx-brief{box-shadow:none;max-width:none}
 /* phones: practice links in lessons and the Sprint are full tap targets */
 @media (max-width:600px){.tasks a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 12px}}
+/* home pricing: a button at the foot of each card */
+.plan > .key{justify-self:start;margin-top:6px}
+.plan > .small{margin:0}
+/* Speech Mode: what to do at the free limit */
+.fx-limit{display:grid;gap:6px;justify-items:start;padding:14px 16px;border-radius:16px;background:var(--white,#fff);box-shadow:var(--shadow);margin:0 0 6px}
+.fx-limit p{margin:0;color:var(--ink-2)}
+/* smaller home headline: it is longer now */
+.hero h1{font-size:clamp(2.5rem,7.2vw,5.6rem)}
+.fx-ty-book{margin-top:18px}

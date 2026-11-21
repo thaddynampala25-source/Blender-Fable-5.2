@@ -94,7 +94,7 @@ def join(lang):
       <p class="fx-perday" id="pDay"></p>
       <p class="fx-launch">{t('Precio de lanzamiento de la fase de prueba.', 'Launch price for the testing phase.')}</p>
       <fieldset class="fx-start" id="startPick"><legend>{t('¿Qué lunes empiezas?', 'Which Monday do you start?')}</legend><div class="fx-starts" id="starts"></div></fieldset>
-      <label class="fx-consent"><input type="checkbox" id="buyConsent"><span>{t('Quiero que mi Sprint empiece en la fecha que elijo, dentro de los 14 días de cancelación. Si cancelo después de la primera llamada, pago la parte ya recibida.', 'I want my Sprint to start on the date I choose, within the 14-day cancellation period. If I cancel after the first call, I pay for the part already received.')} <a href="{A['terms']}">{t('Términos', 'Terms')}</a></span></label>
+      <label class="fx-consent"><input type="checkbox" id="buyConsent"><span>{t('Quiero empezar mi Sprint el lunes que elija, dentro de los 14 días que tengo para cancelar. Puedo cancelar gratis antes de la primera llamada; después, pago solo lo que ya usé.', 'I want my Sprint to start on the Monday I choose, within the 14 days I have to cancel. I can cancel for free before the first call; after that, I pay only for what I have used.')} <a href="{A['terms']}">{t('Términos', 'Terms')}</a></span></label>
       <button class="key hl big fx-cta" id="buyBtn" type="button">{t('Reservar mi plaza', 'Book my place')}</button>
       <p class="fx-safe">{ic('lock')}<span>{t('Pago seguro con Stripe. Reembolso completo si cancelas antes de tu primera llamada.', 'Secure payment with Stripe. Full refund if you cancel before your first call.')}</span></p>
       <p class="fx-msg" id="buyMsg" role="status"></p>
@@ -124,7 +124,7 @@ def sprint(lang, legacy):
     <div class="fx-hero">
       <div><h1 class="fx-h1">{t('Siete días para decir tus primeras frases en inglés.', 'Seven days to say your first sentences in English.')}</h1>
       <p class="fx-lead">{t('Un plan cerrado, veinte minutos al día y Mei a tu lado. Sin teoría eterna: cada día dices algo nuevo en voz alta.', 'A set plan, twenty minutes a day and Mei by your side. No endless theory: every day you say something new out loud.')}</p>
-      <div class="row"><a class="key hl big" href="{A['join']}">{t('Ver plazas y precio', 'See places and price')}</a><a class="key big" href="{A['tutor']}">{t('Conoce a Mei', 'Meet Mei')}</a></div></div>
+      <div class="row"><a class="key hl big" href="{A['join']}">{t('Reservar mi plaza', 'Book my place')}</a><a class="key big" href="{A['tutor']}">{t('Conoce a Mei', 'Meet Mei')}</a></div></div>
       <section class="fx-hero-card fx-taste" aria-labelledby="tasteH"><h2 id="tasteH">{t('Así empieza el Día 1', 'This is how Day 1 starts')}</h2>
         <blockquote class="fx-brief"><p>{d1['brief'][0 if lang == 'es' else 1]}</p></blockquote>
         <div class="fx-phr">{''.join(f'<div><b lang="en">{p[0]}</b><span>{p[1]}</span></div>' for p in SC.S[0][:4])}</div>
@@ -132,7 +132,7 @@ def sprint(lang, legacy):
       </section>
     </div>
     <section class="fx-week" aria-labelledby="weekH2"><h2 id="weekH2">{t('La semana', 'The week')}</h2><ol>{days}</ol>
-      <a class="key hl big" href="{A['join']}">{t('Quiero mi plaza', 'I want my place')}</a></section>
+      <a class="key hl big" href="{A['join']}">{t('Reservar mi plaza', 'Book my place')}</a></section>
   </div>
   <div id="sprintApp" hidden>
     <header class="fx-me">

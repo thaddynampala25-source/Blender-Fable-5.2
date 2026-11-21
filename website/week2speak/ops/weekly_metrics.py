@@ -16,7 +16,7 @@ Metrics: the eight in section 8 of "Week2Speak Operating System: Audit and 7-Day
 the 7 days to --end and the 7 days before:
   1 Link clicks            clicks on the link in bio, per platform: copied by hand from each platform (--clicks)
   2 Site visitors          daily unique visitors and page views (Cloudflare, server-side; includes bots)
-  3 Visitors who practise  not measured: needs the owner's decision on anonymous first-party counts
+  3 Visitors who practise  browsers that practised, per day (anonymous first-party counts; on once COUNT_PRACTICE is "1")
   4 New free accounts      student accounts created, split by "how did you find us"
   5 Activated accounts     new accounts with a game round, scene reply or Imita clip on their sign-up day or the next
                            (usage is stored per day, so "within 24 hours" is read as "same or next day")
@@ -99,7 +99,10 @@ def window(start, end, clicks=None):
     da, db = start.date().isoformat(), end.date().isoformat()
     m['1 Link clicks'] = clicks if clicks else 'enter by hand from each platform (--clicks "TikTok=12,Instagram=5")'
     get('2 Site visitors', lambda: visits(start, end))
-    m['3 Visitors who practise'] = 'not measured (owner decision: anonymous first-party counts need a privacy-notice change)'
+    def practise():
+        rows = d1(f"SELECT kind, SUM(n) AS n FROM practice_daily WHERE day >= '{da}' AND day < '{db}' GROUP BY kind")
+        return {r['kind']: r['n'] for r in rows} or 'none counted (COUNT_PRACTICE off, or no practice yet)'
+    get('3 Visitors who practise', practise)
     get('4 New free accounts', lambda: {(r['source'] or 'not given'): r['n'] for r in d1(
         f"SELECT source, COUNT(*) AS n FROM users WHERE role = 'student' AND created_at >= {a} AND created_at < {b} GROUP BY source")})
     get('5 Activated accounts', lambda: one(

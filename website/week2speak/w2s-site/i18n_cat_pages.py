@@ -3,10 +3,8 @@ Each row: (source English, Spanish[, English rewritten to follow the Spanish]).
 The English that learners practise (example sentences, right/wrong pairs, dialogue, phrase lists) is left out on purpose,
 so it stays English on both sides."""
 
-_HERO_SRC = ('<h1 id="heroLine" aria-label="Speak English in 7 days."><span class="w" aria-hidden="true">Speak</span> <span class="w" aria-hidden="true">English</span>'
-             '<br><span class="w" aria-hidden="true">in</span> <span class="w" aria-hidden="true">7</span> <span class="w" aria-hidden="true">days.</span></h1>')
-_HERO_ES = ('<h1 id="heroLine" aria-label="Habla inglés en 7 días."><span class="w" aria-hidden="true">Habla</span> <span class="w" aria-hidden="true">inglés</span>'
-            '<br><span class="w" aria-hidden="true">en</span> <span class="w" aria-hidden="true">7</span> <span class="w" aria-hidden="true">días.</span></h1>')
+_HERO_SRC = '<h1 id="heroLine" aria-label="Your first conversation in English, in 7 days."><span class="w" aria-hidden="true">Your</span> <span class="w" aria-hidden="true">first</span> <span class="w" aria-hidden="true">conversation</span><br><span class="w" aria-hidden="true">in</span> <span class="w" aria-hidden="true">English,</span> <span class="w" aria-hidden="true">in</span> <span class="w" aria-hidden="true">7</span> <span class="w" aria-hidden="true">days.</span></h1>'
+_HERO_ES = '<h1 id="heroLine" aria-label="Tu primera conversación en inglés, en 7 días."><span class="w" aria-hidden="true">Tu</span> <span class="w" aria-hidden="true">primera</span> <span class="w" aria-hidden="true">conversación</span><br><span class="w" aria-hidden="true">en</span> <span class="w" aria-hidden="true">inglés,</span> <span class="w" aria-hidden="true">en</span> <span class="w" aria-hidden="true">7</span> <span class="w" aria-hidden="true">días.</span></h1>'
 
 # the home page offer: one paid Sprint, plus the free account (replaces the old founding-cohort grid)
 _PLANS_SRC = '''<h2 data-split>Be one of the first ten.</h2>
@@ -19,14 +17,14 @@ _PLANS_SRC = '''<h2 data-split>Be one of the first ten.</h2>
 _PLANS_ES = '''<h2 data-split>Solo cinco plazas.</h2>
   <p class="sub">Estamos en fase de prueba, así que el Sprint es para cinco personas. Siete días, Mei a tu lado y tu antes y después grabado.</p>
   <div class="pgrid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
-    <div class="plan first"><h3>Sprint de 7 días</h3><p class="price">Pago único</p><ul><li>Dos llamadas 1 a 1 de 25 minutos con Mei</li><li>WhatsApp directo con Mei toda la semana</li><li>Todo Week2Speak, sin límites</li><li>El Sprint día a día y tu antes y después</li><li>Biblioteca de recursos</li></ul></div>
-    <div class="plan"><h3>Cuenta gratis</h3><p class="price">Gratis</p><ul><li>Modo Habla, juegos e Imita, con un límite diario</li><li>Las lecciones 1 y 2 del curso</li><li>Sin cuenta, solo una prueba corta</li></ul></div>
+    <div class="plan first"><h3>Sprint de 7 días</h3><p class="price"><span data-sprint-price>Pago único</span></p><ul><li>Dos llamadas 1 a 1 de 25 minutos con Mei</li><li>WhatsApp directo con Mei toda la semana</li><li>Todo Week2Speak, sin límites</li><li>El Sprint día a día y tu antes y después</li><li>Biblioteca de recursos</li></ul><a class="key hl" href="/unete/">Reservar mi plaza</a></div>
+    <div class="plan"><h3>Cuenta gratis</h3><p class="price">Gratis</p><ul><li>Modo Habla, juegos e Imita, con un límite diario</li><li>La lección 1 del curso, y la 2 con tu cuenta</li></ul><a class="key" href="/cuenta/">Crear cuenta gratis</a><p class="small muted">Sin cuenta también puedes probar un poco cada día.</p></div>
   </div>'''
 _PLANS_EN = '''<h2 data-split>Only five places.</h2>
   <p class="sub">We are in testing, so the Sprint is for five people. Seven days, Mei by your side and your before and after on record.</p>
   <div class="pgrid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
-    <div class="plan first"><h3>7-Day Sprint</h3><p class="price">One payment</p><ul><li>Two 25-minute 1-to-1 calls with Mei</li><li>WhatsApp straight to Mei all week</li><li>All of Week2Speak, no limits</li><li>The Sprint day by day, and your before and after</li><li>A resource library</li></ul></div>
-    <div class="plan"><h3>Free account</h3><p class="price">Free</p><ul><li>Speech Mode, games and shadowing, with a daily limit</li><li>Lessons 1 and 2 of the course</li><li>Without an account, just a short taste</li></ul></div>
+    <div class="plan first"><h3>7-Day Sprint</h3><p class="price"><span data-sprint-price>One payment</span></p><ul><li>Two 25-minute 1-to-1 calls with Mei</li><li>WhatsApp straight to Mei all week</li><li>All of Week2Speak, no limits</li><li>The Sprint day by day, and your before and after</li><li>A resource library</li></ul><a class="key hl" href="/en/join/">Book my place</a></div>
+    <div class="plan"><h3>Free account</h3><p class="price">Free</p><ul><li>Speech Mode, games and shadowing, with a daily limit</li><li>Lesson 1 of the course, and lesson 2 with your account</li></ul><a class="key" href="/en/account/">Create free account</a><p class="small muted">Without an account you can still try a little every day.</p></div>
   </div>'''
 
 # the footer gets the terms page next to privacy (the build does not map /terms/, so each language has its own path)
@@ -124,7 +122,7 @@ CAT = [
     ('Tutor view', 'Tutora', 'Tutor'),
     ('Day streak', 'Racha de días'),
     ('Experience points', 'Puntos de experiencia'),
-    ('Join free', 'Empieza tu Sprint', 'Start your Sprint'),
+    ('Join free', 'Reservar mi plaza', 'Book my place'),
     ('English speaking practice for Spanish speakers. In testing, in English; a Spanish version comes next.',
      'Práctica para hablar inglés, hecha para hispanohablantes. En fase de prueba.',
      'Speaking practice for Spanish speakers learning English. In testing.'),
@@ -133,7 +131,7 @@ CAT = [
     ('Learn', 'Aprende'),
     ('Common mistakes', 'Errores comunes'),
     ('How we teach', 'Cómo enseñamos'),
-    ('Join the founding cohort', 'Reserva tu plaza', 'Book your place'),
+    ('Join the founding cohort', 'Reservar mi plaza', 'Book my place'),
     ('Privacy', 'Privacidad'),
 
     # ---------- shared JSON-LD ----------
@@ -148,7 +146,7 @@ CAT = [
 
     # ---------- home: SEO ----------
     ('Week2Speak: Speak English in 7 Days for Spanish Speakers', 'Aprende a hablar inglés en 7 días | Week2Speak', 'Learn to speak English in 7 days | Week2Speak'),
-    ('Week2Speak: Speak English in 7 days', 'Week2Speak: habla inglés en 7 días'),
+    ('Week2Speak: your first conversation in English, in 7 days', 'Week2Speak: tu primera conversación en inglés, en 7 días'),
     ('Say real English sentences from day one. A 7-day Sprint with a Spanish-speaking tutor, plus speaking practice, shadowing and games for Spanish speakers.',
      'Di tus primeras frases en inglés desde el primer día. Un Sprint de 7 días con una tutora que habla español, práctica oral, juegos e Imita.',
      'Say your first English sentences from the first day. A 7-day Sprint with a tutor who speaks Spanish, speaking practice, games and shadowing.'),
@@ -157,7 +155,7 @@ CAT = [
     ('Real sentences, out loud, from day one. Built for Spanish speakers by a tutor who knows where Spanish trips you up.',
      'Frases reales, en voz alta, desde el primer día. Hecho para hispanohablantes por una tutora que sabe en qué te tropiezas al pasar del español al inglés.',
      'Real sentences, out loud, from the first day. Made for Spanish speakers by a tutor who knows where you trip up going from Spanish to English.'),
-    ('Start the 7-Day Sprint', 'Empieza el Sprint de 7 días'),
+    ('Start the 7-Day Sprint', 'Ver el Sprint', 'See the Sprint'),
     ('Watch a session', 'Mira una sesión'),
     ('Mistakes Spanish speakers make, and the fix', 'Errores típicos de hispanohablantes, y cómo se dice bien', 'Typical Spanish-speaker mistakes, and how to say it right'),
 
@@ -185,8 +183,8 @@ CAT = [
     ('Films', 'Vídeos'),
     ('Word Order', 'Ordena la frase'),
     ('Screen recording', 'Grabación de pantalla'),
-    ('Try Speech Mode', 'Prueba Modo Habla'),
-    ('Café order', 'Pedir en un café'),
+    ('Try Speech Mode', 'Prueba el Modo Habla'),
+    ('Café order', 'Pedir en una cafetería'),
     ('"For" + verb', '"For" + verbo'),
     ('Use "to" for a purpose: a coffee to drink.', 'Para decir "para" + verbo, usa "to": a coffee to drink.', 'To say what something is for, use "to": a coffee to drink.'),
     ('Help me: start like this', 'Ayúdame: empieza así'),
@@ -218,9 +216,9 @@ CAT = [
     ('Tap the words in order to build the sentence. Tap a word in the sentence to take it back.', 'Toca las palabras en orden para formar la frase. Toca una palabra de la frase para quitarla.'),
     ('Your sentence', 'Tu frase'),
     ('Words', 'Palabras'),
-    ('Open Speech Mode', 'Abrir Modo Habla'),
-    ('Play all five games', 'Jugar a los cinco juegos'),
-    ('Open the shadowing studio', 'Abrir Imita'),
+    ('Open Speech Mode', 'Abre el Modo Habla'),
+    ('Play all five games', 'Prueba los juegos', 'Try the games'),
+    ('Open the shadowing studio', 'Abre Imita'),
     ('See the course', 'Ver el curso'),
 
     # ---------- the seven days (home week cards, course, paid Sprint data) ----------
@@ -255,8 +253,8 @@ CAT = [
     ('Shadow "Keep talking"', 'Imita: "Sigue hablando"', 'Imita: "Keep talking"'),
     ('Shadow your own talk', 'Imita tu propia charla', 'Shadowing of your own talk'),
     ('Word Order and Speech Mode: Meet someone new', 'Ordena la frase y Modo Habla: Conocer a alguien'),
-    ('Fill the Gap and Speech Mode: Café order', 'Completa la frase y Modo Habla: Pedir en un café'),
-    ('Flash Translate and Speech Mode: Airport check-in', 'Traducción flash y Modo Habla: Facturar en el aeropuerto'),
+    ('Fill the Gap and Speech Mode: Café order', 'Completa la frase y Modo Habla: Pedir en una cafetería'),
+    ('Flash Translate and Speech Mode: Airport check-in', 'Traducción flash y Modo Habla: Check-in en el aeropuerto'),
     ('Word Order and Speech Mode: Chat about yesterday', 'Ordena la frase y Modo Habla: Charla sobre ayer'),
     ('Fill the Gap and Speech Mode: Coffee chat: opinions', 'Completa la frase y Modo Habla: Café y opiniones'),
     ('Flash Translate and Speech Mode: Meet someone new, without Help me', 'Traducción flash y Modo Habla: Conocer a alguien, sin Ayúdame'),
@@ -276,7 +274,7 @@ CAT = [
     ('Questions people ask', 'Preguntas frecuentes', 'Frequently asked questions'),
     ('How Week2Speak teaches', 'Cómo enseñamos en Week2Speak'),
     ('16 English mistakes Spanish speakers make', '16 errores de inglés que cometen los hispanohablantes'),
-    ('Ask for a founding place', 'Ver plazas y precio', 'See places and price'),
+    ('Ask for a founding place', 'Reservar mi plaza', 'Book my place'),
 
     # ---------- home FAQ (HTML and JSON-LD) ----------
     ('What is Week2Speak?', '¿Qué es Week2Speak?'),
@@ -351,7 +349,7 @@ CAT = [
      'Kairo and May are two 3D characters who say the lines of the conversation, with a mouth that moves as they speak. Their line shows below them, with each word lit up as it is said. Switch from one to the other with a button, drag to spin them, and tap them to see them react.'),
     ('Pick a scene:', 'Elige una escena:'),
     ('Meet someone new, Café order or Airport check-in. More scenes are on the way.',
-     'Conocer a alguien, Pedir en un café o Facturar en el aeropuerto. Pronto habrá más escenas.'),
+     'Conocer a alguien, Pedir en una cafetería o Check-in en el aeropuerto. Pronto habrá más escenas.'),
     ('Answer out loud', 'Responde en voz alta'),
     ('with the microphone, or type if your browser has no speech recognition.', 'con el micrófono, o escribe si tu navegador no reconoce la voz.'),
     ('Tap Help me', 'Toca Ayúdame'),

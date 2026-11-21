@@ -99,7 +99,7 @@ function tutorContact(env, u) {
 /* ---------- routes ---------- */
 async function me(req, env) {
   const country = (req.cf && req.cf.country) || req.headers.get('cf-ipcountry') || 'XX';
-  const out = {country, price: price(country, env), places: await placesLeft(env), limits: LIMITS, user: null};
+  const out = {country, price: price(country, env), places: await placesLeft(env), limits: LIMITS, user: null, count: env.COUNT_PRACTICE === '1'};
   const u = await currentUser(req, env); if (!u) return json(out);
   const e = await enrollmentOf(env, u.id), paid = isPaid(e) || u.role === 'tutor';
   const usage = {}; (await env.DB.prepare('SELECT kind, n FROM usage WHERE user_id = ?1 AND day = ?2').bind(u.id, today()).all()).results.forEach(r => { usage[r.kind] = r.n; });
@@ -182,6 +182,18 @@ async function enroll(req, env, u) {
   const link = links[p.tier];
   const payUrl = link ? link + (link.includes('?') ? '&' : '?') + 'client_reference_id=' + encodeURIComponent(id) + '&prefilled_email=' + encodeURIComponent(u.email) : null;
   return json({ok: true, start, payUrl});
+}
+
+// anonymous practice counts: on only when COUNT_PRACTICE is "1" (the privacy notice must say so first)
+async function practiceCount(req, env) {
+  if (env.COUNT_PRACTICE !== '1') return json({ok: true, counted: false});
+  const b = await body(req), kinds = ['speak', 'game', 'shadow', 'lesson'];
+  const list = [...new Set([].concat(b.kinds || []).filter(k => kinds.includes(k)))]; if (!list.length) return err('kind');
+  if (!(await throttle(env, 'count:' + await ipKey(req, env), 30))) return json({ok: true, counted: false});
+  if (b.first) list.push('any');
+  const day = today(), st = env.DB.prepare('INSERT INTO practice_daily (day, kind, n) VALUES (?1, ?2, 1) ON CONFLICT(day, kind) DO UPDATE SET n = n + 1');
+  await env.DB.batch(list.map(k => st.bind(day, k)));
+  return json({ok: true, counted: true});
 }
 
 async function waitlist(req, env) {
@@ -282,6 +294,7 @@ export default {
       if (path === '/api/logout' && m === 'POST') return await logout(req, env);
       if (path === '/api/waitlist' && m === 'POST') return await waitlist(req, env);
       if (path === '/api/reset' && m === 'POST') return await resetPassword(req, env);
+      if (path === '/api/count' && m === 'POST') return await practiceCount(req, env);
       if (path === '/api/starts' && m === 'GET') return json({starts: nextMondays(4)});
       const u = await currentUser(req, env); if (!u) return err('signed_out', 401);
       if (path === '/api/usage' && m === 'POST') return await useOne(req, env, u);

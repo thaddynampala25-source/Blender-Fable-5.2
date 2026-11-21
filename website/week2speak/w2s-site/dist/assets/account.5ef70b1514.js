@@ -13,8 +13,8 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const STR = {
  es: {
-  signin: 'Entrar', signup: 'Crear cuenta', myAccount: 'Mi cuenta', mySprint: 'Mi Sprint', desk: 'Mi panel', startSprint: 'Empieza tu Sprint',
-  name: 'Tu nombre', email: 'Email', password: 'Contraseña', pwHint: 'Mínimo 8 caracteres', source: '¿Cómo nos encontraste?',
+  signin: 'Entrar', signup: 'Crear cuenta', myAccount: 'Mi cuenta', mySprint: 'Mi Sprint', desk: 'Mi panel', startSprint: 'Reservar mi plaza',
+  name: 'Tu nombre', email: 'Email', password: 'Contraseña', pwHint: 'Mínimo 8 caracteres', source: '¿Cómo nos encontraste? (opcional)',
   sources: [['', 'Elige una opción'], ['tiktok', 'TikTok'], ['instagram', 'Instagram'], ['facebook', 'Facebook'], ['youtube', 'YouTube'], ['friend', 'Me lo contó alguien'], ['google', 'Google'], ['other', 'Otro']],
   createFree: 'Crear mi cuenta gratis', doSignin: 'Entrar', haveAccount: '¿Ya tienes cuenta?', noAccount: '¿Todavía no tienes cuenta?',
   legal: 'Al crear tu cuenta aceptas los <a href="{terms}">términos</a> y el <a href="{privacy}">aviso de privacidad</a>.',
@@ -46,6 +46,9 @@ const STR = {
   acSprintFree: 'Todavía no estás en el Sprint. Reserva tu plaza y practica sin límites, con Mei a tu lado.', acSprintPending: 'Tu plaza está reservada y esperando el pago.', acSprintPaid: 'Estás dentro. Tu Sprint empieza el {date}.',
   goSprint: 'Ir a mi Sprint', bookPlace: 'Reservar mi plaza', payNow: 'Completar el pago',
   todayUse: 'Hoy', deleted: 'Tu cuenta se ha borrado.',
+  limAnonH: 'Has usado tus {n} respuestas gratis de hoy', limAnonP: 'Crea tu cuenta gratis y sigue ahora: con cuenta tienes {m} respuestas al día.',
+  limFreeH: 'Has usado tus {n} respuestas de hoy', limFreeP: 'Mañana tienes {n} más. Con el Sprint practicas sin límite y con Mei a tu lado.',
+  once: 'pago único', noPlaceH: 'Aún no tienes plaza', noPlaceP: 'Esta página es para quien ya ha reservado. Elige tu lunes y reserva tu plaza; tardas un minuto.',
   tyHi: '¡Hola, {name}! ', confirming: 'Confirmando tu pago… (suele tardar unos segundos)', confirmed: 'Pago confirmado. Tu plaza es tuya.', notYet: 'Tu plaza está reservada. Si acabas de pagar, la confirmación llegará en un momento; si no, Mei te escribirá.',
   countLeft: (d, h) => d > 0 ? `Faltan ${d} ${d === 1 ? 'día' : 'días'} y ${h} ${h === 1 ? 'hora' : 'horas'}` : h > 0 ? `Faltan ${h} ${h === 1 ? 'hora' : 'horas'}` : '¡Es hoy!',
   icsTitle: 'Sprint Week2Speak: día {n}', icsDesc: '20 minutos de inglés en voz alta. Abre tu Sprint: {url}',
@@ -53,8 +56,8 @@ const STR = {
   ago: s => s < 3600 ? `hace ${Math.max(1, Math.round(s / 60))} min` : s < 86400 ? `hace ${Math.round(s / 3600)} h` : `hace ${Math.round(s / 86400)} d`,
  },
  en: {
-  signin: 'Sign in', signup: 'Create account', myAccount: 'My account', mySprint: 'My Sprint', desk: 'My desk', startSprint: 'Start your Sprint',
-  name: 'Your name', email: 'Email', password: 'Password', pwHint: 'At least 8 characters', source: 'How did you find us?',
+  signin: 'Sign in', signup: 'Create account', myAccount: 'My account', mySprint: 'My Sprint', desk: 'My desk', startSprint: 'Book my place',
+  name: 'Your name', email: 'Email', password: 'Password', pwHint: 'At least 8 characters', source: 'How did you find us? (optional)',
   sources: [['', 'Choose one'], ['tiktok', 'TikTok'], ['instagram', 'Instagram'], ['facebook', 'Facebook'], ['youtube', 'YouTube'], ['friend', 'Someone told me'], ['google', 'Google'], ['other', 'Other']],
   createFree: 'Create my free account', doSignin: 'Sign in', haveAccount: 'Already have an account?', noAccount: "Don't have an account yet?",
   legal: 'By creating your account you accept the <a href="{terms}">terms</a> and the <a href="{privacy}">privacy notice</a>.',
@@ -86,6 +89,9 @@ const STR = {
   acSprintFree: "You're not in the Sprint yet. Book your place and practise without limits, with Mei by your side.", acSprintPending: 'Your place is booked and waiting for payment.', acSprintPaid: "You're in. Your Sprint starts on {date}.",
   goSprint: 'Go to my Sprint', bookPlace: 'Book my place', payNow: 'Complete payment',
   todayUse: 'Today', deleted: 'Your account has been deleted.',
+  limAnonH: "You've used your {n} free replies for today", limAnonP: 'Create your free account and keep going now: with an account you get {m} replies a day.',
+  limFreeH: "You've used your {n} replies for today", limFreeP: 'Tomorrow you get {n} more. With the Sprint you practise without limits, with Mei by your side.',
+  once: 'one payment', noPlaceH: "You don't have a place yet", noPlaceP: "This page is for people who have booked. Choose your Monday and book your place; it takes a minute.",
   tyHi: '{name}, ', confirming: 'Confirming your payment… (it usually takes a few seconds)', confirmed: 'Payment confirmed. The place is yours.', notYet: "Your place is booked. If you've just paid, confirmation will arrive in a moment; if not, Mei will message you.",
   countLeft: (d, h) => d > 0 ? `${d} ${d === 1 ? 'day' : 'days'} and ${h} ${h === 1 ? 'hour' : 'hours'} to go` : h > 0 ? `${h} ${h === 1 ? 'hour' : 'hours'} to go` : "It's today!",
   icsTitle: 'Week2Speak Sprint: day {n}', icsDesc: '20 minutes of English out loud. Open your Sprint: {url}',
@@ -219,7 +225,15 @@ function usedToday(kind) {
 }
 function limitOf(kind) { return unlimited() ? Infinity : !user() ? ANON[kind] : ((ME.limits && ME.limits.free && ME.limits.free[kind]) || 0); }
 const leftOf = kind => Math.max(0, limitOf(kind) - usedToday(kind));
+// anonymous practice count (no id of any kind): this browser tells the server once a day per kind that it practised
+function tally(kind) {
+  if (!ME || !ME.count || !['speak', 'game', 'shadow', 'lesson'].includes(kind)) return;
+  const d = dayKey(), t = store.get('w2s.tally', {}); const seen = t.day === d ? t : {day: d};
+  if (seen[kind]) return; const first = !Object.keys(seen).some(k => k !== 'day');
+  seen[kind] = 1; store.set('w2s.tally', seen); api('/api/count', {kinds: [kind], first});
+}
 async function count(kind) {
+  tally(kind);
   if (unlimited()) return;
   if (!user()) { const a = anonToday(); a[kind] = (a[kind] || 0) + 1; store.set('w2s.anon', a); return; }
   ME.usage = ME.usage || {}; ME.usage[kind] = (ME.usage[kind] || 0) + 1;
@@ -228,7 +242,7 @@ async function count(kind) {
 function blocked(kind) {
   if (unlimited() || leftOf(kind) > 0) return false;
   if (!user()) askAccount(STR.anonTitle, STR.anonBody, () => toast(STR.left(leftOf(kind), STR.kinds[kind])));
-  else modal(`<div class="fx-gate"><h2 id="fxMT">${STR.freeTitle}</h2><p>${STR.freeBody}</p><div class="fx-gate-a"><a class="key hl big" href="${P.join}">${STR.seeSprint}</a><button class="key" type="button" data-close>${STR.tomorrow}</button></div></div>`);
+  else modal(`<div class="fx-gate"><h2 id="fxMT">${STR.freeTitle}</h2><p>${STR.freeBody}</p><div class="fx-gate-a"><a class="key hl big" href="${P.sprint}">${STR.seeSprint}</a><button class="key" type="button" data-close>${STR.tomorrow}</button></div></div>`);
   return true;
 }
 function stop(e) { e.preventDefault(); e.stopImmediatePropagation(); }
@@ -241,7 +255,7 @@ document.addEventListener('click', e => {
   const mod = t.closest('[data-mod]');
   if (mod && PAGE === 'course') {
     const i = +mod.dataset.mod, allowed = unlimited() ? 99 : user() ? 2 : 1;
-    if (i >= allowed) { stop(e); lessonLock(i); }
+    if (i >= allowed) { stop(e); lessonLock(i); } else tally('lesson');
   }
 }, true);
 document.addEventListener('submit', e => { if (e.target.id === 'composer' && PAGE === 'speak') { if (blocked('speak')) return stop(e); const v = $('#speakInput'); if (v && v.value.trim()) count('speak'); } }, true);
@@ -250,7 +264,7 @@ document.addEventListener('w2s:activity', e => { const k = String(e.detail && e.
 window.W2S_lessonsAllowed = () => unlimited() ? 99 : user() ? 2 : 1;   // the app opens no lesson past this on its own
 function lessonLock(i) {   // lesson 2 needs a free account; lesson 3 and later come with the Sprint
   if (!user() && i === 1) askAccount(STR.lessonTitle2, STR.lessonAnon);
-  else modal(`<div class="fx-gate"><h2 id="fxMT">${STR.lessonTitle}</h2><p>${STR.lessonFree}</p><div class="fx-gate-a"><a class="key hl big" href="${P.join}">${STR.seeSprint}</a><button class="key" type="button" data-close>${STR.close}</button></div></div>`);
+  else modal(`<div class="fx-gate"><h2 id="fxMT">${STR.lessonTitle}</h2><p>${STR.lessonFree}</p><div class="fx-gate-a"><a class="key hl big" href="${P.sprint}">${STR.seeSprint}</a><button class="key" type="button" data-close>${STR.close}</button></div></div>`);
 }
 // a gentle nudge after about a minute of practice without an account
 function nudge() {
@@ -262,7 +276,23 @@ function usageBadge() {
   let b = $('#fxUse'); if (!b) { b = document.createElement('a'); b.id = 'fxUse'; b.className = 'fx-use'; b.href = user() ? P.join : P.account; const vh = PAGE !== 'speak' && document.querySelector('[data-view] .vh'); (vh || document.body).appendChild(b); }
   const n = leftOf(kind); b.innerHTML = `${ic('spark')}<span>${STR.left(n, STR.kinds[kind])}</span>`; b.classList.toggle('low', n <= 1);
 }
-setInterval(() => { if (ME) usageBadge(); }, 2500);
+function speakLimit() {
+  if (PAGE !== 'speak') return; const f = $('#composer'); if (!f) return;
+  const out = !unlimited() && leftOf('speak') === 0; let c = $('#fxLimit');
+  f.hidden = out; const mic = $('#speakMic'); if (mic && out) mic.hidden = true;
+  ['#smStart', '#fxUse'].forEach(sel => { const x = $(sel); if (x) x.hidden = out; });
+  if (!out) { if (c) c.remove(); return; }
+  if (c && c.dataset.who === plan()) return;
+  if (!c) { c = document.createElement('div'); c.id = 'fxLimit'; c.className = 'fx-limit'; c.setAttribute('role', 'status'); f.parentNode.insertBefore(c, f); }
+  c.dataset.who = plan(); const free = (ME.limits && ME.limits.free && ME.limits.free.speak) || 10;
+  c.innerHTML = user()
+    ? `<b>${fill(STR.limFreeH, {n: free})}</b><p>${fill(STR.limFreeP, {n: free})}</p><a class="key hl" href="${P.sprint}">${STR.seeSprint}</a>`
+    : `<b>${fill(STR.limAnonH, {n: ANON.speak})}</b><p>${fill(STR.limAnonP, {m: free})}</p><button type="button" class="key hl" data-fxsignup>${STR.createFree}</button>`;
+  const b = c.querySelector('[data-fxsignup]'); if (b) b.addEventListener('click', () => askAccount(STR.signup, fill(STR.limAnonP, {m: free}), () => { route(); speakLimit(); }));
+}
+// the Sprint price wherever the page shows it (home pricing card)
+function paintPrice() { const pr = ME && ME.price; if (!pr) return; $$('[data-sprint-price]').forEach(s => { s.textContent = money(pr.amount, pr.currency, pr.symbol) + ' · ' + STR.once; }); }
+setInterval(() => { if (ME) { usageBadge(); speakLimit(); } }, 2500);
 
 /* ---------- progress: kept with the account ---------- */
 function localProgress() { const s = store.get('w2s.v1', null); const x = store.get('w2s.x', {}); return {app: s, x}; }
@@ -317,6 +347,11 @@ async function buy() {
 /* ---------- thank-you: the moment ---------- */
 async function pageThanks() {
   const u = user(), e = ME.enrollment;
+  if (!unlimited() && !(e && (e.status === 'pending' || e.status === 'paid'))) {
+    const h = $('.fx-ty-h'); if (h) h.textContent = STR.noPlaceH;
+    const st = $('#tyStatus'); st.textContent = STR.noPlaceP; st.insertAdjacentHTML('afterend', `<p class="fx-ty-book"><a class="key hl big" href="${P.join}">${STR.bookPlace}</a></p>`);
+    $('#tyCount').hidden = true; $$('.fx-steps, .fx-next').forEach(x => { x.hidden = true; }); return;
+  }
   if (u) $('#tyName').textContent = fill(STR.tyHi, {name: u.name.split(' ')[0]});
   const start = (e && e.start) || X.get('start', null);
   if (start) { $('#tyStart').textContent = dateLong(start, true); tick(start); setInterval(() => tick(start), 60000); } else $('#tyCount').hidden = true;
@@ -495,7 +530,7 @@ function drawLib() {
 
 /* ---------- the pages ---------- */
 function route() {
-  usageBadge();
+  usageBadge(); speakLimit(); paintPrice();
   if (PAGE === 'join') pageJoin();
   else if (PAGE === 'thanks') { if (LANG === 'es' && user() && user().lang === 'en') { location.replace(SLUGS.en.thanks + location.search); return; } pageThanks(); }
   else if (PAGE === 'account') pageAccount();

@@ -18,7 +18,7 @@
 <meta property="og:image" content="https://week2speak.com/media/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Week2Speak: Speak English in 7 days">
+<meta property="og:image:alt" content="Week2Speak: your first conversation in English, in 7 days">
 <meta property="og:locale" content="en_GB">
 <meta property="og:locale:alternate" content="es_ES">
 <meta name="twitter:card" content="summary_large_image">
@@ -29,7 +29,7 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" href="/assets/fonts/bricolage.a5f005c9fa.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/figtree.4ba7d3d096.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.36cdb697c0.css" onerror="if(!this.dataset.retry){this.dataset.retry=1;this.href=this.href.split('?')[0]+'?retry='+Date.now()}">
+<link rel="stylesheet" href="/assets/site.9a60ce0fef.css" onerror="if(!this.dataset.retry){this.dataset.retry=1;this.href=this.href.split('?')[0]+'?retry='+Date.now()}">
 <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "EducationalOrganization", "@id": "https://week2speak.com/#org", "name": "Week2Speak", "url": "https://week2speak.com/", "logo": "https://week2speak.com/apple-touch-icon.png", "description": "English speaking practice and tutoring for Spanish speakers.", "email": "hello@week2speak.com", "founder": {"@type": "Person", "name": "Mei Gabriela Parrablanco"}}]}</script>
 </head>
 <body data-page="terms" data-lang="en">
@@ -41,7 +41,7 @@
   <div class="stats"><span class="stat num" id="stStreak" title="Day streak"></span><span class="stat num" id="stXp" title="Experience points"></span></div>
   <button class="nav-menu" type="button" aria-expanded="false" aria-controls="navTabs"><svg class="b" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><svg class="x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span class="t">Menu</span></button>
   <div class="nav-act"><a class="nav-lang" href="/terminos/" hreflang="es" lang="es" aria-label="Leer esta página en español">ES</a>
-  <a class="nav-join" href="/en/join/">Start your Sprint</a></div>
+  <a class="nav-join" href="/en/join/">Book my place</a></div>
 </div><div class="progress" id="progress"></div></header>
 <script>(function(){var h=document.querySelector('header.nav'),b=h&&h.querySelector('.nav-menu'),t=document.getElementById('navTabs');if(!b||!t)return;function extras(){var x=t.querySelector('.nav-xtra');if(x)x.remove();x=document.createElement('div');x.className='nav-xtra';h.querySelectorAll('.nav-act .nav-lang,.nav-act .nav-me').forEach(function(a){var c=a.cloneNode(true);c.removeAttribute('aria-current');x.appendChild(c)});if(x.children.length)t.appendChild(x)}function set(o){h.classList.toggle('menu-open',o);b.setAttribute('aria-expanded',o?'true':'false');if(o)extras();else{var x=t.querySelector('.nav-xtra');if(x)x.remove()}}b.addEventListener('click',function(){var o=!h.classList.contains('menu-open');set(o);if(o){var a=t.querySelector('a');if(a)a.focus()}});t.addEventListener('click',function(e){if(e.target.closest('a'))set(false)});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&h.classList.contains('menu-open')){set(false);b.focus()}});document.addEventListener('click',function(e){if(!h.contains(e.target))set(false)});addEventListener('resize',function(){if(getComputedStyle(b).display==='none')set(false)})})();</script>
 <main id="main">
@@ -55,7 +55,7 @@
   <div class="foot-brand"><a class="logo" href="/en/" aria-label="Week2Speak home">Week<span class="two">2</span>Speak</a><p>Speaking practice for Spanish speakers learning English. In testing.</p></div>
   <nav class="foot-nav" aria-label="Footer"><div><b>Practise</b><a href="/en/speech-mode/">Speech Mode</a><a href="/en/games/">Games</a><a href="/en/shadowing/">Shadowing</a></div>
   <div><b>Learn</b><a href="/en/7-day-sprint/">7-Day Sprint</a><a href="/en/course/">Course</a><a href="/en/common-mistakes/">Common mistakes</a></div>
-  <div><b>Week2Speak</b><a href="/en/about/">How we teach</a><a href="/en/join/">Book your place</a><a href="/en/privacy/">Privacy</a><a href="/en/terms/">Terms</a><a href="mailto:hello@week2speak.com">hello@week2speak.com</a></div></nav>
+  <div><b>Week2Speak</b><a href="/en/about/">How we teach</a><a href="/en/join/">Book my place</a><a href="/en/privacy/">Privacy</a><a href="/en/terms/">Terms</a><a href="mailto:hello@week2speak.com">hello@week2speak.com</a></div></nav>
 </div></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <canvas id="fx" aria-hidden="true"></canvas>
@@ -63,7 +63,7 @@
 <script src="/assets/vendor/gsap-3.12.5.min.js" defer></script>
 <script src="/assets/vendor/ScrollTrigger-3.12.5.min.js" defer></script>
 <script src="/assets/app.en.ca4c018238.js" defer onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
-<script src="/assets/home.en.dfb22553b4.js" defer onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
-<script src="/assets/account.3ae132a40b.js" defer></script>
+<script src="/assets/home.en.13cbd401a7.js" defer onerror="if(!this.dataset.retry){this.dataset.retry=1;var s=document.createElement('script');s.src=this.src.split('?')[0]+'?retry='+Date.now();s.dataset.retry=1;document.head.appendChild(s)}"></script>
+<script src="/assets/account.5ef70b1514.js" defer></script>
 </body>
 </html>
