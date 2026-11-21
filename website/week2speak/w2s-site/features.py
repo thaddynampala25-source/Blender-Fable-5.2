@@ -72,9 +72,9 @@ def join(lang):
         ('mic', t('Tu antes y después', 'Your before and after'), t('Grabas tu Día 1 y tu Día 7. La diferencia se oye.', 'You record your Day 1 and your Day 7. You can hear the difference.')),
         ('gift', t('Biblioteca de recursos', 'Resource library'), t('Kit de supervivencia, pronunciación, plantillas y tu plan para después.', 'Survival kit, pronunciation, templates and your plan for afterwards.')),
     ]
-    week = ''.join(f'<li><span class="fx-dn num">{i + 1}</span><span><b>{tr(lang, d["title"])}</b><small>{tr(lang, d["can"])}</small></span></li>' for i, d in enumerate(SC.DAYS))
+    week = ''.join(f'<li><span class="fx-dn num">{i + 1}</span><span><b>{tr(lang, d["title"])}</b><small>{(DAY_ES.get(d["can"], tr(lang, d["can"])) if lang == "es" else d["can"])}</small></span></li>' for i, d in enumerate(SC.DAYS))
     faq = [
-        (t('¿Necesito saber algo de inglés?', 'Do I need to know any English?'), t('No. El Sprint está pensado para empezar de cero. Si sabes decir «hello», ya vas sobrado.', 'No. The Sprint is made for starting from zero. If you can say "hello", you\'re ahead.')),
+        (t('¿Necesito saber algo de inglés?', 'Do I need to know any English?'), t('No. El Sprint está pensado para empezar de cero. Si sabes decir «hello», ya tienes por dónde empezar.', 'No. The Sprint is made for starting from zero. If you can say "hello", you\'re ahead.')),
         (t('¿Cuánto tiempo al día?', 'How much time a day?'), t('Unos veinte minutos. Puedes hacerlo de una vez o en ratos sueltos.', 'About twenty minutes. In one go or in short bits.')),
         (t('¿Cómo son las llamadas con Mei?', 'What are the calls with Mei like?'), t('Por videollamada, 25 minutos, a la hora que reserves tú. La primera es para conoceros y arrancar; la última, para tu charla de 2 minutos.', 'Video call, 25 minutes, at a time you book. The first is to meet and get going; the last is for your 2-minute talk.')),
         (t('¿Y si un día no puedo?', "What if I can't one day?"), t('No pasa nada. El Sprint avanza contigo, no con el calendario: sigues donde lo dejaste.', "That's fine. The Sprint moves with you, not with the calendar: you pick up where you left off.")),
@@ -114,7 +114,7 @@ def sprint(lang, legacy):
     """Public: what the week is and a taste of Day 1. Paid: the app (filled by account.js from /paid/)."""
     t = L(lang); A = I.SLUG[lang]
     d1 = SP.DAYS[1]
-    days = ''.join(f'<li class="fx-lock-day"><span class="fx-dn num">{i + 1}</span><span><b>{tr(lang, d["title"])}</b><small>{tr(lang, d["can"])}</small></span>{ic("lock")}</li>' for i, d in enumerate(SC.DAYS))
+    days = ''.join(f'<li class="fx-lock-day"><span class="fx-dn num">{i + 1}</span><span><b>{tr(lang, d["title"])}</b><small>{(DAY_ES.get(d["can"], tr(lang, d["can"])) if lang == "es" else d["can"])}</small></span>{ic("lock")}</li>' for i, d in enumerate(SC.DAYS))
     # the legacy tools stay: today's tasks tick themselves, the before/after recorder and the 2-minute talk clock
     tools = legacy[legacy.index('<div class="stack" style="max-width:860px">'):legacy.rindex('</div>\n</div></section>')]
     q = tools.index('<div class="panel stack">\n      <div class="row" style="justify-content:space-between"><h2 style="margin:0">Quests from your tutor</h2>')

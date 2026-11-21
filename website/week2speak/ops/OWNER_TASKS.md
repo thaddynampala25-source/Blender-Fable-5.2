@@ -45,6 +45,25 @@ site by themselves as soon as their recordings are in `w2s-site/audio/` (no code
 - **Notion "Week2Speak HQ"** (T5): Claude creates it only after the owner OKs pages in the personal workspace.
 - **Monday review** (45 minutes) once posts are out; **five Week2Speak lines in the morning brief** if wanted.
 
+## 4. Usability proposals from the 21 Nov review (owner decides; Claude can build any of them)
+
+- **Free-limit dead end in Speech Mode**: 5 free replies = one scene; after that the buttons are disabled with only a
+  small counter. Proposal: a clear card ("You've used your 5 free replies today. Create a free account to keep going
+  tomorrow") and make "How did you find us?" visibly optional.
+- **Booking buttons**: six different labels ("Start your Sprint", "See places and price", "I want my place", "Book my
+  place"...). Proposal: two only, "See the Sprint" (information) and "Book my place" (booking).
+- **"Start Day 1" on home** goes to the Sprint sales page, where Day 1 shows a padlock. Proposal: send it to lesson 1
+  (free) and show Day 1 unlocked.
+- **Home pricing block**: the free-account card has no "Create free account" button and the Sprint card shows no price.
+- **Join checkbox** reads like legal text. Proposal: "I understand my Sprint starts on the Monday I choose. I can cancel
+  for free before the first call; after that I pay only for what I used."
+- **Tutor page** has no bio: 3-4 lines about Mei (background, experience), no photo.
+- **Speech Mode on desktop** stacks the correction, hint and Buddy line over the Buddy's face, and shows all settings
+  at once. Proposal: one message at a time; settings folded under "Settings".
+- **Names** of scenes, clips and buttons differ between pages ("Café order" / "Ordering coffee"; "Abrir" / "Abre").
+- **Home headline** "Speak English in 7 days" vs the FAQ "you will not be fluent in 7 days": the Join headline "Your
+  first conversation in English, in 7 days" is more honest.
+
 ## Done
 
 - 21 Nov 2026: six voices chosen and recorded for Days 1-3; drafts in `ops/` approved; Stripe live; Mei's tutor

@@ -149,3 +149,5 @@ footer .logo{color:#fff}
 .fx-note-av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--hl,#FFD93B);color:var(--ink,#0B103A);font-weight:800}
 .fx-hero-card.fx-taste{margin-top:0}
 .fx-hero-card .fx-brief{box-shadow:none;max-width:none}
+/* phones: practice links in lessons and the Sprint are full tap targets */
+@media (max-width:600px){.tasks a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 12px}}

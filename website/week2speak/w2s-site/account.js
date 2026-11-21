@@ -24,7 +24,7 @@ const STR = {
   anonTitle: 'Crea tu cuenta gratis para seguir', anonBody: 'Vas muy bien. Con una cuenta gratis sigues practicando hoy y guardas lo que llevas.',
   softTitle: '¿Guardamos tu progreso?', softBody: 'Crea tu cuenta gratis en 20 segundos y no pierdas lo que has practicado.', later: 'Ahora no',
   freeTitle: 'Has llegado al límite de hoy', freeBody: 'Mañana tienes más práctica gratis. O empieza tu Sprint: práctica sin límites y Mei a tu lado toda la semana.', seeSprint: 'Ver el Sprint', tomorrow: 'Vale, hasta mañana',
-  lessonTitle: 'Esta lección es del Sprint', lessonAnon: 'Crea tu cuenta gratis para abrir la lección 2. El curso completo viene con el Sprint.', lessonFree: 'Las lecciones 3 a 7 vienen con el Sprint, junto con las llamadas y el WhatsApp de Mei.',
+  lessonTitle: 'Esta lección es del Sprint', lessonTitle2: 'La lección 2 es gratis con tu cuenta', lessonAnon: 'Crea tu cuenta gratis para abrir la lección 2. Las demás lecciones vienen con el Sprint.', lessonFree: 'Las lecciones 3 a 7 vienen con el Sprint, junto con las llamadas y el WhatsApp de Mei.',
   kinds: {speak: 'Respuestas en Modo Habla', game: 'Partidas de juegos', shadow: 'Repeticiones de Imita', lesson: 'Lecciones del curso'},
   myDesk: 'Mi panel', consent: 'Marca la casilla para confirmar cuándo empieza tu Sprint.', left: (n, what) => `${what}: ${n === 1 ? 'te queda 1' : 'te quedan ' + n} hoy`, unlimited: 'Sin límites', close: 'Cerrar',
   places: n => n === 1 ? 'Queda 1 plaza' : n > 1 ? `Quedan ${n} plazas` : 'Plazas agotadas',
@@ -64,7 +64,7 @@ const STR = {
   anonTitle: 'Create your free account to keep going', anonBody: "You're doing great. With a free account you keep practising today and save what you've done.",
   softTitle: 'Shall we save your progress?', softBody: "Create your free account in 20 seconds and don't lose what you've practised.", later: 'Not now',
   freeTitle: "You've reached today's limit", freeBody: 'Tomorrow you get more free practice. Or start your Sprint: unlimited practice and Mei by your side all week.', seeSprint: 'See the Sprint', tomorrow: 'OK, see you tomorrow',
-  lessonTitle: 'This lesson is part of the Sprint', lessonAnon: 'Create your free account to open lesson 2. The full course comes with the Sprint.', lessonFree: "Lessons 3 to 7 come with the Sprint, along with the calls and Mei's WhatsApp.",
+  lessonTitle: 'This lesson is part of the Sprint', lessonTitle2: 'Lesson 2 is free with your account', lessonAnon: 'Create your free account to open lesson 2. The other lessons come with the Sprint.', lessonFree: "Lessons 3 to 7 come with the Sprint, along with the calls and Mei's WhatsApp.",
   kinds: {speak: 'Speech Mode replies', game: 'Game rounds', shadow: 'Shadowing plays', lesson: 'Course lessons'},
   myDesk: 'Tutor desk', consent: 'Tick the box to confirm when your Sprint starts.', left: (n, what) => `${what}: ${n} left today`, unlimited: 'No limits', close: 'Close',
   places: n => n === 1 ? 'Only 1 place left' : n > 1 ? `${n} places left` : 'Sold out',
@@ -239,14 +239,14 @@ document.addEventListener('click', e => {
   const mod = t.closest('[data-mod]');
   if (mod && PAGE === 'course') {
     const i = +mod.dataset.mod, allowed = unlimited() ? 99 : user() ? 2 : 1;
-    if (i >= allowed) { stop(e); lessonLock(); }
+    if (i >= allowed) { stop(e); lessonLock(i); }
   }
 }, true);
 document.addEventListener('submit', e => { if (e.target.id === 'composer' && PAGE === 'speak') { if (blocked('speak')) return stop(e); const v = $('#speakInput'); if (v && v.value.trim()) count('speak'); } }, true);
 // finished rounds and clips count (the app announces them)
 document.addEventListener('w2s:activity', e => { const k = String(e.detail && e.detail.key || '').split(':')[0]; if (k === 'game' || k === 'shadow') count(k); });
-function lessonLock() {
-  if (!user()) askAccount(STR.lessonTitle, STR.lessonAnon);
+function lessonLock(i) {   // lesson 2 needs a free account; lesson 3 and later come with the Sprint
+  if (!user() && i === 1) askAccount(STR.lessonTitle2, STR.lessonAnon);
   else modal(`<div class="fx-gate"><h2 id="fxMT">${STR.lessonTitle}</h2><p>${STR.lessonFree}</p><div class="fx-gate-a"><a class="key hl big" href="${P.join}">${STR.seeSprint}</a><button class="key" type="button" data-close>${STR.close}</button></div></div>`);
 }
 // a gentle nudge after about a minute of practice without an account

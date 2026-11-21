@@ -58,7 +58,7 @@ APP = f'''<div class="smx" id="sm" data-state="landing">
         <section class="sm-g sm-g-scene"><h3>Scene <span class="tag live ai-only">AI tutor live</span></h3><div class="chips" id="missions"></div></section>
         <section class="sm-g sm-g-chat"><h3>Conversation</h3><div class="chat" id="chat" role="log" aria-label="Conversation"></div>
           <div class="row"><button class="key sm" id="restartBtn" type="button"></button></div></section>
-        <div class="sm-g2"><section class="sm-g sm-g-accent"><h3>Tutor accent</h3><div class="chips" data-accents></div><p class="small muted" data-voicenote></p>
+        <div class="sm-g2"><section class="sm-g sm-g-accent"><h3>Accent</h3><div class="chips" data-accents></div><p class="small muted" data-voicenote></p>
           <div class="sm-togs"><label class="tog"><input type="checkbox" id="speakAloud" checked> Read tutor lines aloud</label>
           <label class="tog"><input type="checkbox" id="buddyShow" checked> Show the Buddy</label>
           <label class="tog"><input type="checkbox" id="smSubs" checked> Show subtitles</label></div>
