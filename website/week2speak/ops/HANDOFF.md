@@ -153,3 +153,18 @@ Gotcha: a fresh clone has Git LFS pointers instead of the Buddy models. Run `git
 - Deployed (see below): Shadowing clips, game days and course lessons are listed only when recorded (textRecorded,
   dayRecorded in apply_ux.py), like the scenes. Everything still hidden, and every task that needs the owner, is in
   `ops/OWNER_TASKS.md`.
+
+## Audit, 21 Nov 2026 (deployed b33f24fd)
+
+Three independent reviews (functional test on desktop and phone in both languages, code review of the day's changes,
+usability walk-through) and a page-weight check. Fixed:
+- Weight: the second 3D Buddy loads only when the learner reaches for Switch Buddy (Speech Mode on a phone 4.6 MB -> 2.6
+  MB); heading font pinned to weight 800 (129 -> 72 KB, `w2s-site/fonts/bricolage-800.woff2`); fonts are now
+  fingerprinted like other assets (they were served "immutable" under a fixed name, so old copies stayed cached).
+- Bugs: Course could auto-open hidden or locked lessons; the game limit could be bypassed (day chips, play again, tiles);
+  anonymous daily counts never reset (now per local day); Buddy switch mid-scene kept the old name (scene restarts);
+  Sound Lab / Quick Answers play buttons sat below their answers; Next clip led into hidden clips; mic button stayed on
+  browsers without recognition; plurals "1 fixes"; double "¡" on the thank-you page; lesson-lock wording.
+- Copy: free rooms no longer promise all seven days; Spanish fixes (FAQ calque, "Mejor, dilo", Spain-only slang, Day 7
+  card in English); "Tutor accent" -> "Accent" next to the Buddy.
+- Owner decisions from the review are in `ops/OWNER_TASKS.md` section 4.

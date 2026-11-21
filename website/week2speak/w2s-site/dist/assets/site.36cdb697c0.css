@@ -1,5 +1,5 @@
-@font-face{font-family:"Bricolage Grotesque";src:url("/assets/fonts/bricolage.woff2") format("woff2");font-weight:200 800;font-stretch:75% 100%;font-display:swap}
-@font-face{font-family:"Figtree";src:url("/assets/fonts/figtree.woff2") format("woff2");font-weight:300 900;font-display:swap}
+@font-face{font-family:"Bricolage Grotesque";src:url("/assets/fonts/bricolage.a5f005c9fa.woff2") format("woff2");font-weight:800;font-stretch:75% 100%;font-display:swap}
+@font-face{font-family:"Figtree";src:url("/assets/fonts/figtree.4ba7d3d096.woff2") format("woff2");font-weight:300 900;font-display:swap}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0}
@@ -611,7 +611,7 @@ footer .logo{color:#fff}
   .prose td:first-child{font-weight:800}
 }
 /* Games: buttons sit right under the tiles; the reserved feedback space goes below them */
-#gameBody > .row{order:5}
+#gameBody > .g-act{order:5}
 #gameBody > .fb{order:6}
 /* phones: one swipeable row of game tabs; the faded edge shows there are more */
 @media (max-width:600px){#gameTabs.seg{-webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);mask-image:linear-gradient(90deg,#000 80%,transparent);scroll-snap-type:x proximity;padding-right:36px}
@@ -629,6 +629,8 @@ footer .logo{color:#fff}
 .fx-note-av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--hl,#FFD93B);color:var(--ink,#0B103A);font-weight:800}
 .fx-hero-card.fx-taste{margin-top:0}
 .fx-hero-card .fx-brief{box-shadow:none;max-width:none}
+/* phones: practice links in lessons and the Sprint are full tap targets */
+@media (max-width:600px){.tasks a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 12px}}
 
 /* ================= Speech Mode: the Buddy is the interface ================= */
 :root{--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--e1:0 1px 2px rgba(11,16,58,.10),0 4px 14px rgba(11,16,58,.10);--e2:0 2px 4px rgba(11,16,58,.12),0 14px 38px rgba(11,16,58,.20);--spring:cubic-bezier(.2,.9,.25,1.12)}

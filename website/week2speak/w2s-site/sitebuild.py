@@ -372,6 +372,15 @@ for _b in _BR.ACTIVE:
         if os.path.exists(_A + f'/buddies/{_n}{_e}'): os.rename(_A + f'/buddies/{_n}{_e}', _A + f'/buddies/{_s}{_e}'); _urls[f'/assets/buddies/{_n}{_e}'] = f'/assets/buddies/{_s}{_e}'
     _cfg = _cfg.replace(f'"file": "{_n}"', f'"file": "{_s}"')   # buddies.js builds the model URL from this
 open(_A + '/config.js', 'w', encoding='utf-8').write(_cfg)
+# fonts first, and their new names written into site.css before site.css is fingerprinted (a font change must change it)
+for _fn in ('bricolage', 'figtree'):
+    _p = _A + f'/fonts/{_fn}.woff2'
+    if os.path.exists(_p):
+        _new = f'{_fn}.{_hash(_p)}.woff2'; os.rename(_p, _A + '/fonts/' + _new); _urls[f'/assets/fonts/{_fn}.woff2'] = f'/assets/fonts/{_new}'
+_css = open(_A + '/site.css', encoding='utf-8').read()
+for _o, _n2 in list(_urls.items()):
+    if '/fonts/' in _o: _css = _css.replace(_o, _n2)
+open(_A + '/site.css', 'w', encoding='utf-8').write(_css)
 for _f in ['config.js', 'site.css', 'account.js'] + [f'{n}.{l}.js' for n in LANG_ASSETS for l in I.LANGS]:
     _st, _ext = _f.rsplit('.', 1); _new = f'{_st}.{_hash(_A + "/" + _f)}.{_ext}'; os.rename(_A + '/' + _f, _A + '/' + _new); _urls[f'/assets/{_f}'] = f'/assets/{_new}'
 _pat = _re.compile('|'.join(_re.escape(u) for u in sorted(_urls, key=len, reverse=True)) + r'') if _urls else None

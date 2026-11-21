@@ -380,7 +380,7 @@ function nameMissions() {
 }
 const S = {id:'cafe', step:0,""")
     rep("window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); renderVoiceNotes();",
-        "window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); nameMissions(); renderMissions(); renderAccents(); renderVoiceNotes();")
+        "window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); nameMissions(); renderMissions(); renderAccents(); renderVoiceNotes();\n  if (currentView === 'speak' && S.turns.length > 1 && !S.ended) startMission(S.id);   /* the new Buddy restarts the scene with their own name */")
     # ---------- Voice notes are internal: learners never see which device voice is used ----------
     rep("function renderVoiceNotes() { let n = ''; try { n = Voice.note(); } catch (e) { return; } $$('[data-voicenote]').forEach(e => e.textContent = n); }",
         "function renderVoiceNotes() { $$('[data-voicenote]').forEach(e => { e.textContent = ''; e.hidden = true; }); }")
@@ -389,6 +389,10 @@ const S = {id:'cafe', step:0,""")
     # Games: without a picked day, start on the Sprint day but never past the last recorded one (links that name a day still work)
     rep("  if (day != null) G.picked = true; else day = G.picked ? G.day : sprintDay();",
         "  if (day != null) G.picked = true; else { day = G.picked ? G.day : sprintDay(); if (!G.picked) while (day > 0 && !dayRecorded(day)) day--; }")
+    # Course: the lesson opened on its own is recorded and allowed (anonymous: 1, free account: 2, Sprint: all)
+    rep("  if (courseDay < 0) { courseDay = DAYS.findIndex((_, i) => !done['d' + i]); if (courseDay < 0) courseDay = 0; }",
+        "  if (courseDay < 0) { courseDay = DAYS.findIndex((_, i) => !done['d' + i]); if (courseDay < 0) courseDay = 0;\n    const lim = typeof window.W2S_lessonsAllowed === 'function' ? window.W2S_lessonsAllowed() : 1;\n    while (courseDay > 0 && (!dayRecorded(courseDay) || courseDay >= lim)) courseDay--; }")
+    rep('Scene complete: <b>${S.sent}</b> sentences, <b>${S.fixes}</b> fixes, <b>${S.helps}</b> hints. +${bonus} XP.', "Scene complete: <b>${S.sent}</b> ${S.sent === 1 ? 'sentence' : 'sentences'}, <b>${S.fixes}</b> ${S.fixes === 1 ? 'fix' : 'fixes'}, <b>${S.helps}</b> ${S.helps === 1 ? 'hint' : 'hints'}. +${bonus} XP.")
     # ---------- Scenes: only those with recorded voices are listed (others would force a device voice) ----------
     rep("function renderMissions() {\n  $('#missions').innerHTML = Object.keys(MISSIONS).map(",
         """function sceneRecorded(id) {

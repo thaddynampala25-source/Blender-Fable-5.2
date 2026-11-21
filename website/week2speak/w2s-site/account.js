@@ -46,7 +46,7 @@ const STR = {
   acSprintFree: 'Todavía no estás en el Sprint. Reserva tu plaza y practica sin límites, con Mei a tu lado.', acSprintPending: 'Tu plaza está reservada y esperando el pago.', acSprintPaid: 'Estás dentro. Tu Sprint empieza el {date}.',
   goSprint: 'Ir a mi Sprint', bookPlace: 'Reservar mi plaza', payNow: 'Completar el pago',
   todayUse: 'Hoy', deleted: 'Tu cuenta se ha borrado.',
-  tyHi: '¡{name}, ', confirming: 'Confirmando tu pago… (suele tardar unos segundos)', confirmed: 'Pago confirmado. Tu plaza es tuya.', notYet: 'Tu plaza está reservada. Si acabas de pagar, la confirmación llegará en un momento; si no, Mei te escribirá.',
+  tyHi: '¡Hola, {name}! ', confirming: 'Confirmando tu pago… (suele tardar unos segundos)', confirmed: 'Pago confirmado. Tu plaza es tuya.', notYet: 'Tu plaza está reservada. Si acabas de pagar, la confirmación llegará en un momento; si no, Mei te escribirá.',
   countLeft: (d, h) => d > 0 ? `Faltan ${d} ${d === 1 ? 'día' : 'días'} y ${h} ${h === 1 ? 'hora' : 'horas'}` : h > 0 ? `Faltan ${h} ${h === 1 ? 'hora' : 'horas'}` : '¡Es hoy!',
   icsTitle: 'Sprint Week2Speak: día {n}', icsDesc: '20 minutos de inglés en voz alta. Abre tu Sprint: {url}',
   desk: {paid: 'En el Sprint', pending: 'Pendiente', free: 'Gratis', places: 'Plazas libres', active: 'Activos hoy', markPaid: 'Marcar pagado', cancel: 'Cancelar plaza', note: 'Mensaje para el alumno', send: 'Enviar', reset: 'Enlace de contraseña', copied: 'Enlace copiado', lastSeen: 'Última vez', never: 'nunca', from: 'Desde', start: 'Inicio', practice: 'Práctica', day: 'Día', none: 'Nadie por aquí todavía.', wait: 'Lista de espera', source: 'Vino de'},
@@ -211,15 +211,17 @@ function paintNav() {
 
 /* ---------- free use: count, and stop at the limit ---------- */
 const ANON = {speak: 5, game: 1, shadow: 2, lesson: 1};
+const dayKey = () => new Date().toDateString();   // anonymous counts are per local day, like the badge says
+const anonToday = () => { const a = store.get('w2s.anon', {}); return a.day === dayKey() ? a : {day: dayKey()}; };
 function usedToday(kind) {
-  if (!user()) return (store.get('w2s.anon', {})[kind] || 0);
+  if (!user()) return (anonToday()[kind] || 0);
   return (ME.usage && ME.usage[kind]) || 0;
 }
 function limitOf(kind) { return unlimited() ? Infinity : !user() ? ANON[kind] : ((ME.limits && ME.limits.free && ME.limits.free[kind]) || 0); }
 const leftOf = kind => Math.max(0, limitOf(kind) - usedToday(kind));
 async function count(kind) {
   if (unlimited()) return;
-  if (!user()) { const a = store.get('w2s.anon', {}); a[kind] = (a[kind] || 0) + 1; store.set('w2s.anon', a); return; }
+  if (!user()) { const a = anonToday(); a[kind] = (a[kind] || 0) + 1; store.set('w2s.anon', a); return; }
   ME.usage = ME.usage || {}; ME.usage[kind] = (ME.usage[kind] || 0) + 1;
   const r = await api('/api/usage', {kind}); if (r.data && typeof r.data.used === 'number') ME.usage[kind] = r.data.used;
 }
@@ -234,7 +236,7 @@ function stop(e) { e.preventDefault(); e.stopImmediatePropagation(); }
 document.addEventListener('click', e => {
   const t = e.target;
   if (t.closest('#speakSend, #speakMic') && PAGE === 'speak') { if (blocked('speak')) return stop(e); if (t.closest('#speakMic') && !document.getElementById('speakMic').classList.contains('listening')) count('speak'); return; }
-  if (t.closest('[data-game], #gameBody .key.big, .gcards button') && PAGE === 'games') { if (blocked('game')) return stop(e); return; }
+  if (t.closest('[data-game], [data-gday], [data-again], [data-switch], [data-tile], [data-check], [data-say], #gameBody .key.big, .gcards button') && PAGE === 'games') { if (blocked('game')) return stop(e); return; }
   if (t.closest('#shPlay') && PAGE === 'shadow') { if (blocked('shadow')) return stop(e); return; }
   const mod = t.closest('[data-mod]');
   if (mod && PAGE === 'course') {
@@ -245,6 +247,7 @@ document.addEventListener('click', e => {
 document.addEventListener('submit', e => { if (e.target.id === 'composer' && PAGE === 'speak') { if (blocked('speak')) return stop(e); const v = $('#speakInput'); if (v && v.value.trim()) count('speak'); } }, true);
 // finished rounds and clips count (the app announces them)
 document.addEventListener('w2s:activity', e => { const k = String(e.detail && e.detail.key || '').split(':')[0]; if (k === 'game' || k === 'shadow') count(k); });
+window.W2S_lessonsAllowed = () => unlimited() ? 99 : user() ? 2 : 1;   // the app opens no lesson past this on its own
 function lessonLock(i) {   // lesson 2 needs a free account; lesson 3 and later come with the Sprint
   if (!user() && i === 1) askAccount(STR.lessonTitle2, STR.lessonAnon);
   else modal(`<div class="fx-gate"><h2 id="fxMT">${STR.lessonTitle}</h2><p>${STR.lessonFree}</p><div class="fx-gate-a"><a class="key hl big" href="${P.join}">${STR.seeSprint}</a><button class="key" type="button" data-close>${STR.close}</button></div></div>`);

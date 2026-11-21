@@ -61,6 +61,9 @@ site by themselves as soon as their recordings are in `w2s-site/audio/` (no code
 - **Speech Mode on desktop** stacks the correction, hint and Buddy line over the Buddy's face, and shows all settings
   at once. Proposal: one message at a time; settings folded under "Settings".
 - **Names** of scenes, clips and buttons differ between pages ("Café order" / "Ordering coffee"; "Abrir" / "Abre").
+- **Open questions from the bug test** (not changed): the thank-you page greets anyone who opens it, even without a
+  booking; Speech Mode scenes accept any reply of two words or more; Speech Mode forgets "read lines aloud" and the
+  last scene after a reload; the Join page still says "Book my place" while a booking waits for payment.
 - **Home headline** "Speak English in 7 days" vs the FAQ "you will not be fluent in 7 days": the Join headline "Your
   first conversation in English, in 7 days" is more honest.
 

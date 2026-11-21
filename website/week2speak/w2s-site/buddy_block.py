@@ -174,6 +174,9 @@ def script(ver):
   function done(d) {
     var n = function (id) { return ($(id).textContent || '0').trim(); }, c = $('smDone');
     c.innerHTML = '<p class="sm-done-k">Scene complete</p><h3>Nice work. You kept talking.</h3><p class="sm-stats"><span><b>' + n('sSent') + '</b> sentences</span><span><b>' + n('sFix') + '</b> fixes</span><span><b>' + n('sHelp') + '</b> hints</span>' + (d && d.bonus ? '<span class="xp"><b>+' + (+d.bonus) + '</b> XP</span>' : '') + '</p><div class="sm-done-a"><button type="button" class="key hl" data-again>Play again</button><button type="button" class="key" data-next>Next scene</button></div>';
+    var one = {sentences: 'sentence', fixes: 'fix', hints: 'hint', frases: 'frase', correcciones: 'corrección', pistas: 'pista'};
+    Array.prototype.forEach.call(c.querySelectorAll('.sm-stats span'), function (sp) { var b = sp.querySelector('b'), t = sp.lastChild;
+      if (b && t && t.nodeType === 3 && b.textContent.trim() === '1') t.textContent = t.textContent.replace(/[a-zñóé]+/i, function (w) { return one[w] || w; }); });
     c.hidden = false; hideCard(); set('done');
   }
 

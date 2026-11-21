@@ -833,7 +833,8 @@ const BUDDIES = (window.W2S_BUDDIES && window.W2S_BUDDIES.length) ? window.W2S_B
 const buddyOf = id => BUDDIES.find(b => b.id === id);
 if (!buddyOf(state.buddy)) state.buddy = BUDDIES[0].id;
 window.W2S_BUDDY = state.buddy; window.W2S_BUDDY_GENDER = buddyOf(state.buddy).gender;
-window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); nameMissions(); renderVoiceNotes();
+window.addEventListener('w2s:buddy', e => { const b = buddyOf(e.detail && e.detail.id) || buddyOf(state.buddy); state.buddy = b.id; save(); nameMissions(); renderMissions(); renderAccents(); renderVoiceNotes();
+  if (currentView === 'speak' && S.turns.length > 1 && !S.ended) startMission(S.id);   /* the new Buddy restarts the scene with their own name */
   setTimeout(() => { if (currentView === 'speak' && $('#speakAloud').checked) Voice.speak(b.greet, {rate: 1}); }, 700); });
 /* Speech Mode screen: Start talking, Play again and the replay button */
 window.addEventListener('w2s:start', () => { window.W2S_HOLD = 0; startMission(S.id); });
@@ -1077,7 +1078,8 @@ const Mic = (() => {
     d.start({language:'en-US'}).catch(err => {
       const code = err && err.code; const c = cur; cur = null; setBtn(false);
       track('mic_fail', {reason: code || 'error'});
-      if (code === 'not_granted' || code === 'no_mic') root.classList.remove('has-mic');
+      window.__micFails = (window.__micFails || 0) + 1;
+      if (code === 'not_granted' || code === 'no_mic' || code === 'unavailable' || (code === 'network' && window.__micFails >= 2)) root.classList.remove('has-mic');
       if (!(c && c.quiet)) toast(micWhy(code));
       if (c && c.onEnd) c.onEnd('', code || 'error');
     });
@@ -1177,7 +1179,7 @@ function sceneRecorded(id) {
   return ['us', 'gb', 'au'].some(a => m.steps.every(x => c[a + '|' + g + '|' + String(x.t).trim()]));
 }
 function renderMissions() {
-  $('#missions').innerHTML = Object.keys(MISSIONS).filter(id => sceneRecorded(id) || id === S.id).map(id => `<button type="button" class="chip${MISSIONS[id].ai ? ' ai-only' : ''}" data-mission="${id}" aria-pressed="${id === S.id}">${esc(MISSIONS[id].name)}</button>`).join('');
+  $('#missions').innerHTML = Object.keys(MISSIONS).filter(id => sceneRecorded(id) || id === S.id || (MISSIONS[id].ai && cap.sample)).map(id => `<button type="button" class="chip${MISSIONS[id].ai ? ' ai-only' : ''}" data-mission="${id}" aria-pressed="${id === S.id}">${esc(MISSIONS[id].name)}</button>`).join('');
 }
 function sayTutor(text) {
   S.turns.push({role:'tutor', text}); bubble('msg t', esc(text));
@@ -1207,7 +1209,7 @@ function renderHint() {
 function endMission() {
   S.ended = true; $('#speakInput').disabled = true; $('#speakSend').disabled = true; renderHint();
   const bonus = S.helps === 0 ? 30 : 20;
-  bubble('msg sys', `Scene complete: <b>${S.sent}</b> sentences, <b>${S.fixes}</b> fixes, <b>${S.helps}</b> hints. +${bonus} XP.`);
+  bubble('msg sys', `Scene complete: <b>${S.sent}</b> ${S.sent === 1 ? 'sentence' : 'sentences'}, <b>${S.fixes}</b> ${S.fixes === 1 ? 'fix' : 'fixes'}, <b>${S.helps}</b> ${S.helps === 1 ? 'hint' : 'hints'}. +${bonus} XP.`);
   addXP(bonus); markActivity('speak:' + S.id); burstFrom(chat); emit('done', {bonus}); track('round_complete', {mode: 'speak:' + S.id});
 }
 function scriptedNext() {
@@ -1290,7 +1292,7 @@ const gameBody = $('#gameBody');
 function startGame(kind, day) {
   Voice.stop(); Mic.cancel();
   if (!GAMES[kind]) kind = 'order';
-  if (day != null) G.picked = true; else day = G.picked ? G.day : sprintDay();
+  if (day != null) G.picked = true; else { day = G.picked ? G.day : sprintDay(); if (!G.picked) while (day > 0 && !dayRecorded(day)) day--; }
   Object.assign(G, {kind, day: Math.max(0, Math.min(6, +day || 0)), i:0, marks:[], combo:0, first:0, queue:null, qi:0, paid:false});
   track('practice_start', {mode: 'game:' + kind});
   $$('#gameTabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.game === kind));
@@ -1347,7 +1349,7 @@ function renderGame() {
   }
   if (G.heard) html += `<p class="heard">I heard: "${esc(G.heard)}"</p>`;
   html += fbHtml();
-  html += '<div class="row">';
+  html += '<div class="row g-act">';
   if (G.kind === 'order' && !G.solved) html += `<button type="button" class="key primary" data-check="1"${G.tray.length === G.toks.length ? '' : ' disabled'}>Check</button><button type="button" class="key rec mic-only" data-say="1">${ic('mic')}Say it instead</button>`;
   if (G.solved && G.kind === 'sound') html += `<button type="button" class="key" data-hearboth="1">${ic('speaker')}Hear both</button><button type="button" class="key rec mic-only" data-sayword="1">${ic('mic')}Say "${esc(it.w)}"</button>`;
   if (G.solved) html += `${G.kind === 'sound' ? '' : `<button type="button" class="key" data-hearit="1">${ic('speaker')}Hear it</button>`}<button type="button" class="key primary" data-next="1">${G.i + 1 < n ? 'Next sentence' : 'Finish round'}${ic('arrow')}</button>`;
@@ -1543,7 +1545,7 @@ function shPlay() {
 }
 $('#shPlay').addEventListener('click', shPlay);
 $('#shResult').addEventListener('click', e => { const b = e.target.closest('[data-shnext]'); if (!b) return; const m = b.dataset.shnext;
-  if (m === 'clip') { const ids = Object.keys(CLIPS).filter(k => k !== 'mine'), i = ids.indexOf(SH.clip); SH.clip = ids[(i + 1) % ids.length]; SH.reps = 0; SH.mode = 'listen'; renderShadow(); }
+  if (m === 'clip') { const ids = Object.keys(CLIPS).filter(k => k !== 'mine' && textRecorded(CLIPS[k].text)), i = ids.indexOf(SH.clip); SH.clip = ids[(i + 1) % ids.length]; SH.reps = 0; SH.mode = 'listen'; renderShadow(); }
   else { SH.mode = m; renderShadow(); shPlay(); } track('next', {mode: 'shadow:' + m}); });
 const shNext = m => '<div class="row sh-next"><button type="button" class="key primary" data-shnext="' + m + '">' + (m === 'shadow' ? ic('play') + (SH.mode === 'shadow' ? 'Speak along again' : 'Now speak along') : m === 'solo' ? ic('mic') + 'Now try it solo' : 'Next clip' + ic('arrow')) + '</button></div>';
 $('#mineSave').addEventListener('click', () => { shStop(); state.script = $('#mineText').value.replace(/\s+/g, ' ').trim().slice(0, 900); save(); $('#mineMsg').textContent = state.script ? 'Saved on this device.' : 'Empty, so the sample script is used.'; renderShadow(); });
@@ -1711,7 +1713,9 @@ const COURSE = [
 let courseDay = -1;
 function renderCourse() {
   const done = state.course.done, said = state.course.said;
-  if (courseDay < 0) { courseDay = DAYS.findIndex((_, i) => !done['d' + i]); if (courseDay < 0) courseDay = 0; }
+  if (courseDay < 0) { courseDay = DAYS.findIndex((_, i) => !done['d' + i]); if (courseDay < 0) courseDay = 0;
+    const lim = typeof window.W2S_lessonsAllowed === 'function' ? window.W2S_lessonsAllowed() : 1;
+    while (courseDay > 0 && (!dayRecorded(courseDay) || courseDay >= lim)) courseDay--; }
   $('#mods').innerHTML = DAYS.map((d, i) => !(dayRecorded(i) || i === courseDay) ? '' : `<button type="button" class="mod${done['d' + i] ? ' done' : ''}" data-mod="${i}" aria-pressed="${i === courseDay}"><span class="dn num">${done['d' + i] ? ic('check') : i + 1}</span><span>${esc(d.title)}</span></button>`).join('');
   const d = DAYS[courseDay], c = COURSE[courseDay], r = ruleById(c.rule), isDone = !!done['d' + courseDay];
   $('#lesson').innerHTML =

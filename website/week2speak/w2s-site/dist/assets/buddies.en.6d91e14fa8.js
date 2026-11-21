@@ -28,7 +28,7 @@ const QUAL = [{pr: 2, sh: true}, {pr: 1.5, sh: true}, {pr: 1.5, sh: false}, {pr:
 // phones start lighter: no shadow pass (the soft contact shadow stays), textures at 1024 px, the second Buddy not on the GPU until it is shown
 const LIGHT = window.matchMedia('(max-width: 899px), (pointer: coarse)').matches;
 function boot() {
-  try { if (!document.createElement('canvas').getContext('webgl2')) throw new Error('no WebGL 2'); canvas = document.createElement('canvas'); canvas.className = 'buddy-canvas'; canvas.tabIndex = 0; canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', 'Tu Buddy. Arrástralo para girarlo y tócalo para que reaccione.');
+  try { if (!document.createElement('canvas').getContext('webgl2')) throw new Error('no WebGL 2'); canvas = document.createElement('canvas'); canvas.className = 'buddy-canvas'; canvas.tabIndex = 0; canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', 'Your Language Buddy. Drag to spin, tap to poke.');
     renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: true, powerPreference: 'high-performance'}); } catch (e) { wrap.classList.add('no-3d'); return false; }
   const gl = renderer.getContext(); try { const x = gl.getExtension('WEBGL_debug_renderer_info'); D.renderer = String(x ? gl.getParameter(x.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)); } catch (e) {}
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.setClearColor(0x000000, 0);
@@ -395,10 +395,14 @@ function confStep(dt) { if (!conf) return; let any = false; cp.forEach((p, i) =>
 
 /* ---------- which Buddy is on stage ---------- */
 let firstShow = true, firstLoad = true;
-// once the first Buddy is on stage, the others load quietly in the background so Switch Buddy is instant
+// the others load in the background once the learner shows they may switch (preloadOnIntent)
 function preloadOthers(id) { const c = navigator.connection; if (c && (c.saveData || /2g/.test(c.effectiveType || ''))) return;
   const go = () => ROSTER.filter(r => r.id !== id && FILE[r.id]).forEach(r => load(r.id).then(b => { if (!LIGHT) b.model.traverse(o => { if (o.material && o.material.map) renderer.initTexture(o.material.map); }); }).catch(() => {}));
-  setTimeout(go, 600); }   // not requestIdleCallback: the render loop keeps the page from ever being idle
+  go(); }   // called on intent (preloadOnIntent), so no delay is needed
+// the other Buddies (about 2 MB each) load only when the learner reaches for Switch Buddy: most visitors never switch
+function preloadOnIntent(id) { const sw = document.getElementById('buddySwitch'); if (!sw) return; let done = false;
+  const go = () => { if (done) return; done = true; ['pointerenter', 'focus', 'touchstart'].forEach(ev => sw.removeEventListener(ev, go)); preloadOthers(id); };
+  ['pointerenter', 'focus', 'touchstart'].forEach(ev => sw.addEventListener(ev, go, {passive: true})); }
 function show(id, instant) {
   pending = id;
   if (B && !buddies[id]) wrap.classList.remove('is-3d');   // not loaded yet: the new Buddy's picture shows at once, the 3D follows
@@ -406,7 +410,7 @@ function show(id, instant) {
     const swap = () => { if (old && old !== b) scene.remove(old.spin); B = b; D.id = id; scene.add(b.spin); b.rot = 0; b.rotV = 0; turnAcc = 0; frameCam(); relax();
       if (instant || RM) { b.pop.x = 1; b.pop.t = 1; b.pop.v = 0; } else { b.pop.x = 0.02; b.pop.t = 1; b.pop.v = 6; hop(2.4); confetti(26); SFX.pop(); }
       if (!RM && (firstShow || !instant)) at(firstShow ? 700 : 280, () => { if (performance.now() > busyUntil) R.wave(); }); firstShow = false;
-      wrap.classList.add('is-3d'); D.ready = true; if (firstLoad) { firstLoad = false; preloadOthers(id); } };
+      wrap.classList.add('is-3d'); D.ready = true; if (firstLoad) { firstLoad = false; preloadOnIntent(id); } };
     if (old && old !== b && !instant && !RM && wrap.classList.contains('is-3d')) { cancel(); D.ready = false; old.pop.t = 0.02; old.rotV = 18; SFX.whoosh(); setTimeout(swap, 170); } else swap(); })
     .catch(() => { if (!B) wrap.classList.add('no-3d'); });
 }
