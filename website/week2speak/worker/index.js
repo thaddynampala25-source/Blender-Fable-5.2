@@ -189,7 +189,6 @@ async function practiceCount(req, env) {
   if (env.COUNT_PRACTICE !== '1') return json({ok: true, counted: false});
   const b = await body(req), kinds = ['speak', 'game', 'shadow', 'lesson'];
   const list = [...new Set([].concat(b.kinds || []).filter(k => kinds.includes(k)))]; if (!list.length) return err('kind');
-  if (!(await throttle(env, 'count:' + await ipKey(req, env), 30))) return json({ok: true, counted: false});
   if (b.first) list.push('any');
   const day = today(), st = env.DB.prepare('INSERT INTO practice_daily (day, kind, n) VALUES (?1, ?2, 1) ON CONFLICT(day, kind) DO UPDATE SET n = n + 1');
   await env.DB.batch(list.map(k => st.bind(day, k)));

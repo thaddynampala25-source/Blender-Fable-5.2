@@ -23,8 +23,8 @@
     // Stripe Payment Links per price tier (LIVE mode since 20 Nov 2026; account Week2Speak)
     "PAY_LINKS": "{\"gbp\": \"https://buy.stripe.com/00waEZ4Efgrm7DS2TzdQQ00\", \"eur\": \"https://buy.stripe.com/3cI5kFb2DejecYc1PvdQQ06\", \"eur_es\": \"https://buy.stripe.com/3cIcN72w7dfa7DS51HdQQ05\", \"usd\": \"https://buy.stripe.com/cNicN77Qrb724rGgKpdQQ04\", \"usd_latam\": \"https://buy.stripe.com/aFacN7b2D0sogao0LrdQQ03\", \"mxn\": \"https://buy.stripe.com/fZu8wR1s3fniaQ4cu9dQQ02\", \"cop\": \"https://buy.stripe.com/8x24gB0nZgrmaQ41PvdQQ01\"}",
     "SHOW_ANCHOR": "0",
-    // anonymous practice counts (metric 3): "1" only after the owner approves the privacy-notice sentence
-    "COUNT_PRACTICE": "0"
+    // anonymous practice counts (metric 3): on since 21 Nov 2026; the privacy notice describes them
+    "COUNT_PRACTICE": "1"
   },
   "observability": {"enabled": true}
 }

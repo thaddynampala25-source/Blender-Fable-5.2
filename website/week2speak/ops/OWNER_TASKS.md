@@ -46,15 +46,6 @@ site by themselves as soon as their recordings are in `w2s-site/audio/` (no code
   secret; if it failed, the payment still arrived and the booking can be marked paid by hand).
 - **Read-only Stripe key** (optional): puts revenue and failed payments into `ops/weekly_metrics.py`. Goes in the
   environment settings, never in chat.
-- **Anonymous practice counts** (metric 3): owner said yes (21 Nov). Built and deployed **switched off**
-  (`COUNT_PRACTICE: "0"` in `wrangler.jsonc`). To switch on, the owner approves this privacy-notice line, then Claude
-  adds it, sets `"1"` and deploys:
-  - ES: «Contamos, de forma anónima, cuántos navegadores practican cada día (Modo Habla, juegos, Imita, curso). Solo se guarda
-    un número por día; no guardamos quién eres, tu IP ni ningún identificador. Tu navegador recuerda en tu dispositivo que ya
-    contó hoy.»
-  - EN: "We count, anonymously, how many browsers practise each day (Speech Mode, games, Shadowing, course). Only one number
-    per day is kept; we do not store who you are, your IP or any identifier. Your browser remembers on your device that it
-    has already been counted today."
 - **Social accounts** (TikTok, Instagram): wanted, but **later**: the owner is still optimising the site and service
   (21 Nov). Mei sets them up; then Claude drafts three posts (T9). Remind the owner when the site work settles.
 - **Notion "Week2Speak HQ"** (T5): Claude creates it only after the owner OKs pages in the personal workspace.
@@ -76,3 +67,5 @@ site by themselves as soon as their recordings are in `w2s-site/audio/` (no code
   labels only ("Ver el Sprint" / "Reservar mi plaza"); home "Empieza el Día 1" opens free lesson 1; Join checkbox in plain
   words; home pricing shows the Sprint price and a "Crear cuenta gratis" button; one name per scene and button; Speech
   Mode limit card and "(opcional)" on "¿Cómo nos encontraste?"; thank-you page says "Aún no tienes plaza" without a booking.
+- 21 Nov 2026: anonymous practice counts switched on after the owner approved the privacy-notice line (privacy notice
+  updated in both languages; `ops/weekly_metrics.py` metric 3 reads them).
